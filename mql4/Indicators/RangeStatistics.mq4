@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2016, Gao Zeng.QQ--183947281,mail--soko8@sina.com."
 #property link      "https://www.mql5.com"
-#property version   "1.02"
+#property version   "1.03"
 #property strict
 //#property indicator_separate_window
 #property indicator_chart_window
@@ -787,6 +787,10 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                         ObjectSetString(0, lblName, OBJPROP_TEXT, "");
                      }
                      sortValue[j] = value;
+                  } else {
+                     string lblName = IntegerToString(j)+"_1";
+                     ObjectSetString(0, lblName, OBJPROP_TEXT, "");
+                     sortValue[j] = 0;
                   }
                }
             } else {
@@ -807,6 +811,11 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                      value += StrToDouble(lblValueI);
                      ObjectSetString(0, lblName, OBJPROP_TEXT, DoubleToStr(value, 2));
                      sortValue[j] = value;
+                  } else {
+                     string lblName = IntegerToString(j)+"_1";
+                     string lblValueI = ObjectGetString(0, IntegerToString(j)+"_"+IntegerToString(i+1), OBJPROP_TEXT);
+                     ObjectSetString(0, lblName, OBJPROP_TEXT, lblValueI);
+                     sortValue[j] = StrToDouble(lblValueI);
                   }
                }
             }

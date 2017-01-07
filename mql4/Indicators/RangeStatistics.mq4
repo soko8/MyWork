@@ -3,9 +3,9 @@
 //|                        Copyright 2016, MetaQuotes Software Corp. |
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
-#property copyright "Copyright 2016, MetaQuotes Software Corp."
+#property copyright "Copyright 2016, Gao Zeng.QQ--183947281,mail--soko8@sina.com."
 #property link      "https://www.mql5.com"
-#property version   "1.01"
+#property version   "1.02"
 #property strict
 //#property indicator_separate_window
 #property indicator_chart_window
@@ -55,7 +55,7 @@ input    string               symbolPrefix = "";
 input    string               symbolSuffix = "";
 
 
-const    int                  HEADER_COUNT = 19;
+const    int                  HEADER_COUNT = 20;
 
 const    string               btnNmSortAsc = "SortAsc";
 const    string               btnNmSortDesc = "SortDesc";
@@ -84,7 +84,7 @@ const    int                  RANGES[15][2] = {
                                                {400, 9999}
                                               };
 
-const    string               HEADER_TEXT[19] = {  "",
+const    string               HEADER_TEXT[20] = {  "",
                                                    "0~25",
                                                    "25~50",
                                                    "50~75",
@@ -102,7 +102,8 @@ const    string               HEADER_TEXT[19] = {  "",
                                                    "400~",
                                                    "Min",
                                                    "Max",
-                                                   "Average"
+                                                   "Average",
+                                                   "spread"
                                                 };
                                                 
          string               arraySymbols[];
@@ -128,11 +129,12 @@ const    string               HEADER_TEXT[19] = {  "",
          double               minRange[];
          double               maxRange[];
          double               average[];
+         double               symbolSpread[];
 
 int OnInit() {
    initArraySymbols();
    
-   int X_column[20] =   {
+   int X_column[21] =   {
                            2,
                            114,
                            161,
@@ -152,7 +154,8 @@ int OnInit() {
                            819,
                            866,
                            913,
-                           960
+                           960,
+                           1007
                         };
    
    int y;
@@ -354,10 +357,14 @@ void OnTimer() {
       ObjectSetString(0, IntegerToString(i)+"_18", OBJPROP_TEXT, DoubleToStr(maxRange[i], 1));
       ObjectSetString(0, IntegerToString(i)+"_19", OBJPROP_TEXT, DoubleToStr(average[i], 1));
    }
+   updateSpread();
 }
 
 int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[])
-{return(rates_total);}
+{
+   updateSpread();
+   return(rates_total);
+}
 
 void initArraySymbols() {
 
@@ -565,6 +572,7 @@ void initArraySymbols() {
    ArrayResize(minRange, count);
    ArrayResize(maxRange, count);
    ArrayResize(average, count);
+   ArrayResize(symbolSpread, count);
    
    ArrayResize(isSelectedHeader, HEADER_COUNT);
    ArrayResize(isSelectedSymbol, count);
@@ -842,6 +850,7 @@ void refreshTable() {
       ObjectSetString(0, IntegerToString(i)+"_18", OBJPROP_TEXT, DoubleToStr(maxRange[i], 1));
       ObjectSetString(0, IntegerToString(i)+"_19", OBJPROP_TEXT, DoubleToStr(average[i], 1));
    }
+   updateSpread();
 }
 
 template<typename T> 
@@ -876,6 +885,7 @@ void swapAllArray(int i, int j) {
    swap(minRange, i, j);
    swap(maxRange, i, j);
    swap(average, i, j);
+   swap(symbolSpread, i, j);
 
 }
 
@@ -912,4 +922,13 @@ void quick_sort(double& array[], int left, int right) {
    
    quick_sort(array, left, pivotNewIndex-1);
    quick_sort(array, pivotNewIndex+1, right);
+}
+
+void updateSpread() {
+   int countSymbols = ArraySize(arraySymbols);
+   for (int i = 0; i < countSymbols; i++) {
+      double spreadI = MarketInfo(arraySymbols[i], MODE_SPREAD)/10;
+      symbolSpread[i] = spreadI;
+      ObjectSetString(0, IntegerToString(i)+"_20", OBJPROP_TEXT, DoubleToStr(spreadI, 1));
+   }
 }

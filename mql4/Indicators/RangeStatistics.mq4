@@ -66,7 +66,8 @@ const    string               textNmSortValue = "SortValue";
 const    string               btnNmHeader = "HeaderBtn_";
 const    string               btnNmSymbol = "Symbol_";
 
-const    int                  RANGES[15][2] = {{0  , 25},
+const    int                  RANGES[15][2] = {
+                                               {0  , 25},
                                                {25 , 50},
                                                {50 , 75},
                                                {75 , 100},

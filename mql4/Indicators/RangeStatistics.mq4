@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2016, MetaQuotes Software Corp."
 #property link      "https://www.mql5.com"
-#property version   "1.00"
+#property version   "1.01"
 #property strict
 //#property indicator_separate_window
 #property indicator_chart_window
@@ -135,24 +135,24 @@ int OnInit() {
    int X_column[20] =   {
                            2,
                            114,
-                           166,
-                           218,
-                           270,
-                           322,
-                           374,
-                           426,
-                           478,
-                           530,
-                           582,
-                           634,
-                           686,
-                           738,
-                           790,
-                           842,
-                           894,
-                           946,
-                           998,
-                           1050
+                           161,
+                           208,
+                           255,
+                           302,
+                           349,
+                           396,
+                           443,
+                           490,
+                           538,
+                           584,
+                           631,
+                           678,
+                           725,
+                           772,
+                           819,
+                           866,
+                           913,
+                           960
                         };
    
    int y;
@@ -162,11 +162,11 @@ int OnInit() {
    
    ButtonCreate(btnNmSortDesc, "Desc", X_column[0]+55+1, y, 55, 16, clrMistyRose, 12, clrBlack);
    
-   RectLabelCreate(rectNmSortValue, X_column[1], y, 50, 16);
+   RectLabelCreate(rectNmSortValue, X_column[1], y, 45, 16);
    SetText(textNmSortValue, HEADER_TEXT[0], X_column[1]+2, y+1, 8);
    
    for (int i = 1; i < HEADER_COUNT; i++) {
-      ButtonCreate(btnNmHeader+IntegerToString(i), HEADER_TEXT[i], X_column[i+1], y, 50, 16, clrLavender, 8, clrBlack);
+      ButtonCreate(btnNmHeader+IntegerToString(i), HEADER_TEXT[i], X_column[i+1], y, 45, 16, clrLavender, 8, clrBlack);
    }
    
    int symbolCount = ArraySize(arraySymbols);
@@ -177,7 +177,7 @@ int OnInit() {
       ButtonCreate(btnNmSymbol+IntegerToString(i), arraySymbols[i], X_column[0], y, 111, 16, clrLavender, 10, clrBlack);
       
       for (int j = 1; j <= HEADER_COUNT; j++) {
-         RectLabelCreate("Rect_"+IntegerToString(i)+"_"+IntegerToString(j), X_column[j], y, 50, 16);
+         RectLabelCreate("Rect_"+IntegerToString(i)+"_"+IntegerToString(j), X_column[j], y, 45, 16);
          SetText(IntegerToString(i)+"_"+IntegerToString(j), "", X_column[j]+2, y+1, 8);
       }
 

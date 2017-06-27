@@ -7,7 +7,7 @@
 #property indicator_chart_window
 
 extern color font_color = White;
-extern int font_size = 28;
+extern int font_size = 14;
 extern string font_face = "Arial";
 extern int corner = 1; //0 - for top-left corner, 1 - top-right, 2 - bottom-left, 3 - bottom-right
 extern int spread_distance_x = 1;
@@ -42,6 +42,23 @@ int init()
    
    ObjectSetText("Spread", "Spread: " + DoubleToStr(NormalizeDouble(spread / divider, 1), n_digits) + " points.", font_size, font_face, font_color);
 
+
+
+   ObjectCreate("SwapLong", OBJ_LABEL, 0, 0, 0);
+   ObjectSet("SwapLong", OBJPROP_CORNER, corner);
+   ObjectSet("SwapLong", OBJPROP_XDISTANCE, 110);
+   ObjectSet("SwapLong", OBJPROP_YDISTANCE, spread_distance_y);
+   double swapLong = NormalizeDouble(MarketInfo(Symbol(), MODE_SWAPLONG), 2);
+   printf("swapLong:" + swapLong);
+   ObjectSetText("SwapLong", "SwapL: " + DoubleToStr(swapLong, 2) + "", font_size, font_face, font_color);
+   
+   ObjectCreate("SwapShort", OBJ_LABEL, 0, 0, 0);
+   ObjectSet("SwapShort", OBJPROP_CORNER, corner);
+   ObjectSet("SwapShort", OBJPROP_XDISTANCE, 250);
+   ObjectSet("SwapShort", OBJPROP_YDISTANCE, spread_distance_y);
+   double swapShort = NormalizeDouble(MarketInfo(Symbol(), MODE_SWAPSHORT), 2);
+   ObjectSetText("SwapShort", "SwapS: " + DoubleToStr(swapShort, 2) + "", font_size, font_face, font_color);
+   
    return(0);
 }
 
@@ -51,6 +68,8 @@ int init()
 int deinit()
 {
    ObjectDelete("Spread");
+   ObjectDelete("SwapLong");
+   ObjectDelete("SwapShort");
    return(0);
 }
 
@@ -62,7 +81,12 @@ int start()
    RefreshRates();
    
    double spread = (Ask - Bid) / Point;
-   ObjectSetText("Spread", " " + DoubleToStr(NormalizeDouble(spread / divider, 1), n_digits) + "", font_size, font_face, font_color);
+   ObjectSetText("Spread", "Sprd: " + DoubleToStr(NormalizeDouble(spread / divider, 1), n_digits) + "", font_size, font_face, font_color);
+    
+    //double swapLong = NormalizeDouble(MarketInfo(Symbol(), MODE_SWAPLONG), 3);
+    //ObjectSetText("Long:", " " + DoubleToStr(swapLong, 3) + "", font_size, font_face, font_color);
+    //double swapShort = NormalizeDouble(MarketInfo(Symbol(), MODE_SWAPSHORT), 3);
+   //ObjectSetText("Short:", " " + DoubleToStr(swapShort, 3) + "", font_size, font_face, font_color);
     
    return(0);
 }

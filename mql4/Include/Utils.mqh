@@ -31,4 +31,5 @@
    double pips2Price(string symbolName, int pips);
    bool isAuthorized(bool AccountCtrl, int& AuthorizeAccountList[]);
    bool isExpire(bool EnableUseTimeControl, datetime ExpireTime);
+   int countOrders(int magicNumber=0, string symbolName=NULL);
 #import

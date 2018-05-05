@@ -32,4 +32,5 @@
    bool isAuthorized(bool AccountCtrl, int& AuthorizeAccountList[]);
    bool isExpire(bool EnableUseTimeControl, datetime ExpireTime);
    int countOrders(int magicNumber=0, string symbolName=NULL);
+   int closeAllOrders(int magicNumber=0, string symbolName=NULL);
 #import

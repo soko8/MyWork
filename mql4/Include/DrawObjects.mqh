@@ -76,4 +76,25 @@ void SetText(  string            name,
                color             fontColor=clrWhite,
                string            fontName="Arial",
                ENUM_BASE_CORNER  corner=CORNER_LEFT_UPPER);
+               
+void EditCreate(const string           name="Edit",              // object name 
+                const int              x=0,                      // X coordinate 
+                const int              y=0,                      // Y coordinate 
+                const int              width=50,                 // width 
+                const int              height=18,                // height 
+                const string           text="Text",              // text 
+                const int              font_size=10,             // font size
+                const bool             read_only=false,          // ability to edit
+                const color            back_clr=clrWhite,        // background color
+                const color            clr=clrBlack,             // text color
+                const string           font="Arial",             // font
+                const ENUM_ALIGN_MODE  align=ALIGN_CENTER,       // alignment type 
+                const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER, // chart corner for anchoring 
+                const color            border_clr=clrNONE,       // border color 
+                const bool             back=false,               // in the background 
+                const bool             selection=false,          // highlight to move 
+                const bool             hidden=true,              // hidden in the object list 
+                const long             z_order=0);               // priority for mouse click 
+               
+               
 #import

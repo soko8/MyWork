@@ -33,4 +33,5 @@
    bool isExpire(bool EnableUseTimeControl, datetime ExpireTime);
    int countOrders(int magicNumber=0, string symbolName=NULL);
    int closeAllOrders(int magicNumber=0, string symbolName=NULL);
+   bool isNumber(string number);
 #import

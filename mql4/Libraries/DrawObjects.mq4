@@ -166,3 +166,65 @@ export {
    ObjectSet(name, OBJPROP_BACK, false);
    ObjectSetText(name, text, fontSize, fontName, fontColor);
 }
+
+
+void EditCreate(const string           name="Edit",              // object name 
+                const int              x=0,                      // X coordinate 
+                const int              y=0,                      // Y coordinate 
+                const int              width=50,                 // width 
+                const int              height=18,                // height 
+                const string           text="Text",              // text 
+                const int              font_size=10,             // font size
+                const bool             read_only=false,          // ability to edit 
+                const color            back_clr=clrWhite,        // background color
+                const color            clr=clrBlack,             // text color
+                const string           font="Arial",             // font
+                const ENUM_ALIGN_MODE  align=ALIGN_CENTER,       // alignment type 
+                const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER, // chart corner for anchoring 
+                const color            border_clr=clrNONE,       // border color 
+                const bool             back=false,               // in the background 
+                const bool             selection=false,          // highlight to move 
+                const bool             hidden=true,              // hidden in the object list 
+                const long             z_order=0)                // priority for mouse click 
+export {
+//--- reset the error value
+   ResetLastError();
+//--- create edit field
+   if(!ObjectCreate(0, name, OBJ_EDIT, 0, 0, 0)) {
+      Print(__FUNCTION__,  ": failed to create \"Edit\" object! Error code = ",GetLastError());
+   }
+   int chart_ID = 0;
+//--- set object coordinates
+   ObjectSetInteger(chart_ID,name,OBJPROP_XDISTANCE,x);
+   ObjectSetInteger(chart_ID,name,OBJPROP_YDISTANCE,y);
+//--- set object size
+   ObjectSetInteger(chart_ID,name,OBJPROP_XSIZE,width);
+   ObjectSetInteger(chart_ID,name,OBJPROP_YSIZE,height);
+//--- set the text
+   ObjectSetString(chart_ID,name,OBJPROP_TEXT,text);
+//--- set text font
+   ObjectSetString(chart_ID,name,OBJPROP_FONT,font);
+//--- set font size 
+   ObjectSetInteger(chart_ID,name,OBJPROP_FONTSIZE,font_size);
+//--- set the type of text alignment in the object
+   ObjectSetInteger(chart_ID,name,OBJPROP_ALIGN,align);
+//--- enable (true) or cancel (false) read-only mode
+   ObjectSetInteger(chart_ID,name,OBJPROP_READONLY,read_only);
+//--- set the chart's corner, relative to which object coordinates are defined
+   ObjectSetInteger(chart_ID,name,OBJPROP_CORNER,corner);
+//--- set text color
+   ObjectSetInteger(chart_ID,name,OBJPROP_COLOR,clr);
+//--- set background color
+   ObjectSetInteger(chart_ID,name,OBJPROP_BGCOLOR,back_clr);
+//--- set border color
+   ObjectSetInteger(chart_ID,name,OBJPROP_BORDER_COLOR,border_clr);
+//--- display in the foreground (false) or background (true)
+   ObjectSetInteger(chart_ID,name,OBJPROP_BACK,back);
+//--- enable (true) or disable (false) the mode of moving the label by mouse
+   ObjectSetInteger(chart_ID,name,OBJPROP_SELECTABLE,selection);
+   ObjectSetInteger(chart_ID,name,OBJPROP_SELECTED,selection);
+//--- hide (true) or display (false) graphical object name in the object list
+   ObjectSetInteger(chart_ID,name,OBJPROP_HIDDEN,hidden);
+//--- set the priority for receiving the event of a mouse click in the chart
+   ObjectSetInteger(chart_ID,name,OBJPROP_ZORDER,z_order);
+}

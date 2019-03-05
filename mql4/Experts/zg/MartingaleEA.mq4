@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                       MartingaleFixedEA_v1.0.mq4 |
+//|             Deprecated                MartingaleFixedEA_v1.0.mq4 |
 //|                  Copyright 2016～2019, MetaQuotes Software Corp. |
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+

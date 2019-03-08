@@ -449,8 +449,8 @@ void minusPositionL() {
    OrderListL.Delete(count-1);
    OrderListL.Delete(count-2);
    
-   order0 = OrderListL.GetNodeAtIndex(0);
-   order0.setTpPrice(order0.getOpenPrice() + tp);
+   OrderInfo *order0_ = OrderListL.GetNodeAtIndex(0);
+   order0_.setTpPrice(order0_.getOpenPrice() + tp);
    
    delete order0;
    delete orderLast;
@@ -491,8 +491,8 @@ void minusPositionS() {
    OrderListS.Delete(count-1);
    OrderListS.Delete(count-2);
    
-   order0 = OrderListS.GetNodeAtIndex(0);
-   order0.setTpPrice(order0.getOpenPrice() - tp);
+   OrderInfo *order0_ = OrderListS.GetNodeAtIndex(0);
+   order0_.setTpPrice(order0_.getOpenPrice() - tp);
    
    delete order0;
    delete orderLast;

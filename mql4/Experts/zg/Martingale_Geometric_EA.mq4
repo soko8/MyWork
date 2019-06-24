@@ -1602,72 +1602,75 @@ void drawTotal() {
    DrawLine(nmLineClosePositionBuy, 0, clrGold, STYLE_DOT);
    DrawLine(nmLineClosePositionSell, 0, clrGold, STYLE_DOT);
    string fontName = "Lucida Bright";
-   RectLabelCreate("rl_bg_tf", 75, 0, 266, 20);
-   SetText("TotalProfitLabel", "Total Profit :", 98, 1);
-   SetText(nmLabelTotalProfitValue, "0.0", 200, 1, TxtFontSize);
+   RectLabelCreate("rl_bg_tf", 2, 30, 300, 40);
+   SetText("TotalProfitLabel", "Total Profit :", 4, 32);
+   SetText(nmLabelTotalProfitValue, "0.0", 170, 32, TxtFontSize);
 
-   ButtonCreate(nmBtnStopResume, txtBtnResume, 342, 0, 88, 28, color4BtnResume, BtnFontSize+2, clrBlack, fontName, clrGold);
+   ButtonCreate(nmBtnStopResume, txtBtnResume, 342, 30, 150, 40, color4BtnResume, BtnFontSize+2, clrBlack, fontName, clrGold);
 
-   ButtonCreate(nmBtnForbidCreateOrderManual, txtBtnForbidCreateOrderManual, 523, 1, 88, 28, color4BtnForbidCreateOrderManual, BtnFontSize+2, clrBlack, fontName, clrGold);
+   ButtonCreate(nmBtnForbidCreateOrderManual, txtBtnForbidCreateOrderManual, 523, 30, 150, 40, color4BtnForbidCreateOrderManual, BtnFontSize+2, clrBlack, fontName, clrGold);
 }
 
 void drawLongShort() {
    int X_START = 1;
-   int Y_START = 20;
+   int Y_START = 76;
    string fontName = "Lucida Bright";
    int X = X_START;
    int Y = Y_START;
-   int Width = 170;
-   int Height = 209;
-   int interval = 94;
+   int Width = 350;
+   int Height = 400;
+   int interval = 194;
+   int btnWidth = 160;
+   int btnHeight = 40;
+   int intervalHeight = 47;
    RectLabelCreate("rl_bg_Long", X, Y, Width, Height);
    SetText("LongWords", "Long", X+60, Y+1, TxtFontSize+2);
-   Y += 24;
-   ButtonCreate(nmBtnCloseLong, txtBtnCreateLong, X, Y, 80, 28, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(nmBtnCloseLong, txtBtnCreateLong, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitLong, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("CloseProfitWordsLong", "Close Profit :", X+2, Y, TxtFontSize);
    SetText(lblnmCloseBuyProfit, "0.0", X+interval, Y, TxtFontSize);
-   Y += 22;
-   ButtonCreate(nmBtnDecreasePositionLong, txtBtnDecreasePositionLong, X, Y, 80, 28, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(nmBtnDecreasePositionLong, txtBtnDecreasePositionLong, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitDPLong, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("RetraceRatioWordsLong", "Retrace :", X+2, Y, TxtFontSize);
    SetText(lblnmRetraceRatioBuy, "0.0", X+interval, Y, TxtFontSize);
-   Y += 22;
-   ButtonCreate(btnNmCloseMaxBuyOrder, "CloseMaxL", X, Y, 85, 28, clrDarkGreen, BtnFontSize, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(btnNmCloseMaxBuyOrder, "CloseMaxL", X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
    SetText(lblNmProfitMaxBuyOrder, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("CountAPWordsLong", "Add Order Times :", X+2, Y, TxtFontSize);
-   SetText(lblnmCountAPBuy, "0", X+134, Y, TxtFontSize);
-   Y += 22;
-   ButtonCreate(btnNmAdd1BuyOrder, "+Long", X, Y, 58, 28, clrDarkGreen, BtnFontSize, clrWhite);
+   SetText(lblnmCountAPBuy, "0", X+234, Y, TxtFontSize);
+   Y += intervalHeight;
+   ButtonCreate(btnNmAdd1BuyOrder, "+Long", X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
 
    
    X = X_START+Width;
    Y = Y_START;
    RectLabelCreate("rl_bg_Short", X, Y, Width, Height);
    SetText("ShortWords", "Short", X+60, Y+1, TxtFontSize+2);
-   Y += 24;
-   ButtonCreate(nmBtnCloseShort, txtBtnCreateShort, X, Y, 80, 28, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(nmBtnCloseShort, txtBtnCreateShort, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitShort, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("CloseProfitWordsShort", "Close Profit :", X+2, Y, TxtFontSize);
    SetText(lblnmCloseSellProfit, "0.0", X+interval, Y, TxtFontSize);
-   Y += 22;
-   ButtonCreate(nmBtnDecreasePositionShort, txtBtnDecreasePositionShort, X, Y, 80, 28, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(nmBtnDecreasePositionShort, txtBtnDecreasePositionShort, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitDPShort, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("RetraceRatioWordsShort", "Retrace :", X, Y, TxtFontSize);
    SetText(lblnmRetraceRatioSell, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 22;
-   ButtonCreate(btnNmCloseMaxSellOrder, "CloseMaxS", X, Y, 87, 28, clrMaroon, BtnFontSize, clrWhite);
+   Y += intervalHeight;
+   ButtonCreate(btnNmCloseMaxSellOrder, "CloseMaxS", X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
    SetText(lblNmProfitMaxSellOrder, "0.0", X+interval, Y+4, TxtFontSize);
-   Y += 30;
+   Y += intervalHeight;
    SetText("CountAPWordsShort", "Add Order Times :", X+2, Y, TxtFontSize);
-   SetText(lblnmCountAPSell, "0", X+134, Y, TxtFontSize);
-   Y += 22;
-   ButtonCreate(btnNmAdd1SellOrder, "+Short", X, Y, 60, 28, clrMaroon, BtnFontSize, clrWhite);
+   SetText(lblnmCountAPSell, "0", X+234, Y, TxtFontSize);
+   Y += intervalHeight;
+   ButtonCreate(btnNmAdd1SellOrder, "+Short", X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
 }
 
 void drawInputParameters() {
@@ -1678,20 +1681,20 @@ void drawInputParameters() {
    //string      btnTxtDn=CharToStr(226);
    string      btnTxtDn="-";
 
-   int x_start = 170*2+1;
-   int y_start = 30;
+   int x_start = 350*2+1;
+   int y_start = 76;
    int x = x_start;
    int y = y_start;
-   RectLabelCreate("InputParametersRectLabel", x, y, 342, 222);
+   RectLabelCreate("InputParametersRectLabel", x, y, 600, 430);
    
    color backgroundColor = C'35,35,35';
    string fontName = "Wingdings 3";
    //string fontName = "Webdings";
    int fontSize = 7;
-   int btnWidth = 19;
-   int btnHeight = 20;
+   int btnWidth = 40;
+   int btnHeight = 40;
    
-   int interval = 200;
+   int interval = 400;
    int widthValue = 100;
    int rowInterval = 2;
    
@@ -1736,7 +1739,7 @@ void drawInputParameters() {
       btnText = btnTxtAddOrderByTrend;
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmAddOrderByTrend, btnText, x+interval-40, y+2, 180, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmAddOrderByTrend, btnText, x+interval-140, y+2, 280, btnHeight, btnColor, fontSize, clrWhite);
    
    y += btnHeight+rowInterval;
    SetText("CloseModeLabel", "Close Mode :", x+4, y+2, fontSize+1);
@@ -1744,17 +1747,17 @@ void drawInputParameters() {
    if (Close_All == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMCloseAll, "CloseAll", x+interval-100, y+2, 60, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmCMCloseAll, "CloseAll", x+interval-220, y+2, 100, btnHeight, btnColor, fontSize, clrWhite);
    btnColor = btnColorDisable;
    if (Close_Part == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMClosePart, "ClosePart", x+interval-30, y+2, 70, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmCMClosePart, "ClosePart", x+interval-110, y+2, 120, btnHeight, btnColor, fontSize, clrWhite);
    btnColor = btnColorDisable;
    if (Close_Part_All == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMClosePartAll, "ClosePartAll", x+interval+50, y+2, 90, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmCMClosePartAll, "ClosePartAll", x+interval+20, y+2, 160, btnHeight, btnColor, fontSize, clrWhite);
    
    y += btnHeight+rowInterval;
    string lblText = "Add Order Lot Multiple :";

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns="http://java.sun.com/xml/ns/javaee" 
+xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
+id="WebApp_ID" 
+version="3.0">
+
+	<display-name>myWeb</display-name>
+  
+	<!-- 将ActionServlet配置成自启动的Servlet -->  
+	<servlet>  
+	    <!-- 指定Servlet 的名字 -->  
+	    <servlet-name>actionSevlet</servlet-name>  
+	    <!-- 指定该Servlet 的实现类 -->  
+	    <servlet-class>  
+	        org.apache.struts.action.ActionServlet  
+	    </servlet-class>  
+	    <init-param>  
+        	<param-name>config</param-name>  
+        	<param-value>/WEB-INF/struts-config-user.xml</param-value>  
+    	</init-param>
+    	<!-- <init-param>  
+        	<param-name>config/sub</param-name>  
+        	<param-value>/WEB-INF/struts-config-sub.xml</param-value>  
+    	</init-param> -->
+	    <!-- 配置自启动的级别 -->  
+	    <load-on-startup>2</load-on-startup>  
+	</servlet>  
+	<servlet-mapping>  
+	    <!-- 配置ActionServlet的URL 映射 -->  
+	    <servlet-name>actionSevlet</servlet-name>
+	    <!-- 所有以.do 结尾的请求由ActionServlet拦截 -->  
+	    <url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>pathForTest</servlet-name>
+		<jsp-file>/WEB-INF/jsp/pathtest.jsp</jsp-file>
+
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>pathForTest</servlet-name>
+		<url-pattern>/ptjsp</url-pattern>
+	</servlet-mapping>
+
+	<welcome-file-list>
+	  <welcome-file>first.jsp</welcome-file>
+	  <!-- <welcome-file>index.htm</welcome-file> -->
+	  
+	  
+	  <!-- <welcome-file>index.jsp</welcome-file> -->
+	  
+	  
+	  <!-- <welcome-file>default.html</welcome-file>
+	  <welcome-file>default.htm</welcome-file>
+	  <welcome-file>default.jsp</welcome-file> -->
+	</welcome-file-list>
+</web-app>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configs>
+
+	<db-config name="postgresql">
+		<url>jdbc:postgresql://localhost:5432/FOCDB</url>
+		<driverClass>org.postgresql.Driver</driverClass>
+		<userName>postgres</userName>
+		<password>postgres</password>
+	</db-config>
+	
+	<table-list>
+		<table>btrjyucyuu</table>
+		<table>btrsyaryo</table>
+		<table>btrkeiro</table>
+		<table>btrhiyou</table>
+	</table-list>
+
+</configs>

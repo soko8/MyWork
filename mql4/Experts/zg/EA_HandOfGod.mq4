@@ -160,6 +160,7 @@ void OnTick() {
       case ENTRY_Long : {
          if (!openedOrderInNewCycleLong) {
             if (addPositionTimes4GridLong<=MaxGridOrders) {
+               Print("111111111111111111111");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderLong(lot);
                if (oi.isValid()) {
@@ -169,7 +170,7 @@ void OnTick() {
                   apPriceLong = oi.getOpenPrice() - gridPrice4Ap;
                   openedOrderInNewCycleLong = true;
                   addPositionTimes4GridLong++;
-                  apPrice4GridLong = oi.getOpenPrice() - gridPrice;
+                  apPrice4GridLong = oi.getOpenPrice() + gridPrice;
                } else {
                   delete oi;
                }
@@ -185,6 +186,7 @@ void OnTick() {
       case ENTRY_Short : {
          if (!openedOrderInNewCycleShort) {
             if (addPositionTimes4GridShort<=MaxGridOrders) {
+            Print("111111111111111111111");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderShort(lot);
                if (oi.isValid()) {
@@ -194,7 +196,7 @@ void OnTick() {
                   apPriceShort = oi.getOpenPrice() + gridPrice4Ap;
                   openedOrderInNewCycleShort = true;
                   addPositionTimes4GridShort++;
-                  apPrice4GridShort = oi.getOpenPrice() + gridPrice;
+                  apPrice4GridShort = oi.getOpenPrice() - gridPrice;
                } else {
                   delete oi;
                }
@@ -213,6 +215,7 @@ void OnTick() {
       if (addPositionTimesShort < 1 && addPositionTimes4GridShort < 1) {
          if (!isTpLong()) {
             if (apPrice4GridLong <= Bid && addPositionTimes4GridLong<MaxGridOrders) {
+            Print("222222222222222222");
                int apCount = addPositionTimes4GridLong + 1;
                OrderInfo *oi = createOrderLong(initLotLong);
                if (oi.isValid()) {
@@ -221,6 +224,7 @@ void OnTick() {
                   apPrice4GridLong = oi.getOpenPrice() + gridPrice4Ap;
                }
             } else if (Ask <= apPriceLong && addPositionTimesLong<MaxAPOrders) {
+            Print("333333333333333333");
                int apCount = addPositionTimesLong + 1;
                double lotSize = calculateAPLot(initLotLong, apCount, AddLotMultiple);
                OrderInfo *oi = createOrderLong(lotSize);
@@ -245,6 +249,7 @@ void OnTick() {
       if (addPositionTimesLong < 1 && addPositionTimes4GridLong < 1) {
          if (!isTpShort()) {
             if (Ask <= apPrice4GridShort && addPositionTimes4GridShort < MaxGridOrders) {
+            Print("222222222222222222");
                int apCount = addPositionTimes4GridShort + 1;
                OrderInfo *oi = createOrderShort(initLotShort);
                if (oi.isValid()) {
@@ -253,6 +258,7 @@ void OnTick() {
                   apPrice4GridShort = oi.getOpenPrice() - gridPrice4Ap;
                }
             } else if (apPriceShort <= Bid && addPositionTimesShort < MaxAPOrders) {
+            Print("333333333333333333");
                int apCount = addPositionTimesShort + 1;
                double lotSize = calculateAPLot(initLotShort, apCount, AddLotMultiple);
                OrderInfo *oi = createOrderShort(lotSize);

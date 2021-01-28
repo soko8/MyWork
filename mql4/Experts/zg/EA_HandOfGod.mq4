@@ -151,6 +151,11 @@ void OnTick() {
    if (isNewBar()) {
       signal = getSignal();
       timeFlag = Time[0];
+      if (ENTRY_Long==signal || Long_Cross == signal || Long_Type == signal) {
+         openedOrderInNewCycleShort = false;
+      } else if (ENTRY_Short==signal || Short_Cross == signal || Short_Type == signal) {
+         openedOrderInNewCycleLong = false;
+      }
    }
    
    switch(signal) {

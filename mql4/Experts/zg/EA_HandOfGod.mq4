@@ -218,33 +218,33 @@ void OnTick() {
    
    if (ENTRY_Long == signal || Long_Cross == signal || Long_Type == signal) {
       if (addPositionTimesShort < 1 && addPositionTimes4GridShort < 1) {
-         if (!isTpLong()) {
-            if (apPrice4GridLong <= Bid && addPositionTimes4GridLong<MaxGridOrders) {
-            Print("222222222222222222");
-               int apCount = addPositionTimes4GridLong + 1;
-               OrderInfo *oi = createOrderLong(initLotLong);
-               if (oi.isValid()) {
-                  LongOrders.Add(oi);
-                  addPositionTimes4GridLong = apCount;
-                  apPrice4GridLong = oi.getOpenPrice() + gridPrice4Ap;
-               }
-            } else if (Ask <= apPriceLong && addPositionTimesLong<MaxAPOrders) {
-            Print("333333333333333333");
-               int apCount = addPositionTimesLong + 1;
-               double lotSize = calculateAPLot(initLotLong, apCount, AddLotMultiple);
-               OrderInfo *oi = createOrderLong(lotSize);
-               if (oi.isValid()) {
-                  LongOrders.Add(oi);
-                  addPositionTimesLong = apCount;
-                  apPriceLong = oi.getOpenPrice() - gridPrice;
-                  oi.setApMode(true);
-               }
-            }
-         }
+         isTpLong();
          
       // 对冲
       } else {
          hedge(ShortOrders, LongOrders);
+      }
+      
+      if (apPrice4GridLong <= Bid && addPositionTimes4GridLong<MaxGridOrders) {
+      Print("222222222222222222");
+         int apCount = addPositionTimes4GridLong + 1;
+         OrderInfo *oi = createOrderLong(initLotLong);
+         if (oi.isValid()) {
+            LongOrders.Add(oi);
+            addPositionTimes4GridLong = apCount;
+            apPrice4GridLong = oi.getOpenPrice() + gridPrice;
+         }
+      } else if (Ask <= apPriceLong && addPositionTimesLong<MaxAPOrders) {
+      Print("333333333333333333");
+         int apCount = addPositionTimesLong + 1;
+         double lotSize = calculateAPLot(initLotLong, apCount, AddLotMultiple);
+         OrderInfo *oi = createOrderLong(lotSize);
+         if (oi.isValid()) {
+            LongOrders.Add(oi);
+            addPositionTimesLong = apCount;
+            apPriceLong = oi.getOpenPrice() - gridPrice4Ap;
+            oi.setApMode(true);
+         }
       }
    }
    
@@ -252,32 +252,33 @@ void OnTick() {
    
    if (ENTRY_Short == signal || Short_Cross == signal || Short_Type == signal) {
       if (addPositionTimesLong < 1 && addPositionTimes4GridLong < 1) {
-         if (!isTpShort()) {
-            if (Ask <= apPrice4GridShort && addPositionTimes4GridShort < MaxGridOrders) {
-            Print("222222222222222222");
-               int apCount = addPositionTimes4GridShort + 1;
-               OrderInfo *oi = createOrderShort(initLotShort);
-               if (oi.isValid()) {
-                  ShortOrders.Add(oi);
-                  addPositionTimes4GridShort = apCount;
-                  apPrice4GridShort = oi.getOpenPrice() - gridPrice4Ap;
-               }
-            } else if (apPriceShort <= Bid && addPositionTimesShort < MaxAPOrders) {
-            Print("333333333333333333");
-               int apCount = addPositionTimesShort + 1;
-               double lotSize = calculateAPLot(initLotShort, apCount, AddLotMultiple);
-               OrderInfo *oi = createOrderShort(lotSize);
-               if (oi.isValid()) {
-                  ShortOrders.Add(oi);
-                  addPositionTimesShort = apCount;
-                  apPriceShort = oi.getOpenPrice() + gridPrice;
-                  oi.setApMode(true);
-               }
-            }
-         }
+         isTpShort();
+
       // 对冲
       } else {
          hedge(LongOrders, ShortOrders);
+      }
+      
+      if (Ask <= apPrice4GridShort && addPositionTimes4GridShort < MaxGridOrders) {
+      Print("222222222222222222");
+         int apCount = addPositionTimes4GridShort + 1;
+         OrderInfo *oi = createOrderShort(initLotShort);
+         if (oi.isValid()) {
+            ShortOrders.Add(oi);
+            addPositionTimes4GridShort = apCount;
+            apPrice4GridShort = oi.getOpenPrice() - gridPrice;
+         }
+      } else if (apPriceShort <= Bid && addPositionTimesShort < MaxAPOrders) {
+      Print("333333333333333333");
+         int apCount = addPositionTimesShort + 1;
+         double lotSize = calculateAPLot(initLotShort, apCount, AddLotMultiple);
+         OrderInfo *oi = createOrderShort(lotSize);
+         if (oi.isValid()) {
+            ShortOrders.Add(oi);
+            addPositionTimesShort = apCount;
+            apPriceShort = oi.getOpenPrice() + gridPrice4Ap;
+            oi.setApMode(true);
+         }
       }
    }
    
@@ -415,7 +416,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
       
    
       int size = orderList.Total();
-      for(int i=size-1; endIndex < i; i--) {
+      for(int i=size-1; endIndex <= i; i--) {
          OrderInfo *oi = orderList.GetNodeAtIndex(i);
          if (OP_BUY== theFurthestHedgeOrder.getOperationType()) {
             closeOrderShort(oi);

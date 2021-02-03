@@ -9,18 +9,18 @@
 #property strict
 //--- input parameters
 input int         MagicNumber=888888;
-input int         GridPips=5;
-input int         MaxGridOrders=12;
+input int         GridPips=7;
+input int         MaxGridOrders=10;
 input int         GridPips4AP=15;
 input int         MaxAPOrders=4;
-input double      AddLotMultiple=2.0;
+input double      AddLotMultiple=1.5;
 input bool        EnableTakeProfitByPips=true;
-input int         TakeProfitPips=150;
+input int         TakeProfitPips=120;
 input bool        EnableTakeProfitByDollars=false;
 input double      TakeProfitDollars=2000.0;
 input double      TakeProfitDollars4Hedge=20.0;
 // 10000:0.01
-input int         MoneyManagePerLot=1000000;
+input int         MoneyManagePerLot=100000;
 
 #include <stdlib.mqh>
 #include <Object.mqh>
@@ -165,7 +165,7 @@ void OnTick() {
       case ENTRY_Long : {
          if (!openedOrderInNewCycleLong) {
             if (addPositionTimes4GridLong<=MaxGridOrders) {
-               Print("111111111111111111111");
+               Print("First Long Order.首次多单");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderLong(lot);
                if (oi.isValid()) {
@@ -191,7 +191,7 @@ void OnTick() {
       case ENTRY_Short : {
          if (!openedOrderInNewCycleShort) {
             if (addPositionTimes4GridShort<=MaxGridOrders) {
-            Print("111111111111111111111");
+            Print("First Short Order.首次空单");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderShort(lot);
                if (oi.isValid()) {
@@ -226,7 +226,7 @@ void OnTick() {
       }
       
       if (apPrice4GridLong <= Bid && addPositionTimes4GridLong<MaxGridOrders) {
-      Print("222222222222222222");
+      Print("Add trend Long Order.顺势加仓多单");
          int apCount = addPositionTimes4GridLong + 1;
          OrderInfo *oi = createOrderLong(initLotLong);
          if (oi.isValid()) {
@@ -235,7 +235,7 @@ void OnTick() {
             apPrice4GridLong = oi.getOpenPrice() + gridPrice;
          }
       } else if (Ask <= apPriceLong && addPositionTimesLong<MaxAPOrders) {
-      Print("333333333333333333");
+      Print("Add retrace Long Order.回调加仓多单");
          int apCount = addPositionTimesLong + 1;
          double lotSize = calculateAPLot(initLotLong, apCount, AddLotMultiple);
          OrderInfo *oi = createOrderLong(lotSize);
@@ -260,7 +260,7 @@ void OnTick() {
       }
       
       if (Ask <= apPrice4GridShort && addPositionTimes4GridShort < MaxGridOrders) {
-      Print("222222222222222222");
+      Print("Add trend Short Order.顺势加仓空单");
          int apCount = addPositionTimes4GridShort + 1;
          OrderInfo *oi = createOrderShort(initLotShort);
          if (oi.isValid()) {
@@ -269,7 +269,7 @@ void OnTick() {
             apPrice4GridShort = oi.getOpenPrice() - gridPrice;
          }
       } else if (apPriceShort <= Bid && addPositionTimesShort < MaxAPOrders) {
-      Print("333333333333333333");
+      Print("Add retrace Short Order.回调加仓空单");
          int apCount = addPositionTimesShort + 1;
          double lotSize = calculateAPLot(initLotShort, apCount, AddLotMultiple);
          OrderInfo *oi = createOrderShort(lotSize);
@@ -399,6 +399,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
    
    if (doHedge) {
       if (OP_BUY== theFurthestHedgeOrder.getOperationType()) {
+      Print("Short trend Hedge Long Order.空趋势对冲多单");
          closeOrderLong(theFurthestHedgeOrder);
          if (theFurthestHedgeOrder.isApMode()) {
             addPositionTimesLong--;
@@ -406,6 +407,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
             addPositionTimes4GridLong--;
          }
       } else if (OP_SELL== theFurthestHedgeOrder.getOperationType()) {
+      Print("Long trend Hedge Short Order.多趋势对冲空单");
          closeOrderShort(theFurthestHedgeOrder);
          if (theFurthestHedgeOrder.isApMode()) {
             addPositionTimesShort--;
@@ -516,7 +518,7 @@ bool isTpLong() {
       openedOrderInNewCycleLong = false;
       addPositionTimes4GridLong=0;
       apPrice4GridLong = 0;
-      
+      Print("Take Profit Long Order.止盈多单");
       return true;
    }
    return false;
@@ -533,7 +535,7 @@ bool isTpShort() {
       openedOrderInNewCycleShort = false;
       addPositionTimes4GridShort=0;
       apPrice4GridShort = 0;
-      
+      Print("Take Profit Short Order.止盈空单");
       return true;
    }
    return false;
@@ -684,6 +686,33 @@ bool closeOrderShort(OrderInfo *orderInfo, double lotSize=0.0) {
    }
    
    return isClosed;
+}
+
+// TODO
+void closeProfitUnilateral(CList *orderList) {
+   int listSize = orderList.Total();
+   for (int i=0; i<listSize; i++) {
+      bool isClosed = false;
+      OrderInfo *oi = orderList.GetNodeAtIndex(i);
+      int ticketId = oi.getTicketId();
+      bool isSelected = OrderSelect(ticketId, SELECT_BY_TICKET);
+      if (!isSelected) {
+         continue;
+      }
+      if ((OrderProfit()+OrderCommission()+OrderSwap()) < 0) {
+         continue;
+      }
+      if (OP_BUY == oi.getOperationType()) {
+         isClosed = closeOrderLong(oi);
+      } else if (OP_SELL == oi.getOperationType()) {
+         isClosed = closeOrderShort(oi);
+      }
+      
+      if (isClosed) {
+         orderList.Delete(i);
+         delete oi;
+      }
+   }
 }
 
 bool  closeAllOrdersLong() {

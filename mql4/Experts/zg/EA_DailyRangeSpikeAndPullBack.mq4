@@ -13,7 +13,7 @@ input int TP=30;
 input bool EnableRiskManage=false;
 input double Risk=0.2;
 input int MaxSpread=40;
-input int PreviousBarRange=1;
+input int PreviousBarRange=80;
 //input int PeriodATR=20;
 //input double GAPCoefficient=2.0;
 input ENUM_TIMEFRAMES TimeFrame = PERIOD_CURRENT;
@@ -99,7 +99,7 @@ OrderInfo::~OrderInfo() {
       double               LotStepServer = 0.0;
       double               minLot = 0.0;
       
-const int                  Min_Interval = 0;
+const int                  Min_Interval = 5;
 const int                  Max_Interval = 50;
       
 const int                  PIP_DIGIT=1;
@@ -126,7 +126,7 @@ void OnTick() {
    /** if spread at midnight is too high (more than 4.0 pips) – Don’t open a trade yet. 
        Wait with market order till spread narrows back.
    */
-   
+   Print("status====" + EnumToString(status));
    switch(status) {
       
       case ToDoInitBuy : 
@@ -136,7 +136,11 @@ void OnTick() {
             OrderInfo *oi = createOrderLong(lot);
             if (oi.isValid()) {
                Orders.Add(oi);
-               status = AddedPositionBuy;
+               if (ToDoInitBuy == status) {
+                  status = InitedBuy;
+               } else {
+                  status = AddedPositionBuy;
+               }
             }
          }
          break;
@@ -149,7 +153,11 @@ void OnTick() {
             OrderInfo *oi = createOrderShort(lot);
             if (oi.isValid()) {
                Orders.Add(oi);
-               status = AddedPositionSell;
+               if (ToDoInitSell == status) {
+                  status = InitedSell;
+               } else {
+                  status = AddedPositionSell;
+               }
             }
          }
          break;
@@ -250,7 +258,7 @@ enStatus judgeStatusSell() {
 }
 
 enStatus getStatus() {
-   if(isNewBar()) {
+   //if(isNewBar()) {
       
       switch(status) {
          /** 
@@ -304,6 +312,7 @@ enStatus getStatus() {
          case Closed : {
             double gap = getGAP();
             double diff = MathAbs(iClose(NULL, TimeFrame, 1) - iOpen(NULL, TimeFrame, 1));
+            /*
             Print("diff="+diff);
             Print("gap="+gap);
             Print("price2pip(diff)="+price2pip(diff));
@@ -311,6 +320,7 @@ enStatus getStatus() {
             Print("(iOpen(NULL, TimeFrame, 1) < iClose(NULL, TimeFrame, 1))="+(iOpen(NULL, TimeFrame, 1) < iClose(NULL, TimeFrame, 1)));
             Print("(Ask < iOpen(NULL, TimeFrame, 0))="+(Ask < iOpen(NULL, TimeFrame, 0)));
             Print("(iOpen(NULL, TimeFrame, 0) < Bid)="+(iOpen(NULL, TimeFrame, 0) < Bid));
+            */
             /**
             This is the rules:
             1/ Check Yesterday Range (Open-Close) from 80 pips above.
@@ -380,7 +390,7 @@ enStatus getStatus() {
          default: ;
       }
       
-   }
+   //}
    return status;
 }
 

@@ -14,6 +14,10 @@ input ENUM_TIMEFRAMES      TimeFrame_CurrencyStrength=PERIOD_D1;
 void DrawDashBoard();
 #import
 
+#import "DrawHandOfGod.ex4"
+void draw();
+#import
+
 /*
 #import "GAPUtils.ex4"
 void getAllPairBidRatio(string &pairs[], ENUM_TIMEFRAMES timeframe, double &outBidRatios[]);
@@ -37,9 +41,9 @@ string Currencies[] = {"USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"};
 int OnInit() {
    ArrayCopy(TradePairs,DefaultPairs);
    PairCount = ArraySize(TradePairs);
-   //DrawHeader();
-   DrawDashBoard();
-
+   
+   //DrawDashBoard();
+   draw();
 //--- create timer
    EventSetTimer(1);
    
@@ -60,7 +64,7 @@ void OnTick() {
 
 void OnTimer() {
 
-   refreshTable();
+   //refreshTable();
 }
 
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {

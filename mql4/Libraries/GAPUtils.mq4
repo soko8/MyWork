@@ -17,11 +17,33 @@
 //   }
 //+------------------------------------------------------------------+
 
+double getBidRatio(string symbol, ENUM_TIMEFRAMES timeframe=PERIOD_D1) export {
+   double highValue = iHigh(symbol, timeframe, 0);
+   double lowValue = iLow(symbol, timeframe, 0);
+   double range = highValue - lowValue;
+   if (NormalizeDouble(range, 5) < 0.00001) {
+      return 0.0;
+   }
+   double bidRatio = 100.0 * ((MarketInfo(symbol, MODE_BID) - lowValue) / range );
+   return NormalizeDouble(bidRatio, 3);
+}
+
+void getAllPairBidRatio(const string &pairs[], const ENUM_TIMEFRAMES timeframe, double &outBidRatios[]) export {
+   int size = ArraySize(pairs);
+   ArrayResize(outBidRatios, size);
+   for (int i=0; i<size; i++) {
+      double bidRatio = getBidRatio(pairs[i], timeframe);
+      outBidRatios[i] = bidRatio;
+   }
+}
+
+/*
 double getBidRatio(string symbol) export {
    double range = (MarketInfo(symbol, MODE_HIGH) - MarketInfo(symbol, MODE_LOW));
    double bidRatio = 100.0 * ((MarketInfo(symbol, MODE_BID) - MarketInfo(symbol, MODE_LOW)) / range );
    return bidRatio;
 }
+*/
 
 int getRelativeStrength(double bidRatio) export {
    if (bidRatio > 97.0) return 9;
@@ -37,6 +59,7 @@ int getRelativeStrength(double bidRatio) export {
    return 0;
 }
 
+/*
 void getAllPairBidRatio(const string &pairs[], double &outBidRatios[]) export {
    int size = ArraySize(pairs);
    ArrayResize(outBidRatios, size);
@@ -45,6 +68,7 @@ void getAllPairBidRatio(const string &pairs[], double &outBidRatios[]) export {
       outBidRatios[i] = bidRatio;
    }
 }
+*/
 
 void getAllPairBaseRelativeStrength(const double &bidRatios[], int &outBaseRelativeStrengths[]) export {
    int size = ArraySize(bidRatios);

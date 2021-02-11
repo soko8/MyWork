@@ -17,7 +17,7 @@ bool isExpire(datetime ExpireTime, bool EnableUseTimeControl=true) export {
    if (EnableUseTimeControl) {
       datetime now = TimeGMT();
       if (ExpireTime < now) {
-         Alert("使用过期，请联系作者。邮箱：gao.zeng.8@gmail.com ");
+         Alert("Use expired, please contact the author.(使用过期，请联系作者。) email：gao.zeng.8@gmail.com ");
          return true;
       }
    }

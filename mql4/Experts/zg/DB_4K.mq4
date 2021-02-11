@@ -8,14 +8,19 @@
 #property version   "1.00"
 #property strict
 
+#include <stdlib.mqh>
+#include <Arrays\List.mqh>
+#include <Infos\SymbolInfo.mqh>
+
+input int                  MagicNumber=888888;
 input ENUM_TIMEFRAMES      TimeFrame_CurrencyStrength=PERIOD_D1;
+input string               Prefix="";
+input string               Suffix="";
 
 #import "DrawDashBoard.ex4"
-void DrawDashBoard();
-#import
-
-#import "DrawHandOfGod.ex4"
-void draw();
+   void DrawDashBoard(CList *symbolList);
+   void refreshOrdersData(CList *symbolList, int MagicNumber);
+   void refreshIndicatorsData(CList *symbolList);
 #import
 
 /*
@@ -24,26 +29,37 @@ void getAllPairBidRatio(string &pairs[], ENUM_TIMEFRAMES timeframe, double &outB
 #import
 */
 
-#include <stdlib.mqh>
+
 
       int                  PairCount;
       string               TradePairs[];
       double               BidRatios[];
 string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY"};
+CList* SymbolList;
 
 const int StartX=4;
 const int StartY=4;
 
 string Currencies[] = {"USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD"};
 
-
+void initSymbols() {
+   SymbolList = new CList;
+   int size = ArraySize(TradePairs);
+   for (int i=0; i<size; i++) {
+      SymbolInfo *si = new SymbolInfo(TradePairs[i], Prefix, Suffix);
+      SymbolList.Add(si);
+   }
+}
 
 int OnInit() {
    ArrayCopy(TradePairs,DefaultPairs);
    PairCount = ArraySize(TradePairs);
+   initSymbols();
+   DrawDashBoard(SymbolList);
    
-   //DrawDashBoard();
-   draw();
+   refreshOrdersData(SymbolList, MagicNumber);
+   refreshIndicatorsData(SymbolList);
+
 //--- create timer
    EventSetTimer(1);
    
@@ -73,6 +89,7 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
 }
 
 
+/*
 void refreshTable() {
    long chartId = 0;
    getAllPairBidRatio(TradePairs, TimeFrame_CurrencyStrength, BidRatios);
@@ -220,3 +237,4 @@ void getAllPairGAP(const double &BSRatios[], const double &PreviousBSRatios[], d
       outGAPs[i] = BSRatios[i] - PreviousBSRatios[i];
    }
 }
+*/

@@ -128,7 +128,7 @@ const ENUM_APPLIED_PRICE   AppliedPriceMA=PRICE_CLOSE;
 int OnInit() {
    //if(!IsDemo()) return(INIT_FAILED);
    
-   datetime ExpireTime = D'2024.12.31 23:59:59';
+   datetime ExpireTime = D'2022.12.31 23:59:59';
    if (isExpire(ExpireTime, true)) return(INIT_FAILED);
    
    IntervalTrendPips=IntervalTrendPips__;
@@ -883,9 +883,17 @@ bool isOverMaxReverseHoldOrdersLong() {
       int count = LongOrders.Total();
       for (int i=count-1; 0<=i; i--) {
          OrderInfo *oi = LongOrders.GetNodeAtIndex(i);
-         if (basePrice <= oi.getOpenPrice()) {
+         
+         int ticketId = oi.getTicketId();
+         bool isSelected = OrderSelect(ticketId, SELECT_BY_TICKET);
+         if (!isSelected) {
+            Print("OrderSelect Error. Ticket:" + IntegerToString(ticketId) + ". Error:【" + ErrorDescription(GetLastError()));
             continue;
          }
+         if ((OrderProfit()+OrderCommission()+OrderSwap()) < Slippage*OrderLots()) {
+            continue;
+         }
+         
          bool isClosed = closeOrderLong(oi);
          if (!isClosed) {
             continue;
@@ -970,7 +978,13 @@ bool isOverMaxReverseHoldOrdersShort() {
       int count = ShortOrders.Total();
       for (int i=count-1; 0<=i; i--) {
          OrderInfo *oi = ShortOrders.GetNodeAtIndex(i);
-         if (oi.getOpenPrice() <= basePrice) {
+         int ticketId = oi.getTicketId();
+         bool isSelected = OrderSelect(ticketId, SELECT_BY_TICKET);
+         if (!isSelected) {
+            Print("OrderSelect Error. Ticket:" + IntegerToString(ticketId) + ". Error:【" + ErrorDescription(GetLastError()));
+            continue;
+         }
+         if ((OrderProfit()+OrderCommission()+OrderSwap()) < Slippage*OrderLots()) {
             continue;
          }
          bool isClosed = closeOrderShort(oi);

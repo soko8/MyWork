@@ -21,7 +21,7 @@
 //+------------------------------------------------------------------+
 const int RowInterval=0;
 const int ColumnInterval=0;
-const int RowHeight=18;
+const int RowHeight=40;
 
 const string Font_Name = "Lucida Bright";
 const int Font_Size = 8;
@@ -30,31 +30,31 @@ const int Border_Width = 1;
 const string   ColumnName[13]              ={ "Num",         "ticketL",     "OpenPriceL",  "LotsL",   "ProfitL",    "OrderTypeL", "CloseL",  "ticketS",    "OpenPriceS",  "LotsS",   "ProfitS",    "OrderTypeS", "CloseS"   };
 const string   ColumnType[13]              ={ "lbl",         "lbl",         "lbl",         "lbl",     "lbl",        "lbl",        "btn",     "lbl",        "lbl",         "lbl",     "lbl",        "lbl",        "btn"      };
 const string   ColumnShow[13]              ={ "99",          "12345678",    "1234.12345",  "9999.99", "99999.99",   "Trend",      "CloseL",  "12345678",   "9999.99999",  "9999.99", "99999.99",   "Retrace",    "CloseS"   };
-const int      ColumnWidth[13]             ={  28,            90,            100,           70,        84,           66,           70,        90,           100,           70,        84,           66,           70        };
-const int      ColumnWidthAdjust[13]       ={  4,             6,             6,             6,         8,            6,            4,         6,            6,             6,         8,            6,            4         };
+const int      ColumnWidth[13]             ={  46,            180,           180,           120,       160,          120,          130,       180,          180,           120,       160,          120,          130       };
+const int      ColumnWidthAdjust[13]       ={  8,             24,            18,            10,        24,           12,            4,        24,           18,            10,        24,           12,            4        };
 const color    ColumnColor[13]             ={ clrWhite,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 const color    ColumnColorBackground[13]   ={ clrBlack,      clrBlack,      clrBlack,      clrBlack,  clrBlack,     clrBlack,     clrBlack,  clrBlack,     clrBlack,      clrBlack,  clrBlack,     clrBlack,     clrBlack   };
 const color    ColumnColorBorder[13]       ={ clrWhite,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 
 const string   h1ColumnType[13]            ={ "lbl",         "lbl",         "lbl",         "lbl",     "lbl",        "lbl",        "btn",     "lbl",        "lbl",         "lbl",     "lbl",        "lbl",        "btn"      };
 const string   h1ColumnShow[13]            ={ "No",          "Ticket Id L", "Open Price",  "Lot",     "Profit",     "Type",       "CloseAL", "Ticket Id S","Open Price",  "Lot",     "Profit",     "Type",       "CloseAS"  };
-const int      h1ColumnWidth[13]           ={  28,            90,            100,           70,        84,           66,           70,        90,           100,           70,        84,           66,           70        };
-const int      h1ColumnWidthAdjust[13]     ={  3,             9,             10,            20,        20,           15,           4,         9,            10,            20,        20,           15,           4         };
+const int      h1ColumnWidth[13]           ={  46,            180,           180,           120,       160,          120,          130,       180,          180,           120,       160,          120,          130       };
+const int      h1ColumnWidthAdjust[13]     ={  6,             35,            20,            40,        40,           30,           4,         35,           20,            40,        40,           30,           4         };
 const color    h1ColumnColor[13]           ={ clrWhite,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 const color    h1ColumnColorBackground[13] ={ clrDarkViolet, clrNavy,       clrNavy,       clrNavy,   clrNavy,      clrNavy,      clrNavy,   clrMaroon,    clrMaroon,     clrMaroon, clrMaroon,    clrMaroon,    clrMaroon  };
 const color    h1ColumnColorBorder[13]     ={ clrWhite,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 
 const string   sumColumnType[13]           ={ "btn",         "lbl",         "lbl",         "lbl",     "lbl",        "lbl",        "btn",     "lbl",        "lbl",         "lbl",     "lbl",        "lbl",        "btn"      };
 const string   sumColumnShow[13]           ={ "E",           "Total",       "",            "Sum Lot", "Sum Profit", "",           "ClosePL", "",           "",            "Sum Lot", "Sum Profit", "",           "ClosePS"  };
-const int      sumColumnWidth[13]          ={  28,            90,            100,           70,        84,           66,           70,        90,           100,           70,        84,           66,           70        };
-const int      sumColumnWidthAdjust[13]    ={  3,             9,             10,            6,         6,            15,           4,         9,            10,            6,         6,            15,           4         };
+const int      sumColumnWidth[13]          ={  46,            180,           180,           120,       160,          120,          130,       180,          180,           120,       160,          120,          130       };
+const int      sumColumnWidthAdjust[13]    ={  6,             35,            20,            6,         6,            30,           4,         35,           20,            6,         6,            30,           4         };
 const color    sumColumnColor[13]          ={ clrBlack,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 const color    sumColumnColorBackground[13]={ clrLime,       clrIndigo,     clrIndigo,     clrIndigo, clrIndigo,    clrIndigo,    clrIndigo, clrIndigo,    clrIndigo,     clrIndigo, clrIndigo,    clrIndigo,    clrIndigo  };
 const color    sumColumnColorBorder[13]    ={ clrWhite,      clrWhite,      clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite,  clrWhite,     clrWhite,      clrWhite,  clrWhite,     clrWhite,     clrWhite   };
 
 
 void draw(int rowCount) export {
-   int startX = 180;
+   int startX = 270;
    int startY = 0;
    DrawSum(startX, startY);
    DrawHeader(startX, startY+RowHeight);
@@ -75,14 +75,14 @@ void DrawSum(int startXi, int startYi) {
       string columnType = sumColumnType[colIndex];
       if ("lbl"==columnType) {
          CreatePanel(pNamePrefix+hNamePrefix1+columnType+ColumnName[colIndex],x,y,sumColumnWidth[colIndex],RowHeight,sumColumnColorBackground[colIndex],sumColumnColorBorder[colIndex],Border_Width);
-         SetText(hNamePrefix1+columnType+ColumnName[colIndex],sumColumnShow[colIndex],x+sumColumnWidthAdjust[colIndex],y+RowInterval,sumColumnColor[colIndex]);
+         SetText(hNamePrefix1+columnType+ColumnName[colIndex],sumColumnShow[colIndex],x+sumColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,sumColumnColor[colIndex]);
          x += sumColumnWidth[colIndex] + ColumnInterval;
       } else if ("btn"==columnType) {
          CreateButton(hNamePrefix1+columnType+ColumnName[colIndex],sumColumnShow[colIndex],x,y,sumColumnWidth[colIndex],RowHeight,sumColumnColorBackground[colIndex],sumColumnColor[colIndex]);
          x += sumColumnWidth[colIndex] + ColumnInterval;
       } else if ("lbo"==columnType) {
          CreatePanel(pNamePrefix+hNamePrefix1+columnType+ColumnName[colIndex],x,y,sumColumnWidth[colIndex],RowHeight,sumColumnColorBackground[colIndex],sumColumnColorBorder[colIndex],Border_Width);
-         SetObjText(hNamePrefix1+columnType+ColumnName[colIndex],sumColumnShow[colIndex],x+sumColumnWidthAdjust[colIndex],y+RowInterval,sumColumnColor[colIndex]);
+         SetObjText(hNamePrefix1+columnType+ColumnName[colIndex],sumColumnShow[colIndex],x+sumColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,sumColumnColor[colIndex]);
          x += sumColumnWidth[colIndex] + ColumnInterval;
       }
    }
@@ -108,14 +108,14 @@ void DrawHeader(int startXi, int startYi) {
       string columnType = h1ColumnType[colIndex];
       if ("lbl"==columnType) {
          CreatePanel(pNamePrefix+hNamePrefix1+columnType+ColumnName[colIndex],x,y,h1ColumnWidth[colIndex],RowHeight,h1ColumnColorBackground[colIndex],h1ColumnColorBorder[colIndex],Border_Width);
-         SetText(hNamePrefix1+columnType+ColumnName[colIndex],h1ColumnShow[colIndex],x+h1ColumnWidthAdjust[colIndex],y+RowInterval,h1ColumnColor[colIndex]);
+         SetText(hNamePrefix1+columnType+ColumnName[colIndex],h1ColumnShow[colIndex],x+h1ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,h1ColumnColor[colIndex]);
          x += h1ColumnWidth[colIndex] + ColumnInterval;
       } else if ("btn"==columnType) {
          CreateButton(hNamePrefix1+columnType+ColumnName[colIndex],h1ColumnShow[colIndex],x,y,h1ColumnWidth[colIndex],RowHeight,h1ColumnColorBackground[colIndex],h1ColumnColor[colIndex]);
          x += h1ColumnWidth[colIndex] + ColumnInterval;
       } else if ("lbo"==columnType) {
          CreatePanel(pNamePrefix+hNamePrefix1+columnType+ColumnName[colIndex],x,y,h1ColumnWidth[colIndex],RowHeight,h1ColumnColorBackground[colIndex],h1ColumnColorBorder[colIndex],Border_Width);
-         SetObjText(hNamePrefix1+columnType+ColumnName[colIndex],h1ColumnShow[colIndex],x+h1ColumnWidthAdjust[colIndex],y+RowInterval,h1ColumnColor[colIndex]);
+         SetObjText(hNamePrefix1+columnType+ColumnName[colIndex],h1ColumnShow[colIndex],x+h1ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,h1ColumnColor[colIndex]);
          x += h1ColumnWidth[colIndex] + ColumnInterval;
       }
    }
@@ -140,14 +140,14 @@ void DrawData(int rowCount, int startXi, int startYi) {
          string columnType = ColumnType[colIndex];
          if ("lbl"==columnType) {
             CreatePanel(panelNamePrefix+columnType+ColumnName[colIndex]+IntegerToString(i),x,y,ColumnWidth[colIndex],RowHeight,ColumnColorBackground[colIndex],ColumnColorBorder[colIndex],Border_Width);
-            SetText(columnType+ColumnName[colIndex]+IntegerToString(i),ColumnShow[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval,ColumnColor[colIndex]);
+            SetText(columnType+ColumnName[colIndex]+IntegerToString(i),ColumnShow[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColumnColor[colIndex]);
             x += ColumnWidth[colIndex] + ColumnInterval;
          } else if ("btn"==columnType) {
             CreateButton(columnType+ColumnName[colIndex]+IntegerToString(i),ColumnShow[colIndex],x,y,ColumnWidth[colIndex],RowHeight,ColumnColorBackground[colIndex],ColumnColor[colIndex]);
             x += ColumnWidth[colIndex] + ColumnInterval;
          } else if ("lbo"==columnType) {
             CreatePanel(panelNamePrefix+columnType+ColumnName[colIndex]+IntegerToString(i),x,y,ColumnWidth[colIndex],RowHeight,ColumnColorBackground[colIndex],ColumnColorBorder[colIndex],Border_Width);
-            SetObjText(columnType+ColumnName[colIndex]+IntegerToString(i),ColumnShow[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval,ColumnColor[colIndex]);
+            SetObjText(columnType+ColumnName[colIndex]+IntegerToString(i),ColumnShow[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColumnColor[colIndex]);
             x += ColumnWidth[colIndex] + ColumnInterval;
          }
       }

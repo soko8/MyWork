@@ -71,6 +71,8 @@ void OnDeinit(const int reason) {
 //--- destroy timer
    EventKillTimer();
    ObjectsDeleteAll();
+   SymbolList.Clear();
+   delete SymbolList;
 }
 
 void OnTick() {

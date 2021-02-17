@@ -75,6 +75,36 @@ const ENUM_MA_METHOD             Method_MA1 = MODE_EMA;
 const ENUM_APPLIED_PRICE         Applied_Price_MA1 = PRICE_CLOSE;
 /****************************MA1**********************************************/
 
+/****************************MA2**********************************************/
+const ENUM_TIMEFRAMES            Timeframe_MA2 = PERIOD_M30;
+const int                        Period_MA2_Short  = 50;
+const int                        Period_MA2_Medium = 100;
+const int                        Period_MA2_Long   = 200;
+const int                        Shift_MA2 = 0;
+const ENUM_MA_METHOD             Method_MA2 = MODE_EMA;
+const ENUM_APPLIED_PRICE         Applied_Price_MA2 = PRICE_CLOSE;
+/****************************MA2**********************************************/
+
+/****************************MA3**********************************************/
+const ENUM_TIMEFRAMES            Timeframe_MA3 = PERIOD_H1;
+const int                        Period_MA3_Short  = 50;
+const int                        Period_MA3_Medium = 100;
+const int                        Period_MA3_Long   = 200;
+const int                        Shift_MA3 = 0;
+const ENUM_MA_METHOD             Method_MA3 = MODE_EMA;
+const ENUM_APPLIED_PRICE         Applied_Price_MA3 = PRICE_CLOSE;
+/****************************MA3**********************************************/
+
+/****************************MA4**********************************************/
+const ENUM_TIMEFRAMES            Timeframe_MA4 = PERIOD_H4;
+const int                        Period_MA4_Short  = 50;
+const int                        Period_MA4_Medium = 100;
+const int                        Period_MA4_Long   = 200;
+const int                        Shift_MA4 = 0;
+const ENUM_MA_METHOD             Method_MA4 = MODE_EMA;
+const ENUM_APPLIED_PRICE         Applied_Price_MA4 = PRICE_CLOSE;
+/****************************MA4**********************************************/
+
 /****************************GAP**********************************************/
 const ENUM_TIMEFRAMES            Timeframe_GAP = PERIOD_H1;
 const int                        Interval_GAP = 1800;   // 计算30分钟前BidRatio用
@@ -110,12 +140,12 @@ const string   ColumnName[33]             ={ "Disable", "Profit",    "Buy",    "
 const string   ColumnShow[33]             ={ "~",       "123456.12", "B",      "1234.12", "CL",       "12345.12",  "12",      "S",      "1234.12", "CS",        "12345.12",   "12",      "99.9",   "EURUSD",   "999.9",  "123.1",  "123",    "-123",    "12.12",      "++",      "==",      "++",      "--",      "12.12% ==",  "-5 ==",            "-5.5 ==",  "-5.5 ==", "12.1 ++",      "12.1 --",      "12.1 ==",      "12.1 ==",   "12.1 ==",   "12.1 =="   };
 const string   ColumnType[33]             ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",      "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
 const int      ColumnWidth[33]            ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        139,          100,                104,        100,       100,            100,            100,            62,          62,          62         };
-const int      ColumnWidthAdjust[33]      ={  0,         2,           0,        2,         0,          2,           2,         0,        2,         0,           2,            2,         4,        0,          2,        2,        4,        4,         2,            8,         8,         8,         8,         2,            2,                  2,          2,         2,              2,              2,              12,          12,          12         };
+const int      ColumnWidthAdjust[33]      ={  0,         2,           0,        2,         0,          2,           2,         0,        2,         0,           2,            2,         8,        0,          6,        6,        14,       4,         22,           12,        12,        12,        12,        2,            2,                  2,          2,         2,              2,              2,              12,          12,          12         };
 const color    ColumnColor[33]            ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
 const color    ColumnColorBackground[33]  ={ clrBlack,  clrBlack,    clrBlack, clrBlack,  clrBlack,   clrBlack,    clrBlack,  clrBlack, clrBlack,  clrBlack,    clrBlack,     clrBlack,  clrBlack, clrBlack,   clrBlack, clrBlack, clrBlack, clrBlack,  clrBlack,     clrBlack,  clrBlack,  clrBlack,  clrBlack,  clrBlack,     clrBlack,           clrBlack,   clrBlack,  clrBlack,       clrBlack,       clrBlack,       clrBlack,    clrBlack,    clrWhite    };
 const color    ColumnColorBorder[33]      ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
 
-const string   h1ColumnShow[33]           ={ "~",       "Profit",    "CP",     "Lot",     "CL",       "Profit",    "#",       "CP",     "Lot",     "CS",        "Profit",     "#",       "Spd",    "Symbol",   "ADR",    "CDR",    "RSI",    "CCI",     "SAR",        "M5",      "15",      "H1",      "H4",      "BidRatio",   "Rel Str",          "BSRatio",  "GAP",     "Sto1",         "Sto2",         "Sto3",         "HeatMap4",  "Spare1",    "Spare1"    };
+const string   h1ColumnShow[33]           ={ "~",       "Profit",    "CP",     "Lot",     "CL",       "Profit",    "#",       "CP",     "Lot",     "CS",        "Profit",     "#",       "Spd",    "Symbol",   "ADR",    "CDR",    "RSI",    "CCI",     "SAR",        "M5",      "30",      "H1",      "H4",      "BidRatio",   "Rel Str",          "BSRatio",  "GAP",     "Sto1",         "Sto2",         "Sto3",         "HeatMap4",  "Spare1",    "Spare1"    };
 const string   h1ColumnType[33]           ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",      "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
 const int      h1ColumnWidth[33]          ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        139,          100,                104,        100,       100,            100,            100,            62,          62,          62         };
 const int      h1ColumnWidthAdjust[33]    ={  0,         39,          0,        30,        0,          30,          9,         0,        30,        0,           30,           9,         8,        0,          8,        8,        8,        8,         8,            7,         7,         7,         7,         18,           6,                  2,          22,        22,             22,             22,             12,          12,          12         };
@@ -218,7 +248,7 @@ void refreshIndicatorsData(CList *symbolList) export {
       // Spread
       objName = getObjectName(i, COL_NO_SPREAD);
       int spread = (int)MarketInfo(symbolName,MODE_SPREAD);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT,IntegerToString(spread, 2));
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,IntegerToString(spread, 3));
       if (30 < spread) {
          fontColor = clrGray;
       } else {
@@ -229,26 +259,43 @@ void refreshIndicatorsData(CList *symbolList) export {
       // ADR
       objName = getObjectName(i, COL_NO_ADR);
       double Vadr = GetAdrValues(symbolName, si.getPoint());
-      string adr = DoubleToStr(Vadr, 2);
+      string adr = DoubleToStr(Vadr, 0);
+      adr = IntegerToString(StrToInteger(adr), 4);
       ObjectSetString(chartId,objName,OBJPROP_TEXT,adr);
       
       // CDR
       objName = getObjectName(i, COL_NO_CDR);
       double Vcdr = (iHigh(symbolName, PERIOD_D1, 0) - iLow(symbolName, PERIOD_D1, 0))/si.getPoint();
-      string cdr = DoubleToStr(Vcdr, 2);
+      string cdr = DoubleToStr(Vcdr, 0);
+      cdr = IntegerToString(StrToInteger(cdr), 4);
       ObjectSetString(chartId,objName,OBJPROP_TEXT,cdr);
       
       // RSI
       objName = getObjectName(i, COL_NO_RSI);
       double Vrsi  = iRSI(symbolName,Timeframe_RSI,Period_RSI,Applied_Price_RSI,BarShift);
-      string rsi = DoubleToStr(Vrsi, 2);
+      string rsi = DoubleToStr(Vrsi, 0);
       ObjectSetString(chartId,objName,OBJPROP_TEXT,rsi);
+      fontColor = clrGray;
+      if (75 <= Vrsi) {
+         fontColor = clrRed;
+      } else if (Vrsi <= 25) {
+         fontColor = clrLime;
+      }
+      ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
       
       // CCI
       objName = getObjectName(i, COL_NO_CCI);
       double Vcci  = iCCI(symbolName,Timeframe_CCI,Period_CCI,Applied_Price_CCI,BarShift);
-      string cci = DoubleToStr(Vcci, 2);
+      string cci = DoubleToStr(Vcci, 0);
+      cci = IntegerToString(StrToInteger(cci), 4);
       ObjectSetString(chartId,objName,OBJPROP_TEXT,cci);
+      fontColor = clrGray;
+      if (100 <= Vcci) {
+         fontColor = clrRed;
+      } else if (Vcci <= -100) {
+         fontColor = clrLime;
+      }
+      ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
       
       // SAR
       objName = getObjectName(i, COL_NO_SAR);
@@ -270,7 +317,7 @@ void refreshIndicatorsData(CList *symbolList) export {
       double ma1Medium  = iMA(symbolName,Timeframe_MA1,Period_MA1_Medium,  Shift_MA1,Method_MA1,Applied_Price_MA1,BarShift);
       double ma1Long    = iMA(symbolName,Timeframe_MA1,Period_MA1_Long,    Shift_MA1,Method_MA1,Applied_Price_MA1,BarShift);
       string ma1 = "〓";
-      fontColor = clrWhite;
+      fontColor = clrYellow;
       if (ma1Long<ma1Medium && ma1Medium<ma1Short) {
          ma1 = "▲";
          fontColor = clrLime;
@@ -279,7 +326,61 @@ void refreshIndicatorsData(CList *symbolList) export {
          fontColor = clrRed;
       }
       ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT,sar);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,ma1);
+      
+      // MA2
+      objName = getObjectName(i, COL_NO_MA2);
+      double ma2Short   = iMA(symbolName,Timeframe_MA2,Period_MA2_Short,   Shift_MA2,Method_MA2,Applied_Price_MA2,BarShift);
+      double ma2Medium  = iMA(symbolName,Timeframe_MA2,Period_MA2_Medium,  Shift_MA2,Method_MA2,Applied_Price_MA2,BarShift);
+      double ma2Long    = iMA(symbolName,Timeframe_MA2,Period_MA2_Long,    Shift_MA2,Method_MA2,Applied_Price_MA2,BarShift);
+      string ma2 = "〓";
+      fontColor = clrYellow;
+      if (ma2Long<ma2Medium && ma2Medium<ma2Short) {
+         ma2 = "▲";
+         fontColor = clrLime;
+      } else if (ma2Long>ma2Medium && ma2Medium>ma2Short) {
+         ma2 = "▼";
+         fontColor = clrRed;
+      }
+      ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,ma2);
+      
+      // MA3
+      objName = getObjectName(i, COL_NO_MA3);
+      double ma3Short   = iMA(symbolName,Timeframe_MA3,Period_MA3_Short,   Shift_MA3,Method_MA3,Applied_Price_MA3,BarShift);
+      double ma3Medium  = iMA(symbolName,Timeframe_MA3,Period_MA3_Medium,  Shift_MA3,Method_MA3,Applied_Price_MA3,BarShift);
+      double ma3Long    = iMA(symbolName,Timeframe_MA3,Period_MA3_Long,    Shift_MA3,Method_MA3,Applied_Price_MA3,BarShift);
+      string ma3 = "〓";
+      fontColor = clrYellow;
+      if (ma3Long<ma3Medium && ma3Medium<ma3Short) {
+         ma3 = "▲";
+         fontColor = clrLime;
+      } else if (ma3Long>ma3Medium && ma3Medium>ma3Short) {
+         ma3 = "▼";
+         fontColor = clrRed;
+      }
+      ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,ma3);
+      
+      // MA4
+      objName = getObjectName(i, COL_NO_MA4);
+      double ma4Short   = iMA(symbolName,Timeframe_MA4,Period_MA4_Short,   Shift_MA4,Method_MA4,Applied_Price_MA4,BarShift);
+      double ma4Medium  = iMA(symbolName,Timeframe_MA4,Period_MA4_Medium,  Shift_MA4,Method_MA4,Applied_Price_MA4,BarShift);
+      double ma4Long    = iMA(symbolName,Timeframe_MA4,Period_MA4_Long,    Shift_MA4,Method_MA4,Applied_Price_MA4,BarShift);
+      string ma4 = "〓";
+      fontColor = clrYellow;
+      if (ma4Long<ma4Medium && ma4Medium<ma4Short) {
+         ma4 = "▲";
+         fontColor = clrLime;
+      } else if (ma4Long>ma4Medium && ma4Medium>ma4Short) {
+         ma4 = "▼";
+         fontColor = clrRed;
+      }
+      ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,ma4);
+      
+      
+      
       
       
       double highGap = iHigh(symbolName, Timeframe_GAP, 0);
@@ -446,6 +547,7 @@ double GetAdrValues(string pairName, double point) {
    double adr20 = 0.0;
    for(int a=1;a<=20;a++) {
       if(point != 0)    s  = s+(iHigh(pairName,PERIOD_D1,a)-iLow(pairName,PERIOD_D1,a))/point;
+      //s  = s+(iHigh(pairName,PERIOD_D1,a)-iLow(pairName,PERIOD_D1,a))/point;
       if(a==1)       adr1  = MathRound(s);
       if(a==5)       adr5  = MathRound(s/5);
       if(a==10)      adr10 = MathRound(s/10);
@@ -453,7 +555,6 @@ double GetAdrValues(string pairName, double point) {
    }
    
    double adr=MathRound((adr1+adr5+adr10+adr20)/4.0);
-
    return adr;
 }
 

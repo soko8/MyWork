@@ -12,27 +12,32 @@
 void draw(int rowCount);
 #import
 
+enum enumCalculateLotType {
+   Fixed = 0,
+   MoneyManage = 1
+};
+
 //--- input parameters
 input int         MagicNumber=888888;
 
 // 趋势间距
-input int         IntervalTrendPips__=7;
+input int         IntervalTrendPips__=6;
 // 最大趋势订单量
-input int         MaxTrendOrderCount__=18;
+input int         MaxTrendOrderCount__=30;
 // 回调间距
-input int         IntervalRetracePips__=20;
+input int         IntervalRetracePips__=11;
 // 最大回调订单量
-input int         MaxRetraceOrderCount__=6;
+input int         MaxRetraceOrderCount__=9;
 // 加仓系数
-input double      AddLotMultiple__=1.5;
+input double      AddLotMultiple__=1.4;
 // 止盈点数开关
 input bool        EnableTakeProfitByPips__=true;
 // 止盈点数
-input int         TakeProfitPips__=200;
+input int         TakeProfitPips__=300;
 // 止盈美金开关
 input bool        EnableTakeProfitByDollars__=false;
 // 止盈美金
-input double      TakeProfitDollars__=2000.0;
+input double      TakeProfitDollars__=3000.0;
 // 对冲止盈美金
 input double      TakeProfitDollars4Hedge__=10.0;
 // 10000:0.01
@@ -40,6 +45,10 @@ input double      TakeProfitDollars4Hedge__=10.0;
 input int         MoneyManagePerLot__=100000;
 // 逆势最大持单量
 input int         MaxReverseHoldOrders__=12;
+// 计算手数类型
+input enumCalculateLotType LotType__ = Fixed;
+// 固定手数大小
+input double      InitLotSize__ = 0.01;
 
 
 #include <stdlib.mqh>
@@ -61,18 +70,20 @@ enum enSignalType {
 
 /********************************************************************************************************/
 
-      int         IntervalTrendPips;
-      int         MaxTrendOrderCount;
-      int         IntervalRetracePips;
-      int         MaxRetraceOrderCount;
-      double      AddLotMultiple;
-      bool        EnableTakeProfitByPips;
-      int         TakeProfitPips;
-      bool        EnableTakeProfitByDollars;
-      double      TakeProfitDollars;
-      double      TakeProfitDollars4Hedge;
-      int         MoneyManagePerLot;
-      int         MaxReverseHoldOrders;
+      int                  IntervalTrendPips;
+      int                  MaxTrendOrderCount;
+      int                  IntervalRetracePips;
+      int                  MaxRetraceOrderCount;
+      double               AddLotMultiple;
+      bool                 EnableTakeProfitByPips;
+      int                  TakeProfitPips;
+      bool                 EnableTakeProfitByDollars;
+      double               TakeProfitDollars;
+      double               TakeProfitDollars4Hedge;
+      int                  MoneyManagePerLot;
+      int                  MaxReverseHoldOrders;
+enumCalculateLotType       LotType;
+      double               InitLotSize;
 
 
       CList                *LongOrders;
@@ -103,7 +114,7 @@ enum enSignalType {
       bool                 isRunning = false;
       ENUM_TIMEFRAMES      Period_Small;
       
-
+      double               Slippage = 20.0;
       
 const int                  PIP_DIGIT=1;
 const double               StepSAR=0.02;
@@ -115,7 +126,7 @@ const ENUM_APPLIED_PRICE   AppliedPriceMA=PRICE_CLOSE;
 /********************************************************************************************************/
 
 int OnInit() {
-   if(!IsDemo()) return(INIT_FAILED);
+   //if(!IsDemo()) return(INIT_FAILED);
    
    datetime ExpireTime = D'2024.12.31 23:59:59';
    if (isExpire(ExpireTime, true)) return(INIT_FAILED);
@@ -132,6 +143,8 @@ int OnInit() {
    TakeProfitDollars4Hedge=TakeProfitDollars4Hedge__;
    MoneyManagePerLot=MoneyManagePerLot__;
    MaxReverseHoldOrders=MaxReverseHoldOrders__;
+   LotType = LotType__;
+   InitLotSize = InitLotSize__;
    
 
    LotStepServer = MarketInfo(Symbol(), MODE_LOTSTEP);
@@ -150,6 +163,43 @@ int OnInit() {
    
    draw(MaxTrendOrderCount+MaxRetraceOrderCount);
    
+   reloadData();
+   
+   string msg = "\nMagci:"+IntegerToString(MagicNumber);
+   msg += "\n\nMaxCountT:"+IntegerToString(MaxTrendOrderCount__);
+   msg += "\n\nIntervalPipT:"+IntegerToString(IntervalTrendPips__);
+   msg += "\n\nMaxCountR:"+IntegerToString(MaxRetraceOrderCount__);
+   msg += "\n\nIntervalPipR:"+IntegerToString(IntervalRetracePips__);
+   msg += "\n\nMultiple:"+DoubleToStr(AddLotMultiple__,1);
+   if (EnableTakeProfitByPips__) {
+      msg += "\n\nTP(Pip):"+IntegerToString(TakeProfitPips__);
+   } else {
+      msg += "\n\nTP(Dollar):"+DoubleToStr(TakeProfitDollars__,1);
+   }
+   msg += "\n\nTP(Hedge):"+DoubleToStr(TakeProfitDollars4Hedge__,1);
+   msg += "\n\nMaxHold:"+IntegerToString(MaxReverseHoldOrders__);
+   if (Fixed == LotType) {
+      msg += "\n\nInitLotSize:"+DoubleToStr(InitLotSize__, 2);
+   } else {
+      msg += "\n\nMoneyManage:"+IntegerToString(MoneyManagePerLot__);
+   }
+
+   Comment(msg);
+
+Print("initLotShort===="+initLotShort);
+Print("nowOrderTotal4RetraceShort==="+nowOrderTotal4RetraceShort);
+Print("nextPrice4RetraceShort===="+nextPrice4RetraceShort);
+Print("nowOrderTotal4TrendShort====="+nowOrderTotal4TrendShort);
+Print("nextPrice4TrendShort====="+nextPrice4TrendShort);
+Print("openedOrderInNewCycleShort===="+openedOrderInNewCycleShort);
+
+Print("initLotLong===="+initLotLong);
+Print("nowOrderTotal4RetraceLong==="+nowOrderTotal4RetraceLong);
+Print("nextPrice4RetraceLong===="+nextPrice4RetraceLong);
+Print("nowOrderTotal4TrendLong====="+nowOrderTotal4TrendLong);
+Print("nextPrice4TrendLong====="+nextPrice4TrendLong);
+Print("openedOrderInNewCycleLong===="+openedOrderInNewCycleLong);
+   
    return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason) {
@@ -165,6 +215,7 @@ void OnTick() {
       refreshData();
       return;
    }
+   //Print("SignalType===" + SignalType);
    if (isNewBar()) {
       SignalType = getSignal();
       previousBarTime = Time[0];
@@ -180,15 +231,13 @@ void OnTick() {
       case Long_Cross : 
       case Long_Type : 
       case ENTRY_Long : {
-         // 平仓逆势订单列表中所有盈利单
-         closePositiveProfitReverseOrders(ShortOrders);
          
          if (!openedOrderInNewCycleLong) {
             if (nowOrderTotal4TrendLong<=MaxTrendOrderCount) {
-               Print("First Long Order.首次多单");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderLong(MagicNumber, lot, "First Long Order");
                if (oi.isValid()) {
+                  Print("First Long Order.首次多单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
                   LongOrders.Add(oi);
                   initLotLong = lot;
                   nowOrderTotal4RetraceLong = 0;
@@ -209,15 +258,13 @@ void OnTick() {
       case Short_Cross : 
       case Short_Type : 
       case ENTRY_Short : {
-         // 平仓逆势订单列表中所有盈利单
-         closePositiveProfitReverseOrders(LongOrders);
          
          if (!openedOrderInNewCycleShort) {
             if (nowOrderTotal4TrendShort<=MaxTrendOrderCount) {
-            Print("First Short Order.首次空单");
                double lot = calculateFirstLot();
                OrderInfo *oi = createOrderShort(MagicNumber, lot, "First Short Order");
                if (oi.isValid()) {
+                  Print("First Short Order.首次空单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
                   ShortOrders.Add(oi);
                   initLotShort = lot;
                   nowOrderTotal4RetraceShort = 0;
@@ -240,33 +287,37 @@ void OnTick() {
    }
    
    if (ENTRY_Long == SignalType || Long_Cross == SignalType || Long_Type == SignalType) {
+   
+      // 平仓逆势订单列表中所有盈利单
+      closePositiveProfitReverseOrders(ShortOrders);
+   
       if (nowOrderTotal4RetraceShort < 1 && nowOrderTotal4TrendShort < 1) {
          isTpLong();
-         
+         isTpLatestRetraceOrder(OP_BUY);
          
       // 对冲
       } else {
          hedge(ShortOrders, LongOrders);
       }
       isOverMaxReverseHoldOrdersLong();
-      isTpLatestRetraceOrder(OP_BUY);
+      
       
       if (nextPrice4TrendLong <= Bid && nowOrderTotal4TrendLong<MaxTrendOrderCount) {
-         Print("Add trend Long Order.顺势加仓多单");
          int apCount = nowOrderTotal4TrendLong + 1;
          OrderInfo *oi = createOrderLong(MagicNumber, initLotLong, "Long Trend Order"+IntegerToString(apCount));
          if (oi.isValid()) {
+            Print("Add Trend Long Order.顺势加仓多单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             LongOrders.Add(oi);
             nowOrderTotal4TrendLong = apCount;
             nextPrice4TrendLong = oi.getOpenPrice() + IntervalPrice4Trend;
             nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
          }
-      } else if (Ask <= nextPrice4RetraceLong && nowOrderTotal4RetraceLong<MaxRetraceOrderCount) {
-         Print("Add retrace Long Order.回调加仓多单");
+      } else if (Ask<=nextPrice4RetraceLong && nowOrderTotal4RetraceLong<MaxRetraceOrderCount && (nowOrderTotal4RetraceLong+nowOrderTotal4TrendLong)<MaxReverseHoldOrders) {
          int apCount = nowOrderTotal4RetraceLong + 1;
          double lotSize = calculateAPLot(initLotLong, apCount, AddLotMultiple);
          OrderInfo *oi = createOrderLong(MagicNumber, lotSize, "Long Retrace Order"+IntegerToString(apCount));
          if (oi.isValid()) {
+            Print("Add Retrace Long Order.回调加仓多单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             LongOrders.Add(oi);
             nowOrderTotal4RetraceLong = apCount;
             nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
@@ -278,33 +329,37 @@ void OnTick() {
    
    
    if (ENTRY_Short == SignalType || Short_Cross == SignalType || Short_Type == SignalType) {
+   
+      // 平仓逆势订单列表中所有盈利单
+      closePositiveProfitReverseOrders(LongOrders);
+   
       if (nowOrderTotal4RetraceLong < 1 && nowOrderTotal4TrendLong < 1) {
          isTpShort();
-         
+         isTpLatestRetraceOrder(OP_SELL);
 
       // 对冲
       } else {
          hedge(LongOrders, ShortOrders);
       }
       isOverMaxReverseHoldOrdersShort();
-      isTpLatestRetraceOrder(OP_SELL);
+      
       
       if (Ask <= nextPrice4TrendShort && nowOrderTotal4TrendShort < MaxTrendOrderCount) {
-         Print("Add trend Short Order.顺势加仓空单");
          int apCount = nowOrderTotal4TrendShort + 1;
          OrderInfo *oi = createOrderShort(MagicNumber, initLotShort, "Short Trend Order"+IntegerToString(apCount));
          if (oi.isValid()) {
+            Print("Add Trend Short Order.顺势加仓空单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             ShortOrders.Add(oi);
             nowOrderTotal4TrendShort = apCount;
             nextPrice4TrendShort = oi.getOpenPrice() - IntervalPrice4Trend;
             nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
          }
-      } else if (nextPrice4RetraceShort <= Bid && nowOrderTotal4RetraceShort < MaxRetraceOrderCount) {
-         Print("Add retrace Short Order.回调加仓空单");
+      } else if (nextPrice4RetraceShort<=Bid && nowOrderTotal4RetraceShort<MaxRetraceOrderCount && (nowOrderTotal4RetraceShort+nowOrderTotal4TrendShort)<MaxReverseHoldOrders) {
          int apCount = nowOrderTotal4RetraceShort + 1;
          double lotSize = calculateAPLot(initLotShort, apCount, AddLotMultiple);
          OrderInfo *oi = createOrderShort(MagicNumber, lotSize, "Short Retrace Order"+IntegerToString(apCount));
          if (oi.isValid()) {
+            Print("Add Retrace Short Order.回调加仓空单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             ShortOrders.Add(oi);
             nowOrderTotal4RetraceShort = apCount;
             nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
@@ -320,29 +375,38 @@ void OnTick() {
 
 enSignalType getSignal() {
    HideTestIndicators(true);
+   double sarVal0 = iSAR(NULL, 0, StepSAR, MaximumSAR, 0);
    double sarVal1 = iSAR(NULL, 0, StepSAR, MaximumSAR, 1);
-   double sarVal2 = iSAR(NULL, 0, StepSAR, MaximumSAR, 2);
+   //double sarVal2 = iSAR(NULL, 0, StepSAR, MaximumSAR, 2);
+   double maVal0 = iMA(NULL, 0, PeriodMA, ShiftMA, MethodMA, AppliedPriceMA, 0);
    double maVal1 = iMA(NULL, 0, PeriodMA, ShiftMA, MethodMA, AppliedPriceMA, 1);
-   double maVal2 = iMA(NULL, 0, PeriodMA, ShiftMA, MethodMA, AppliedPriceMA, 2);
+   //double maVal2 = iMA(NULL, 0, PeriodMA, ShiftMA, MethodMA, AppliedPriceMA, 2);
    HideTestIndicators(false);
-   if (sarVal2 > sarVal1 && maVal1 > sarVal1 && Close[1] > maVal1 && Close[1] > Open[1]) {
-      return ENTRY_Long;
-   }
-   if (sarVal2 < sarVal1 && maVal1 > sarVal1 && Low[1] > sarVal1) {
+   // 多头
+   if (sarVal0 <= Low[0]) {
+      if (High[1] >= sarVal1) {
+         return ENTRY_Long;
+      }
+      
+      if (sarVal1 <= maVal1 && maVal0 <= sarVal0) {
+         return Long_Cross;
+      }
+      
       return Long_Type;
-   }
-   if (sarVal2 <= maVal2 && maVal1 <= sarVal1) {
-      return Long_Cross;
-   }
-   if (sarVal2 < sarVal1 && maVal1 < sarVal1 && Close[1] < maVal1 && Close[1] < Open[1]) {
-      return ENTRY_Short;
-   }
-   if (sarVal2 > sarVal1 && maVal1 < sarVal1 && Low[1] < sarVal1) {
+   
+   // 空头
+   } else {
+      if (sarVal1 <= Low[1]) {
+         return ENTRY_Short;
+      }
+      
+      if (sarVal1 >= maVal1 && maVal0 >= sarVal0) {
+         return Short_Cross;
+      }
+   
       return Short_Type;
    }
-   if (sarVal2 >= maVal2 && maVal1 >= sarVal1) {
-      return Short_Cross;
-   }
+
    return None_Type;
 }
 
@@ -420,7 +484,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
       if (OP_BUY== theFurthestHedgeOrder.getOperationType()) {
          isClosedHedge = closeOrderLong(theFurthestHedgeOrder);
          if (isClosedHedge) {
-            Print("Short trend Hedge Long Order.空趋势对冲多单");
+            Print("Short Trend Hedge Long Order.空趋势对冲多单"+"----Ticket:"+IntegerToString(theFurthestHedgeOrder.getTicketId()));
             if (theFurthestHedgeOrder.isRetraceOrder()) {
                nowOrderTotal4RetraceLong--;
             } else {
@@ -428,9 +492,9 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
             }
          }
       } else if (OP_SELL== theFurthestHedgeOrder.getOperationType()) {
-      Print("Long trend Hedge Short Order.多趋势对冲空单");
          isClosedHedge = closeOrderShort(theFurthestHedgeOrder);
          if (isClosedHedge) {
+            Print("Long Trend Hedge Short Order.多趋势对冲空单"+"----Ticket:"+IntegerToString(theFurthestHedgeOrder.getTicketId()));
             if (theFurthestHedgeOrder.isRetraceOrder()) {
                nowOrderTotal4RetraceShort--;
             } else {
@@ -452,7 +516,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
             if (!isClosed) {
                continue;
             }
-            
+            Print("Short Trend Hedge Order.空趋势对冲单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             if (oi.isRetraceOrder()) {
                orderList.Delete(i);
                nowOrderTotal4RetraceShort--;
@@ -481,7 +545,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
             if (!isClosed) {
                continue;
             }
-            
+            Print("Long Trend Hedge Order.多趋势对冲单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
             if (oi.isRetraceOrder()) {
                orderList.Delete(i);
                nowOrderTotal4RetraceLong--;
@@ -531,6 +595,9 @@ bool isNewBar() {
 }
 
 double calculateFirstLot() {
+   if (Fixed == LotType) {
+      return InitLotSize;
+   }
    double lot = AccountBalance()/MoneyManagePerLot;
    lot = MathCeil(lot/LotStepServer)*LotStepServer;
    if (lot < minLot) {
@@ -600,9 +667,9 @@ bool isTpLatestRetraceOrder(int type) {
          if ((oi.getOpenPrice()+IntervalPrice4Retrace) <= Bid) {
             bool isClosed = closeOrderLong(oi);
             if (isClosed) {
+               Print("Take Profit The Latest Retrace Long Order.止盈最新回调多单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
                LongOrders.Delete(retraceIndex);
                delete oi;
-               Print("Take Profit The Latest Retrace Long Order.止盈最新回调多单");
                nowOrderTotal4RetraceLong--;
                if (0 < nowOrderTotal4RetraceLong) {
                   nextPrice4RetraceLong += IntervalPrice4Retrace;
@@ -635,9 +702,9 @@ bool isTpLatestRetraceOrder(int type) {
          if ( Ask <= (oi.getOpenPrice()-IntervalPrice4Retrace) ) {
             bool isClosed = closeOrderShort(oi);
             if (isClosed) {
+               Print("Take Profit The Latest Retrace Short Order.止盈最新回调空单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
                ShortOrders.Delete(retraceIndex);
                delete oi;
-               Print("Take Profit The Latest Retrace Short Order.止盈最新回调空单");
                nowOrderTotal4RetraceShort--;
                if (0 < nowOrderTotal4RetraceShort) {
                   nextPrice4RetraceShort -= IntervalPrice4Retrace;
@@ -672,7 +739,7 @@ int closePositiveProfitReverseOrders(CList *orderList) {
          Print("OrderSelect Error. Ticket:" + IntegerToString(ticketId) + ". Error:【" + ErrorDescription(GetLastError()));
          continue;
       }
-      if ((OrderProfit()+OrderCommission()+OrderSwap()) < 0) {
+      if ((OrderProfit()+OrderCommission()+OrderSwap()) < Slippage*OrderLots()) {
          continue;
       }
       if (OP_BUY == oi.getOperationType()) {
@@ -686,7 +753,7 @@ int closePositiveProfitReverseOrders(CList *orderList) {
       }
       
       if (OP_BUY == oi.getOperationType()) {
-         Print("Now Short Trend, Close Positive Profit Reverse Long Order.当前空头趋势中平仓逆势多头盈利订单");
+         Print("Now Short Trend, Close Positive Profit Reverse Long Order.当前空头趋势中平仓逆势多头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             nowOrderTotal4RetraceLong--;
             
@@ -695,7 +762,7 @@ int closePositiveProfitReverseOrders(CList *orderList) {
             
          }
       } else if (OP_SELL == oi.getOperationType()) {
-         Print("Now Long Trend, Close Positive Profit Reverse Short Order.当前多头趋势中平仓逆势空头盈利订单");
+         Print("Now Long Trend, Close Positive Profit Reverse Short Order.当前多头趋势中平仓逆势空头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             nowOrderTotal4RetraceShort--;
          
@@ -727,7 +794,7 @@ int closePositiveProfitTrendOrders(CList *orderList) {
          Print("OrderSelect Error. Ticket:" + IntegerToString(ticketId) + ". Error:【" + ErrorDescription(GetLastError()));
          continue;
       }
-      if ((OrderProfit()+OrderCommission()+OrderSwap()) < 0) {
+      if ((OrderProfit()+OrderCommission()+OrderSwap()) < Slippage*OrderLots()) {
          continue;
       }
       if (OP_BUY == oi.getOperationType()) {
@@ -741,7 +808,7 @@ int closePositiveProfitTrendOrders(CList *orderList) {
       }
       
       if (OP_BUY == oi.getOperationType()) {
-         Print("Close Positive Profit Trend Long Order.平仓顺势多头盈利订单");
+         Print("Close Positive Profit Trend Long Order.平仓顺势多头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             orderList.Delete(i);
             nowOrderTotal4RetraceLong--;
@@ -764,7 +831,7 @@ int closePositiveProfitTrendOrders(CList *orderList) {
             }
          }
       } else if (OP_SELL == oi.getOperationType()) {
-         Print("Close Positive Profit Trend Short Order.平仓顺势空头盈利订单");
+         Print("Close Positive Profit Trend Short Order.平仓顺势空头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             orderList.Delete(i);
             nowOrderTotal4RetraceShort--;
@@ -801,9 +868,9 @@ bool isOverMaxReverseHoldOrdersLong() {
    }
    
    HideTestIndicators(true);
-   double sarVal = iSAR(NULL, Period_Small, StepSAR, MaximumSAR, 1);
+   double sarVal = iSAR(NULL, Period_Small, StepSAR, MaximumSAR, 0);
    HideTestIndicators(false);
-   double lowVal = iLow(NULL, Period_Small, 1);
+   double lowVal = iLow(NULL, Period_Small, 0);
    // 趋势相同，
    if (sarVal <= lowVal) {
       double basePrice = High[0]-IntervalPrice4Trend*4;
@@ -823,7 +890,7 @@ bool isOverMaxReverseHoldOrdersLong() {
          if (!isClosed) {
             continue;
          }
-         Print("Retrace is Over 4 Interval,Close Positive Profit Trend Long Order.回调超过4个顺势间距，平仓顺势多头盈利订单");
+         Print("Retrace is Over 4 Interval,Close Positive Profit Trend Long Order.回调超过4个顺势间距，平仓顺势多头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             LongOrders.Delete(i);
             nowOrderTotal4RetraceLong--;
@@ -888,9 +955,9 @@ bool isOverMaxReverseHoldOrdersShort() {
    }
    
    HideTestIndicators(true);
-   double sarVal = iSAR(NULL, Period_Small, StepSAR, MaximumSAR, 1);
+   double sarVal = iSAR(NULL, Period_Small, StepSAR, MaximumSAR, 0);
    HideTestIndicators(false);
-   double highVal = iHigh(NULL, Period_Small, 1);
+   double highVal = iHigh(NULL, Period_Small, 0);
    // 趋势相同
    if (highVal <= sarVal) {
       double basePrice = Low[0]+IntervalPrice4Trend*4;
@@ -910,7 +977,7 @@ bool isOverMaxReverseHoldOrdersShort() {
          if (!isClosed) {
             continue;
          }
-         Print("Retrace is Over 4 Interval,Close Positive Profit Trend Short Order.回调超过4个顺势间距，平仓顺势空头盈利订单");
+         Print("Retrace is Over 4 Interval,Close Positive Profit Trend Short Order.回调超过4个顺势间距，平仓顺势空头盈利订单"+"----Ticket:"+IntegerToString(oi.getTicketId()));
          if (oi.isRetraceOrder()) {
             ShortOrders.Delete(i);
             nowOrderTotal4RetraceShort--;
@@ -985,7 +1052,9 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
       }
       sumLotL += oi.getLotSize();
       sumProfitL += profit;
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(i),OBJPROP_BGCOLOR,clrBlack);
    }
+   
    
    for (int i=listSize; i<(MaxTrendOrderCount+MaxRetraceOrderCount); i++) {
       ObjectSetString(chartId,ColumnType[1]+ColumnName[1]+IntegerToString(i),OBJPROP_TEXT,"");
@@ -993,6 +1062,7 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
       ObjectSetString(chartId,ColumnType[3]+ColumnName[3]+IntegerToString(i),OBJPROP_TEXT,"");
       ObjectSetString(chartId,ColumnType[4]+ColumnName[4]+IntegerToString(i),OBJPROP_TEXT,"");
       ObjectSetString(chartId,ColumnType[5]+ColumnName[5]+IntegerToString(i),OBJPROP_TEXT,"");
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(i),OBJPROP_BGCOLOR,clrBlack);
    }
    
    listSize = ShortOrders.Total();
@@ -1019,6 +1089,7 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
       
       sumLotS += oi.getLotSize();
       sumProfitS += profit;
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(i),OBJPROP_BGCOLOR,clrBlack);
    }
    
    for (int i=listSize; i<(MaxTrendOrderCount+MaxRetraceOrderCount); i++) {
@@ -1027,6 +1098,7 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
       ObjectSetString(chartId,ColumnType[9]+ColumnName[9]+IntegerToString(i),OBJPROP_TEXT,"");
       ObjectSetString(chartId,ColumnType[10]+ColumnName[10]+IntegerToString(i),OBJPROP_TEXT,"");
       ObjectSetString(chartId,ColumnType[11]+ColumnName[11]+IntegerToString(i),OBJPROP_TEXT,"");
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(i),OBJPROP_BGCOLOR,clrBlack);
    }
    
    ObjectSetString(chartId,"SumlblLotsL",OBJPROP_TEXT,DoubleToStr(sumLotL, 2));
@@ -1044,6 +1116,13 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
    ObjectSetString(chartId,"SumlblOpenPriceL",OBJPROP_TEXT,DoubleToStr(nextPrice4RetraceLong, Digits));
    ObjectSetString(chartId,"SumlblticketS",OBJPROP_TEXT,DoubleToStr(nextPrice4TrendShort, Digits));
    ObjectSetString(chartId,"SumlblOpenPriceS",OBJPROP_TEXT,DoubleToStr(nextPrice4RetraceShort, Digits));
+   
+   if (0 < LongOrders.Total()) {
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(LongOrders.Total()-1),OBJPROP_BGCOLOR,clrBlue);
+   }
+   if (0 < ShortOrders.Total()) {
+      ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(ShortOrders.Total()-1),OBJPROP_BGCOLOR,clrRed);
+   }
 }
 
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
@@ -1062,30 +1141,48 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          }
       } else
       if ("H1btnCloseL" == sparam) {
-         closeAllOrdersList(LongOrders);
+         int cnt = closeAllOrdersList(LongOrders);
+         if (0 < cnt) {
+            Print("Manually close all long orders.手动平仓所有多单");
+         }
          nowOrderTotal4RetraceLong=0;
          nowOrderTotal4TrendLong=0;
          openedOrderInNewCycleLong=false;
+         refreshData();
       } else
       if ("H1btnCloseS" == sparam) {
-         closeAllOrdersList(ShortOrders);
+         int cnt = closeAllOrdersList(ShortOrders);
+         if (0 < cnt) {
+            Print("Manually close all short orders.手动平仓所有空单");
+         }
          nowOrderTotal4RetraceShort=0;
          nowOrderTotal4TrendShort=0;
          openedOrderInNewCycleShort=false;
+         refreshData();
       } else
       if ("SumbtnCloseL" == sparam) {
-         closePositiveProfitTrendOrders(LongOrders);
+         int cnt = closePositiveProfitTrendOrders(LongOrders);
+         if (0 < cnt) {
+            Print("Manually close all positive profit long orders.手动平仓所有盈利多单");
+         }
+         refreshData();
       } else
       if ("SumbtnCloseS" == sparam) {
-         closePositiveProfitTrendOrders(ShortOrders);
+         int cnt = closePositiveProfitTrendOrders(ShortOrders);
+         if (0 < cnt) {
+            Print("Manually close all positive profit short orders.手动平仓所有盈利空单");
+         }
+         refreshData();
       }
       else {
          string searchStr = "btnCloseL";
          if (0 <= StringFind(sparam, searchStr)) {
             string indexStr = StringSubstr(sparam, StringLen(searchStr));
+            if (StrToInteger(indexStr) < nowOrderTotal4TrendLong+nowOrderTotal4RetraceLong) {
             OrderInfo *oi = LongOrders.GetNodeAtIndex(StrToInteger(indexStr));
             bool isClosed = closeOrderLong(oi);
             if (isClosed) {
+               Print("Manually close a long order.手动平仓一个多单"+" ----Ticket:"+IntegerToString(oi.getTicketId()));
                if (oi.isRetraceOrder()) {
                   LongOrders.Delete(StrToInteger(indexStr));
                   nowOrderTotal4RetraceLong--;
@@ -1108,16 +1205,19 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                   }
                }
                delete oi;
+               refreshData();
             }
-            
+            }
             
          } else {
             searchStr = "btnCloseS";
             if (0 <= StringFind(sparam, searchStr)) {
                string indexStr = StringSubstr(sparam, StringLen(searchStr));
+               if (StrToInteger(indexStr) < nowOrderTotal4TrendShort+nowOrderTotal4RetraceShort) {
                OrderInfo *oi = ShortOrders.GetNodeAtIndex(StrToInteger(indexStr));
                bool isClosed = closeOrderShort(oi);
                if (isClosed) {
+                  Print("Manually close a short order.手动平仓一个空单"+" ----Ticket:"+IntegerToString(oi.getTicketId()));
                   if (oi.isRetraceOrder()) {
                      ShortOrders.Delete(StrToInteger(indexStr));
                      nowOrderTotal4RetraceShort--;
@@ -1139,8 +1239,9 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                      }
                   }
                   delete oi;
+                  refreshData();
                }
-               
+               }
                
             }
          }
@@ -1157,4 +1258,198 @@ color getProfitFontColor(double profit) {
       fontColor=clrGreen;
    }
    return fontColor;
+}
+
+void reloadData() {
+   int TradeListL[][2];
+   int TradeListS[][2];
+   int cntL = 0;
+   int cntS = 0;
+   int cnt = OrdersTotal();
+   for (int pos=0; pos<cnt; pos++) {
+      if(!OrderSelect(pos,SELECT_BY_POS,MODE_TRADES)) continue;
+      if(OrderMagicNumber()!=MagicNumber) continue;
+      if(OrderSymbol()!=_Symbol) continue;
+      
+      if (OP_BUY == OrderType()) {
+         cntL++;
+		   ArrayResize(TradeListL, cntL);
+		   TradeListL[cntL-1][0] = OrderOpenTime();
+		   TradeListL[cntL-1][1] = OrderTicket();
+      
+      } else
+      if (OP_SELL == OrderType()) {
+         cntS++;
+		   ArrayResize(TradeListS, cntS);
+		   TradeListS[cntS-1][0] = OrderOpenTime();
+		   TradeListS[cntS-1][1] = OrderTicket();
+      }
+   }
+   
+   ArraySort(TradeListL,WHOLE_ARRAY,0,MODE_ASCEND);
+   ArraySort(TradeListS,WHOLE_ARRAY,0,MODE_ASCEND);
+   
+   
+   HideTestIndicators(true);
+   double sarVal = iSAR(NULL, 0, StepSAR, MaximumSAR, 1);
+   double val = iHigh(NULL, 0, 1);
+   
+   bool isLong = true;
+   if (val <= sarVal) {
+      isLong = false;
+   }
+   
+   int barShift = 1;
+   bool isReverse = false;
+   if (isLong) {
+      while (!isReverse && !IsStopped()) {
+         barShift++;
+         sarVal = iSAR(NULL, 0, StepSAR, MaximumSAR, barShift);
+         val = iLow(NULL, 0, barShift);
+         if (sarVal <= val) {
+            continue;
+         } else {
+            isReverse = true;
+         }
+      }
+   } else {
+      while (!isReverse && !IsStopped()) {
+         barShift++;
+         sarVal = iSAR(NULL, 0, StepSAR, MaximumSAR, barShift);
+         val = iHigh(NULL, 0, barShift);
+         if (val <= sarVal) {
+            continue;
+         } else {
+            isReverse = true;
+         }
+      }
+   }
+   HideTestIndicators(false);
+   barShift--;
+   datetime trendStartTime = iTime(NULL,0,barShift);
+   
+   datetime nowBarStartTime = Time[0];
+   
+   /************************************************/
+   initLotLong = 0.0;
+   
+   nowOrderTotal4TrendLong = 0;
+   nowOrderTotal4RetraceLong = 0;
+   
+   nextPrice4TrendLong = 0.0;
+   nextPrice4RetraceLong = 0.0;
+   
+   openedOrderInNewCycleLong=false;
+   
+   for (int i=0; i<cntL; i++) {
+      if (!OrderSelect(TradeListL[i][1], SELECT_BY_TICKET)) continue;
+      
+      OrderInfo *oi = new OrderInfo;
+      oi.setValid(true);
+      oi.setLotSize(OrderLots());
+      oi.setOpenPrice(OrderOpenPrice());
+      oi.setOperationType(OP_BUY);
+      oi.setSymbolName(_Symbol);
+      oi.setTicketId(TradeListL[i][1]);
+      string comment = OrderComment();
+      oi.setRetraceOrder(false);
+      if (0 <= StringFind(comment, "Retrace")) {
+         oi.setRetraceOrder(true);
+         nowOrderTotal4RetraceLong++;
+         if (isLong && trendStartTime<=OrderOpenTime()) {
+            nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
+         }
+         
+      } else {
+         nowOrderTotal4TrendLong++;
+         if (isLong && trendStartTime<=OrderOpenTime()) {
+            initLotLong = oi.getLotSize();
+            nextPrice4TrendLong = oi.getOpenPrice() + IntervalPrice4Trend;
+         }
+      }
+      if (isLong && nowBarStartTime<=OrderOpenTime()) {
+         openedOrderInNewCycleLong = true;
+      }
+      
+      LongOrders.Add(oi);
+   }
+   
+   // 当前趋势只有趋势单
+   if (0.00001<nextPrice4TrendLong && nextPrice4RetraceLong<0.00001) {
+      if (isLong) {
+         nextPrice4RetraceLong = OrderOpenPrice() - IntervalPrice4Retrace;
+      }
+   }
+   // 当前趋势只有回调单
+   if (0.00001<nextPrice4RetraceLong && nextPrice4TrendLong<0.00001) {
+      if (isLong) {
+         initLotLong = calculateFirstLot();
+         nextPrice4TrendLong = Ask;
+      }
+   }
+   
+   
+   /*********************************************************************/
+   
+   /************************************************/
+   initLotShort = 0.0;
+   
+   nowOrderTotal4TrendShort = 0;
+   nowOrderTotal4RetraceShort = 0;
+   
+   nextPrice4TrendShort = 0.0;
+   nextPrice4RetraceShort = 0.0;
+   
+   openedOrderInNewCycleShort=false;
+   
+   for (int i=0; i<cntS; i++) {
+      if (!OrderSelect(TradeListS[i][1], SELECT_BY_TICKET)) continue;
+      
+      OrderInfo *oi = new OrderInfo;
+      oi.setValid(true);
+      oi.setLotSize(OrderLots());
+      oi.setOpenPrice(OrderOpenPrice());
+      oi.setOperationType(OP_BUY);
+      oi.setSymbolName(_Symbol);
+      oi.setTicketId(TradeListS[i][1]);
+      string comment = OrderComment();
+      oi.setRetraceOrder(false);
+      if (0 <= StringFind(comment, "Retrace")) {
+         oi.setRetraceOrder(true);
+         nowOrderTotal4RetraceShort++;
+         if (!isLong && trendStartTime<=OrderOpenTime()) {
+            nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
+         }
+         
+      } else {
+         nowOrderTotal4TrendShort++;
+         if (!isLong && trendStartTime<=OrderOpenTime()) {
+            initLotShort = oi.getLotSize();
+            nextPrice4TrendShort = oi.getOpenPrice() - IntervalPrice4Trend;
+         }
+      }
+      if (!isLong && nowBarStartTime<=OrderOpenTime()) {
+         openedOrderInNewCycleShort = true;
+      }
+      
+      ShortOrders.Add(oi);
+   }
+   
+   // 当前趋势只有趋势单
+   if (0.00001<nextPrice4TrendShort && nextPrice4RetraceShort<0.00001) {
+      if (!isLong) {
+         nextPrice4RetraceShort = OrderOpenPrice() + IntervalPrice4Retrace;
+      }
+   }
+   // 当前趋势只有回调单
+   if (0.00001<nextPrice4RetraceShort && nextPrice4TrendShort<0.00001) {
+      if (!isLong) {
+         initLotShort = calculateFirstLot();
+         nextPrice4TrendShort = Bid;
+      }
+   }
+   
+   
+   /*********************************************************************/
+   refreshData();
 }

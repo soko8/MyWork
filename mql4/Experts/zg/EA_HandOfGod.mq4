@@ -128,7 +128,7 @@ const ENUM_APPLIED_PRICE   AppliedPriceMA=PRICE_CLOSE;
 int OnInit() {
    //if(!IsDemo()) return(INIT_FAILED);
    
-   datetime ExpireTime = D'2022.12.31 23:59:59';
+   datetime ExpireTime = D'2024.12.31 23:59:59';
    if (isExpire(ExpireTime, true)) return(INIT_FAILED);
    
    IntervalTrendPips=IntervalTrendPips__;
@@ -215,6 +215,14 @@ void OnTick() {
       refreshData();
       return;
    }
+   /*
+   if ((nowOrderTotal4TrendLong+nowOrderTotal4RetraceLong)<1) {
+      openedOrderInNewCycleLong = false;
+   }
+   if ((nowOrderTotal4TrendShort+nowOrderTotal4RetraceShort)<1) {
+      openedOrderInNewCycleShort = false;
+   }
+   */
    //Print("SignalType===" + SignalType);
    if (isNewBar()) {
       SignalType = getSignal();
@@ -224,6 +232,27 @@ void OnTick() {
       } else if (ENTRY_Short==SignalType || Short_Cross == SignalType || Short_Type == SignalType) {
          openedOrderInNewCycleLong = false;
       }
+   } else {
+      if ((Long_Type == SignalType) || (Long_Cross == SignalType)) {
+         HideTestIndicators(true);
+         double sarVal0 = iSAR(NULL, 0, StepSAR, MaximumSAR, 0);
+         HideTestIndicators(false);
+         if (Low[0] < sarVal0) {
+            SignalType = ENTRY_Short;
+            openedOrderInNewCycleLong = false;
+         }
+      }
+      
+      if ((Short_Type == SignalType) || (Short_Cross == SignalType)) {
+         HideTestIndicators(true);
+         double sarVal0 = iSAR(NULL, 0, StepSAR, MaximumSAR, 0);
+         HideTestIndicators(false);
+         if (sarVal0 < High[0]) {
+            SignalType = ENTRY_Long;
+            openedOrderInNewCycleShort = false;
+         }
+      }
+   
    }
    
    switch(SignalType) {
@@ -310,7 +339,9 @@ void OnTick() {
             LongOrders.Add(oi);
             nowOrderTotal4TrendLong = apCount;
             nextPrice4TrendLong = oi.getOpenPrice() + IntervalPrice4Trend;
-            nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
+            if (0==nowOrderTotal4RetraceLong) {
+               nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
+            }
          }
       } else if (Ask<=nextPrice4RetraceLong && nowOrderTotal4RetraceLong<MaxRetraceOrderCount && (nowOrderTotal4RetraceLong+nowOrderTotal4TrendLong)<MaxReverseHoldOrders) {
          int apCount = nowOrderTotal4RetraceLong + 1;
@@ -352,7 +383,9 @@ void OnTick() {
             ShortOrders.Add(oi);
             nowOrderTotal4TrendShort = apCount;
             nextPrice4TrendShort = oi.getOpenPrice() - IntervalPrice4Trend;
-            nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
+            if (0==nowOrderTotal4RetraceShort) {
+               nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
+            }
          }
       } else if (nextPrice4RetraceShort<=Bid && nowOrderTotal4RetraceShort<MaxRetraceOrderCount && (nowOrderTotal4RetraceShort+nowOrderTotal4TrendShort)<MaxReverseHoldOrders) {
          int apCount = nowOrderTotal4RetraceShort + 1;
@@ -460,7 +493,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
    if(OrderSelect(ticketId, SELECT_BY_TICKET)) {
       double hedgeProfit = OrderProfit() + OrderCommission() + OrderSwap();
       double profit = 0;
-      double lotHedge = 0;
+      double lotHedge = theFurthestHedgeOrder.getLotSize();
       for(; 0 <= endIndex; endIndex--) {
          OrderInfo *oi = orderList.GetNodeAtIndex(endIndex);
          int ticketIdLoop = oi.getTicketId();
@@ -534,7 +567,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
                if (0 < nowOrderTotal4TrendShort) {
                   nextPrice4TrendShort += IntervalPrice4Trend;
                } else {
-                  openedOrderInNewCycleShort = false;
+                  //openedOrderInNewCycleShort = false;
                }
             }
             
@@ -564,7 +597,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
                if (0 < nowOrderTotal4TrendLong) {
                   nextPrice4TrendLong -= IntervalPrice4Trend;
                } else {
-                  openedOrderInNewCycleLong = false;
+                  //openedOrderInNewCycleLong = false;
                }
             }
 
@@ -575,6 +608,18 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
       
       HedgeOrderList.Delete(theFurthestHedgeOrderIndex);
       delete theFurthestHedgeOrder;
+      
+      if (OP_SELL== theFurthestHedgeOrder.getOperationType()) {
+         if ((nowOrderTotal4TrendLong+nowOrderTotal4RetraceLong)<1) {
+            nextPrice4TrendLong = Ask;
+            nextPrice4RetraceLong = Ask - IntervalPrice4Retrace;
+         }
+      } else {
+         if ((nowOrderTotal4TrendShort+nowOrderTotal4RetraceShort)<1) {
+            nextPrice4TrendShort = Bid;
+            nextPrice4RetraceShort = Bid + IntervalPrice4Retrace;
+         }
+      }
    }
 }
 
@@ -1126,10 +1171,13 @@ const string   ColumnType[13]             ={ "lbl",         "lbl",         "lbl"
    
    
    
-   ObjectSetString(chartId,"SumlblticketL",OBJPROP_TEXT,DoubleToStr(nextPrice4TrendLong, Digits));
-   ObjectSetString(chartId,"SumlblOpenPriceL",OBJPROP_TEXT,DoubleToStr(nextPrice4RetraceLong, Digits));
-   ObjectSetString(chartId,"SumlblticketS",OBJPROP_TEXT,DoubleToStr(nextPrice4TrendShort, Digits));
-   ObjectSetString(chartId,"SumlblOpenPriceS",OBJPROP_TEXT,DoubleToStr(nextPrice4RetraceShort, Digits));
+   ObjectSetString(chartId,"SumlblticketL",OBJPROP_TEXT,"T="+DoubleToStr(nextPrice4TrendLong, Digits));
+   ObjectSetString(chartId,"SumlblOpenPriceL",OBJPROP_TEXT,"R="+DoubleToStr(nextPrice4RetraceLong, Digits));
+   ObjectSetString(chartId,"SumlblticketS",OBJPROP_TEXT,"T="+DoubleToStr(nextPrice4TrendShort, Digits));
+   ObjectSetString(chartId,"SumlblOpenPriceS",OBJPROP_TEXT,"R="+DoubleToStr(nextPrice4RetraceShort, Digits));
+   
+   ObjectSetString(chartId,"SumlblOrderTypeL",OBJPROP_TEXT,IntegerToString(nowOrderTotal4TrendLong)+"="+IntegerToString(nowOrderTotal4RetraceLong));
+   ObjectSetString(chartId,"SumlblOrderTypeS",OBJPROP_TEXT,IntegerToString(nowOrderTotal4TrendShort)+"="+IntegerToString(nowOrderTotal4RetraceShort));
    
    if (0 < LongOrders.Total()) {
       ObjectSetInteger(chartId,"ReclblNum"+IntegerToString(LongOrders.Total()-1),OBJPROP_BGCOLOR,clrBlue);
@@ -1300,20 +1348,24 @@ void reloadData() {
       }
    }
    
+   if (0==(cntL+cntS)) {
+      return;
+   }
+   
    ArraySort(TradeListL,WHOLE_ARRAY,0,MODE_ASCEND);
    ArraySort(TradeListS,WHOLE_ARRAY,0,MODE_ASCEND);
    
    
    HideTestIndicators(true);
-   double sarVal = iSAR(NULL, 0, StepSAR, MaximumSAR, 1);
-   double val = iHigh(NULL, 0, 1);
+   double sarVal = iSAR(NULL, 0, StepSAR, MaximumSAR, 0);
+   double val = iHigh(NULL, 0, 0);
    
    bool isLong = true;
    if (val <= sarVal) {
       isLong = false;
    }
    
-   int barShift = 1;
+   int barShift = 0;
    bool isReverse = false;
    if (isLong) {
       while (!isReverse && !IsStopped()) {
@@ -1342,7 +1394,7 @@ void reloadData() {
    barShift--;
    datetime trendStartTime = iTime(NULL,0,barShift);
    
-   datetime nowBarStartTime = Time[0];
+   //datetime nowBarStartTime = Time[0];
    
    /************************************************/
    initLotLong = 0.0;
@@ -1372,6 +1424,7 @@ void reloadData() {
          nowOrderTotal4RetraceLong++;
          if (isLong && trendStartTime<=OrderOpenTime()) {
             nextPrice4RetraceLong = oi.getOpenPrice() - IntervalPrice4Retrace;
+            openedOrderInNewCycleLong = true;
          }
          
       } else {
@@ -1379,11 +1432,14 @@ void reloadData() {
          if (isLong && trendStartTime<=OrderOpenTime()) {
             initLotLong = oi.getLotSize();
             nextPrice4TrendLong = oi.getOpenPrice() + IntervalPrice4Trend;
+            openedOrderInNewCycleLong = true;
          }
       }
+      /*
       if (isLong && nowBarStartTime<=OrderOpenTime()) {
          openedOrderInNewCycleLong = true;
       }
+      */
       
       LongOrders.Add(oi);
    }
@@ -1433,6 +1489,7 @@ void reloadData() {
          nowOrderTotal4RetraceShort++;
          if (!isLong && trendStartTime<=OrderOpenTime()) {
             nextPrice4RetraceShort = oi.getOpenPrice() + IntervalPrice4Retrace;
+            openedOrderInNewCycleShort = true;
          }
          
       } else {
@@ -1440,11 +1497,14 @@ void reloadData() {
          if (!isLong && trendStartTime<=OrderOpenTime()) {
             initLotShort = oi.getLotSize();
             nextPrice4TrendShort = oi.getOpenPrice() - IntervalPrice4Trend;
+            openedOrderInNewCycleShort = true;
          }
       }
+      /*
       if (!isLong && nowBarStartTime<=OrderOpenTime()) {
          openedOrderInNewCycleShort = true;
       }
+      */
       
       ShortOrders.Add(oi);
    }

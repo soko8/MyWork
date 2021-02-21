@@ -120,12 +120,6 @@ const ENUM_MA_METHOD             Method_STO = MODE_EMA;
 const int                        Price_Field_STO = 1;
 /****************************Stochastic1**************************************/
 
-//CList *SymbolList;
-//string TradePairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY"};
-
-void getInfo(const string &str[], const int &arr[], double &arrd[]) export {
-
-}
 
 
 const int RowInterval=0;
@@ -135,23 +129,23 @@ const int RowHeight=40;
 const string Font_Name = "Lucida Bright";
 const int Font_Size = 8;
 const int Border_Width = 1;
-                                         //   1          2            3         4          5           6            7          8         9          10           11            12         13        14          15        16        17        18         19            20         21         22         23         24            25                  26          27         28              29              30              31           32          33
-const string   ColumnName[33]             ={ "Disable", "Profit",    "Buy",    "BuyLot",  "BuyClose", "BuyProfit", "BuyNum",  "Sell",   "SellLot", "SellClose", "SellProfit", "SellNum", "Spread", "PairName", "ADR",    "CDR",    "RSI",    "CCI",     "SAR"         "MA1",     "MA2",     "MA3",     "MA4",     "BidRatio",   "RelativeStrength", "BSRatio",  "GAP",     "Stochastic1",  "Stochastic2",  "Stochastic3",  "HeatMap4",  "Spare1",    "Spare2"    };
-const string   ColumnShow[33]             ={ "~",       "123456.12", "B",      "1234.12", "CL",       "12345.12",  "12",      "S",      "1234.12", "CS",        "12345.12",   "12",      "99.9",   "EURUSD",   "999.9",  "123.1",  "123",    "-123",    "12.12",      "++",      "==",      "++",      "--",      "12.12% ==",  "-5 ==",            "-5.5 ==",  "-5.5 ==", "12.1 ++",      "12.1 --",      "12.1 ==",      "12.1 ==",   "12.1 ==",   "12.1 =="   };
-const string   ColumnType[33]             ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",      "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
-const int      ColumnWidth[33]            ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        139,          100,                104,        100,       100,            100,            100,            62,          62,          62         };
-const int      ColumnWidthAdjust[33]      ={  0,         2,           0,        2,         0,          2,           2,         0,        2,         0,           2,            2,         8,        0,          6,        6,        14,       4,         22,           12,        12,        12,        12,        2,            2,                  2,          2,         2,              2,              2,              12,          12,          12         };
-const color    ColumnColor[33]            ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
-const color    ColumnColorBackground[33]  ={ clrBlack,  clrBlack,    clrBlack, clrBlack,  clrBlack,   clrBlack,    clrBlack,  clrBlack, clrBlack,  clrBlack,    clrBlack,     clrBlack,  clrBlack, clrBlack,   clrBlack, clrBlack, clrBlack, clrBlack,  clrBlack,     clrBlack,  clrBlack,  clrBlack,  clrBlack,  clrBlack,     clrBlack,           clrBlack,   clrBlack,  clrBlack,       clrBlack,       clrBlack,       clrBlack,    clrBlack,    clrWhite    };
-const color    ColumnColorBorder[33]      ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
+                                         //   1          2            3         4          5           6            7          8         9          10           11            12         13        14          15        16        17        18         19            20         21         22         23         24            25                  26               27         28              29              30              31           32          33
+const string   ColumnName[33]             ={ "Disable", "Profit",    "Buy",    "BuyLot",  "CloseBuy", "BuyProfit", "BuyNum",  "Sell",   "SellLot", "CloseSell", "SellProfit", "SellNum", "Spread", "PairName", "ADR",    "CDR",    "RSI",    "CCI",     "SAR"         "MA1",     "MA2",     "MA3",     "MA4",     "BidRatio",   "RelativeStrength", "BSRatio",       "GAP",     "Stochastic1",  "Stochastic2",  "Stochastic3",  "HeatMap4",  "Spare1",    "Spare2"    };
+const string   ColumnShow[33]             ={ "~",       "123456.12", "B",      "1234.12", "CL",       "12345.12",  "12",      "S",      "1234.12", "CS",        "12345.12",   "12",      "99.9",   "EURUSD",   "999.9",  "123.1",  "123",    "-123",    "12.12",      "++",      "==",      "++",      "--",      "12.12% ==",  "-5 ==",            "-5.5 ==",       "-5.5 ==", "12.1 ++",      "12.1 --",      "12.1 ==",      "12.1 ==",   "12.1 ==",   "12.1 =="   };
+const string   ColumnType[33]             ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",           "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
+const int      ColumnWidth[33]            ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        80,           60,                 194,             76,        160,            100,            100,            62,          62,          62         };
+const int      ColumnWidthAdjust[33]      ={  0,         2,           0,        2,         0,          2,           2,         0,        2,         0,           2,            2,         8,        0,          6,        6,        14,       4,         22,           12,        12,        12,        12,        2,            2,                  2,               2,         2,              2,              2,              12,          12,          12         };
+const color    ColumnColor[33]            ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,        clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
+const color    ColumnColorBackground[33]  ={ clrBlack,  clrBlack,    clrBlack, clrBlack,  clrBlack,   clrBlack,    clrBlack,  clrBlack, clrBlack,  clrBlack,    clrBlack,     clrBlack,  clrBlack, clrBlack,   clrBlack, clrBlack, clrBlack, clrBlack,  clrBlack,     clrBlack,  clrBlack,  clrBlack,  clrBlack,  clrBlack,     clrBlack,           clrBlack,        clrBlack,  clrBlack,       clrBlack,       clrBlack,       clrBlack,    clrBlack,    clrWhite    };
+const color    ColumnColorBorder[33]      ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,        clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
 
-const string   h1ColumnShow[33]           ={ "~",       "Profit",    "CP",     "Lot",     "CL",       "Profit",    "#",       "CP",     "Lot",     "CS",        "Profit",     "#",       "Spd",    "Symbol",   "ADR",    "CDR",    "RSI",    "CCI",     "SAR",        "M5",      "30",      "H1",      "H4",      "BidRatio",   "Rel Str",          "BSRatio",  "GAP",     "Sto1",         "Sto2",         "Sto3",         "HeatMap4",  "Spare1",    "Spare1"    };
-const string   h1ColumnType[33]           ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",      "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
-const int      h1ColumnWidth[33]          ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        139,          100,                104,        100,       100,            100,            100,            62,          62,          62         };
-const int      h1ColumnWidthAdjust[33]    ={  0,         39,          0,        30,        0,          30,          9,         0,        30,        0,           30,           9,         8,        0,          8,        8,        8,        8,         8,            7,         7,         7,         7,         18,           6,                  2,          22,        22,             22,             22,             12,          12,          12         };
-const color    h1ColumnColor[33]          ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
-const color    h1ColumnColorBackground[33]={ clrBlack,  clrBlack,    clrNavy,  clrNavy,   clrNavy,    clrNavy,     clrNavy,   clrMaroon,clrMaroon, clrMaroon,   clrMaroon,    clrMaroon, clrBlack, clrBlack,   clrBlack, clrBlack, clrBlack, clrBlack,  clrBlack,     clrBlack,  clrBlack,  clrBlack,  clrBlack,  clrBlack,     clrBlack,           clrBlack,   clrBlack,  clrBlack,       clrBlack,       clrBlack,       clrBlack,    clrBlack,    clrWhite    };
-const color    h1ColumnColorBorder[33]    ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,   clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
+const string   h1ColumnShow[33]           ={ "~",       "Profit",    "CP",     "Lot",     "CL",       "Profit",    "#",       "CP",     "Lot",     "CS",        "Profit",     "#",       "Spd",    "Symbol",   "ADR",    "CDR",    "RSI",    "CCI",     "SAR",        "M5",      "30",      "H1",      "H4",      "BidR",       "Rel",              "BuySellRatio",  "GAP",     "Sto1",         "Sto2",         "Sto3",         "HeatMap4",  "Spare1",    "Spare1"    };
+const string   h1ColumnType[33]           ={ "btn",     "lbl",       "btn",    "lbl",     "btn",      "lbl",       "lbl",     "btn",    "lbl",     "btn",       "lbl",        "lbl",     "lbl",    "btn",      "lbl",    "lbl",    "lbl",    "lbl",     "lbl",        "lbl",     "lbl",     "lbl",     "lbl",     "lbl",        "lbl",              "lbl",           "lbl",     "lbl",          "lbl",          "lbl",          "lbl",       "lbl",       "lbl"       };
+const int      h1ColumnWidth[33]          ={  30,        134,         55,       106,       47,         120,         35,        55,       106,       47,          120,          35,        64,       124,        74,       74,       60,       65,        74,           52,        52,        52,        52,        80,           60,                 194,             76,        160,            100,            100,            62,          62,          62         };
+const int      h1ColumnWidthAdjust[33]    ={  0,         39,          0,        30,        0,          30,          9,         0,        30,        0,           30,           9,         8,        0,          8,        8,        8,        8,         8,            7,         7,         7,         7,         10,           6,                  2,               6,         22,             22,             22,             12,          12,          12         };
+const color    h1ColumnColor[33]          ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,        clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
+const color    h1ColumnColorBackground[33]={ clrBlack,  clrBlack,    clrNavy,  clrNavy,   clrNavy,    clrNavy,     clrNavy,   clrMaroon,clrMaroon, clrMaroon,   clrMaroon,    clrMaroon, clrBlack, clrBlack,   clrBlack, clrBlack, clrBlack, clrBlack,  clrBlack,     clrBlack,  clrBlack,  clrBlack,  clrBlack,  clrBlack,     clrBlack,           clrBlack,        clrBlack,  clrBlack,       clrBlack,       clrBlack,       clrBlack,    clrBlack,    clrWhite    };
+const color    h1ColumnColorBorder[33]    ={ clrWhite,  clrWhite,    clrWhite, clrWhite,  clrWhite,   clrWhite,    clrWhite,  clrWhite, clrWhite,  clrWhite,    clrWhite,     clrWhite,  clrWhite, clrWhite,   clrWhite, clrWhite, clrWhite, clrWhite,  clrWhite,     clrWhite,  clrWhite,  clrWhite,  clrWhite,  clrWhite,     clrWhite,           clrWhite,        clrWhite,  clrWhite,       clrWhite,       clrWhite,       clrWhite,    clrWhite,    clrWhite    };
 
 
 void DrawDashBoard(CList *symbolList) export {
@@ -227,12 +221,12 @@ void DrawData(int startXi, int startYi, CList *symbolList) {
 }
 
 
-string getObjectName(int rowIndex, int columnIndex) {
+string getObjectName(int rowIndex, int columnIndex) export {
    return ColumnType[columnIndex]+ColumnName[columnIndex]+IntegerToString(rowIndex);
 }
 
 
-void refreshIndicatorsData(CList *symbolList) export {
+void refreshIndicatorsData(CList *symbolList, string &CurrencyArray[]) {
    int BarShift = 1;
    long chartId = 0;
    string objName = "";
@@ -240,8 +234,159 @@ void refreshIndicatorsData(CList *symbolList) export {
 
    string symbolName = "";
    int rowCnt = symbolList.Total();
+   
+   
+   double BidRatios[];
+   double BidRatiosPre[];
    int BaseRelativeStrengths[];
+   int BaseRelativeStrengthsPre[];
+   ArrayResize(BidRatios, rowCnt);
+   ArrayResize(BidRatiosPre, rowCnt);
    ArrayResize(BaseRelativeStrengths, rowCnt);
+   ArrayResize(BaseRelativeStrengthsPre, rowCnt);
+   
+   
+   double CurrencyStrengths[];
+   double CurrencyStrengthsPre[];
+   int currencySize=ArraySize(CurrencyArray);
+   
+   ArrayInitialize(CurrencyStrengths, 0.0);
+   ArrayInitialize(CurrencyStrengthsPre, 0.0);
+   /*
+   for(int k=0; k<currencySize; k++) {
+      CurrencyStrengths[k] = 0;
+      CurrencyStrengthsPre[k] = 0;
+   }
+   */
+   
+   
+   for (int i=0; i<rowCnt; i++) {
+      SymbolInfo *si = symbolList.GetNodeAtIndex(i);
+      symbolName = si.getRealName();
+      double highGap = iHigh(symbolName, Timeframe_GAP, 0);
+      double lowGap  = iLow( symbolName, Timeframe_GAP, 0);
+      double rangeGap = highGap - lowGap;
+      double VbidRatio = 0.0;
+      double prevBidRatio = 0.0;
+      if (rangeGap != 0.0) {
+         VbidRatio = 100.0 * ((MarketInfo(symbolName, MODE_BID) - lowGap) / rangeGap );
+         VbidRatio = MathMin(VbidRatio, 100);
+         
+         int shift = iBarShift(symbolName, PERIOD_M1, TimeCurrent()-Interval_GAP);
+         double prevBid = iClose(symbolName, PERIOD_M1, shift);
+         prevBidRatio = MathMin((prevBid-lowGap)/rangeGap*100, 100);
+      }
+      BidRatios[i] = VbidRatio;
+      BidRatiosPre[i] = prevBidRatio;
+      
+      
+      int BaseRelativeStrength = getRelativeStrength(VbidRatio);
+      int QuoteRelativeStrength = 9-BaseRelativeStrength;
+      
+      int BaseRelativeStrengthPre = getRelativeStrength(prevBidRatio);
+      int QuoteRelativeStrengthPre = 9-BaseRelativeStrengthPre;
+      
+      BaseRelativeStrengths[i] = BaseRelativeStrength;
+      BaseRelativeStrengthsPre[i] = BaseRelativeStrengthPre;
+      
+      for (int j=0; j<currencySize; j++) {
+         string currency = CurrencyArray[j];
+         if (currency == StringSubstr(symbolName, 0, 3)) {
+            CurrencyStrengths[j] += BaseRelativeStrength;
+            CurrencyStrengthsPre[j] += BaseRelativeStrengthPre;
+         }
+         if (currency == StringSubstr(symbolName, 3, 3)) {
+            CurrencyStrengths[j] += QuoteRelativeStrength;
+            CurrencyStrengthsPre[j] += QuoteRelativeStrengthPre;
+         }
+      }
+   
+   }
+   
+   
+   
+
+   /*
+   for (int i=0; i<rowCnt; i++) {
+      SymbolInfo *si = symbolList.GetNodeAtIndex(i);
+      string pair = si.getName();
+      
+      int BaseRelativeStrength = BaseRelativeStrengths[i];
+      int QuoteRelativeStrength = 9-BaseRelativeStrength;
+      
+      int BaseRelativeStrengthPre = BaseRelativeStrengthsPre[i];
+      int QuoteRelativeStrengthPre = 9-BaseRelativeStrengthPre;
+      
+      for (int j=0; j<currencySize; j++) {
+         string currency = CurrencyArray[j];
+         if (currency == StringSubstr(pair, 0, 3)) {
+            CurrencyStrengths[j] += BaseRelativeStrength;
+            CurrencyStrengthsPre[j] += BaseRelativeStrengthPre;
+         }
+         if (currency == StringSubstr(pair, 3, 3)) {
+            CurrencyStrengths[j] += QuoteRelativeStrength;
+            CurrencyStrengthsPre[j] += QuoteRelativeStrengthPre;
+         }
+      }
+   }
+   */
+   
+   for(int k=0; k<currencySize; k++) {
+      CurrencyStrengths[k] = CurrencyStrengths[k]/(currencySize-1);
+      CurrencyStrengthsPre[k] = CurrencyStrengthsPre[k]/(currencySize-1);
+   }
+   
+   double BuyRatios[];
+   double SellRatios[];
+   
+   double BuyRatiosPre[];
+   double SellRatiosPre[];
+   
+   double GAPs[];
+   
+   ArrayResize(BuyRatios, rowCnt);
+   ArrayResize(SellRatios, rowCnt);
+   ArrayResize(BuyRatiosPre, rowCnt);
+   ArrayResize(SellRatiosPre, rowCnt);
+   ArrayResize(GAPs, rowCnt);
+   
+   for (int i=0; i<rowCnt; i++) {
+      SymbolInfo *si = symbolList.GetNodeAtIndex(i);
+      string pair = si.getName();
+      
+      for (int j=0; j<currencySize; j++) {
+         string currency = CurrencyArray[j];
+         if (currency == StringSubstr(pair, 0, 3)) {
+            BuyRatios[i] = CurrencyStrengths[j];
+            BuyRatiosPre[i] = CurrencyStrengthsPre[j];
+         }
+         if (currency == StringSubstr(pair, 3, 3)) {
+            SellRatios[i] = CurrencyStrengths[j];
+            SellRatiosPre[i] = CurrencyStrengthsPre[j];
+         }
+      }
+      
+      GAPs[i] = (BuyRatios[i]-SellRatios[i])-(BuyRatiosPre[i]-SellRatiosPre[i]);
+      /*
+      if (0 < gapDirection) {
+         GAPs[i] = 1;
+      } else if (gapDirection < 0) {
+         GAPs[i] = -1;
+      } else {
+         GAPs[i] = 0;
+      }
+      */
+      
+   }
+   
+   
+   
+   
+   
+   
+   
+   
+   
    for (int i=0; i<rowCnt; i++) {
       SymbolInfo *si = symbolList.GetNodeAtIndex(i);
       symbolName = si.getRealName();
@@ -382,7 +527,7 @@ void refreshIndicatorsData(CList *symbolList) export {
       
       
       
-      
+      /*
       double highGap = iHigh(symbolName, Timeframe_GAP, 0);
       double lowGap  = iLow( symbolName, Timeframe_GAP, 0);
       double rangeGap = highGap - lowGap;
@@ -416,10 +561,30 @@ void refreshIndicatorsData(CList *symbolList) export {
          // GAP
          objName = getObjectName(i, COL_NO_GAP);
       }
+      */
       
+      // BidRatio
+      objName = getObjectName(i, COL_NO_BID_RATIO);
+      string bidRatio = DoubleToStr(BidRatios[i], 1);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,bidRatio);
       
+      // RelativeStrength
+      objName = getObjectName(i, COL_NO_REL_STRENGTH);
+      int baseRelativeStrength = BaseRelativeStrengths[i];
+      int quoteRelativeStrength = 9-baseRelativeStrength;
+      int VRelativeStrength = baseRelativeStrength - quoteRelativeStrength;
+      string relativeStrength = IntegerToString(VRelativeStrength, 2);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,relativeStrength);
       
-
+      // BSRatio
+      objName = getObjectName(i, COL_NO_BS_RATIO);
+      string BSRatio = DoubleToStr(BuyRatios[i], 1)+"-"+DoubleToStr(SellRatios[i], 1)+"="+DoubleToStr((BuyRatios[i]-SellRatios[i]), 1);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,BSRatio);
+      
+      // GAP
+      objName = getObjectName(i, COL_NO_GAP);
+      string GAP = DoubleToStr(GAPs[i], 1);
+      ObjectSetString(chartId,objName,OBJPROP_TEXT,GAP);
       
       
       // Stochastic
@@ -432,8 +597,7 @@ void refreshIndicatorsData(CList *symbolList) export {
    }
    
    
-   
-   
+
    
    
 
@@ -492,35 +656,63 @@ void refreshOrdersData(CList *symbolList, int MagicNumber) export {
       objName = getObjectName(i, COL_NO_PROFIT);
       fontColor = getProfitColor(si.getProfit());
       ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfit(),2));
+      if (0 == (si.getOrderCountL()+si.getOrderCountS())) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfit(),2));
+      }
       
       // BuyLot
       objName = getObjectName(i, COL_NO_LOT_L);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getLotL(),2));
+      if (0 == si.getOrderCountL()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getLotL(),2));
+      }
       
       // BuyProfit
       objName = getObjectName(i, COL_NO_PROFIT_L);
       fontColor = getProfitColor(si.getProfitL());
       ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfitL(),2));
+      if (0 == si.getOrderCountL()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfitL(),2));
+      }
       
       // BuyNum
       objName = getObjectName(i, COL_NO_NUM_L);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, IntegerToString(si.getOrderCountL(),3));
+      if (0 == si.getOrderCountL()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, IntegerToString(si.getOrderCountL(),3));
+      }
       
       // SellLot
       objName = getObjectName(i, COL_NO_LOT_S);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getLotS(),2));
+      if (0 == si.getOrderCountS()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getLotS(),2));
+      }
       
       // SellProfit
       objName = getObjectName(i, COL_NO_PROFIT_S);
       fontColor = getProfitColor(si.getProfitS());
       ObjectSetInteger(chartId,objName,OBJPROP_COLOR,fontColor);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfitS(),2));
+      if (0 == si.getOrderCountS()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, DoubleToStr(si.getProfitS(),2));
+      }
       
       // SellNum
       objName = getObjectName(i, COL_NO_NUM_S);
-      ObjectSetString(chartId,objName,OBJPROP_TEXT, IntegerToString(si.getOrderCountS(),3));
+      if (0 == si.getOrderCountS()) {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, "");
+      } else {
+         ObjectSetString(chartId,objName,OBJPROP_TEXT, IntegerToString(si.getOrderCountS(),3));
+      }
    }
    
    
@@ -539,7 +731,7 @@ color getProfitColor(double profit) {
    return clrWhite;
 }
 
-double GetAdrValues(string pairName, double point) {
+double GetAdrValues(string pairName, double point) export {
    double s=0.0;
    double adr1 = 0.0;
    double adr5 = 0.0;
@@ -572,7 +764,7 @@ double getBidRatio(string symbol, ENUM_TIMEFRAMES timeframe=PERIOD_D1) {
 }
 */
 
-int getRelativeStrength(double bidRatio) {
+int getRelativeStrength(double bidRatio) export {
    if (bidRatio > 97.0) return 9;
    if (bidRatio > 90.0) return 8;
    if (bidRatio > 75.0) return 7;

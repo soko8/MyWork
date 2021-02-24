@@ -605,10 +605,7 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
          //orderList.Delete(i);
          delete oi;
       }
-      
-      HedgeOrderList.Delete(theFurthestHedgeOrderIndex);
-      delete theFurthestHedgeOrder;
-      
+
       if (OP_SELL== theFurthestHedgeOrder.getOperationType()) {
          if ((nowOrderTotal4TrendLong+nowOrderTotal4RetraceLong)<1) {
             nextPrice4TrendLong = Ask;
@@ -620,6 +617,11 @@ void hedge(CList *HedgeOrderList, CList *orderList) {
             nextPrice4RetraceShort = Bid + IntervalPrice4Retrace;
          }
       }
+      
+      HedgeOrderList.Delete(theFurthestHedgeOrderIndex);
+      delete theFurthestHedgeOrder;
+      
+
    }
 }
 

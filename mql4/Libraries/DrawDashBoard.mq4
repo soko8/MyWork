@@ -319,7 +319,7 @@ void refreshOrdersData(CList *symbolList, int MagicNumber, bool isAutoTrade, dou
                         if (vask <= (OrderOpenPrice()-si.getTakeProfit())) {
                            double partLot = calculatePartLot(symbolName, OrderLots(), coefficient);
                            if (0.001 < partLot) {
-                              closeOrderL(si, MagicNumber, partLot, "Auto Take Profit Close Sell Order.");
+                              closeOrderS(si, MagicNumber, partLot, "Auto Take Profit Close Sell Order.");
                               si.setCutTimes(si.getCutTimes()+1);
                            } else {
                               si.setCutTimes(si.getCutTimes()+1);
@@ -329,7 +329,7 @@ void refreshOrdersData(CList *symbolList, int MagicNumber, bool isAutoTrade, dou
                         if (vask <= (OrderOpenPrice()-si.getTakeProfit()-si.getCutTimes()*si.getTrailingStop())) {
                            double partLot = calculatePartLot(symbolName, OrderLots(), coefficient);
                            if (0.001 < partLot) {
-                              closeOrderL(si, MagicNumber, partLot, "Auto Trailing Stop Close Sell Order.");
+                              closeOrderS(si, MagicNumber, partLot, "Auto Trailing Stop Close Sell Order.");
                            } else {
                               si.setCutTimes(si.getCutTimes()+1);
                            }

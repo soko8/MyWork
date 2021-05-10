@@ -25,6 +25,14 @@ protected:
    int               orderCountS;
    double            lotS;
    double            profitS;
+   int               index;
+   double            stopLoss;
+   double            takeProfit;
+   double            trailingStop;
+   bool              enabled;
+   int               cutTimes;
+   double            maxDD;
+   double            maxProfit;
 public:
                      SymbolInfo();
                      SymbolInfo(string SymbolShortName, string SymbolPrefix="", string SymbolSuffix="");
@@ -64,6 +72,30 @@ public:
    double            getProfitS(void)                       const { return(profitS);            }
    
    double            getProfit(void)                        const { return(profitL+profitS);    }
+   
+   void              setIndex(int vIndex)                         { index = vIndex;             }
+   int               getIndex(void)                         const { return(index);              }
+   
+   void              setStopLoss(double vStopLoss)                { stopLoss = vStopLoss;       }
+   double            getStopLoss(void)                      const { return(stopLoss);           }
+   
+   void              setTakeProfit(double vTakeProfit)            { takeProfit = vTakeProfit;   }
+   double            getTakeProfit(void)                    const { return(takeProfit);         }
+   
+   void              setTrailingStop(double vTrailStop)           { trailingStop = vTrailStop;  }
+   double            getTrailingStop(void)                  const { return(trailingStop);       }
+   
+   void              setEnabled(bool vEnabled)                    { this.enabled = vEnabled;    }
+   bool              isEnabled(void)                        const { return(enabled);            }
+   
+   void              setCutTimes(int vCutTimes)                   { cutTimes = vCutTimes;       }
+   int               getCutTimes(void)                      const { return(cutTimes);           }
+   
+   void              setMaxDD(double vMaxDD)                      { maxDD = vMaxDD;             }
+   double            getMaxDD(void)                         const { return(maxDD);              }
+   
+   void              setMaxProfit(double vMaxProfit)              { maxProfit = vMaxProfit;     }
+   double            getMaxProfit(void)                     const { return(maxProfit);          }
 };
 
 SymbolInfo::SymbolInfo() {}
@@ -74,6 +106,8 @@ SymbolInfo::SymbolInfo(string SymbolShortName, string SymbolPrefix="", string Sy
    this.suffix = SymbolSuffix;
    this.point = MarketInfo(prefix+name+suffix,MODE_POINT);
    this.digits = (int)MarketInfo(prefix+name+suffix,MODE_DIGITS);
+   this.maxDD = 0.0;
+   this.maxProfit = 0.0;
 }
 
 SymbolInfo::~SymbolInfo() {}

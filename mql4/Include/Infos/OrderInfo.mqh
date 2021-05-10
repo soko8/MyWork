@@ -18,6 +18,7 @@ private:
 protected:
    int               ticketId;            // 订单号
    double            openPrice;           // 开仓价
+   datetime          openTime;
    double            lotSize;             // 手数
    double            tpPrice;             // 止盈价
    double            slPrice;             // 止损价
@@ -39,6 +40,10 @@ public:
 
    void              setOpenPrice(double price)          { openPrice = price;             }
    double            getOpenPrice(void)            const { return(openPrice);             }
+
+   void              setOpenTime(datetime tm)            { openTime = tm;                 }
+   datetime          getOpenTime(void)             const { return(openTime);              }
+
 
    void              setLotSize(double lots)             { lotSize = lots;                }
    double            getLotSize(void)              const { return(lotSize);               }

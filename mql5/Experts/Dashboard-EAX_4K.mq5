@@ -215,11 +215,19 @@ color    dataBorderColor[]    = {clrWhite ,clrWhite,clrWhite,clrWhite,clrWhite  
 
       bool                       IsAutoTrade=false;
       int                        pairCount = 0;
-      //CRowInfo                   RowInfos[];
       CList                      *RowInfos;
       CTrade                     trade;
       MqlTradeResult             TradeResult;
       CHashMap<string, int>      Pair2IndexMap();
+      
+      bool                       FilterBySpread = false;
+      
+const int                        PinsCount = 9;
+const char                       Signal_None = 9;
+const char                       Signal_Long = 1;
+const char                       Signal_Swing = 0;
+const char                       Signal_Short = -1;
+      bool                       UsePins[];
 
 const int                        StartX=4;
 const int                        StartY=400;
@@ -238,6 +246,10 @@ const string                     PanelNamePrefixH1 = "H1Rec";
    color bgPluralColor = clrNavy;
    color bgNoDataColor = clrBlack;
    
+   color bgGridModeColor = clrYellow;
+   color bgRetraceModeColor = clrDeepPink;
+   color bgOtherModeColor = clrGreen;
+/*
 const color                      clrBgBtnTrade = clrAliceBlue;
 const color                      clrBgBtnNoDataHasSignal = clrAliceBlue;
 const color                      clrBgBtnNoDataNoSignal = clrAliceBlue;
@@ -261,6 +273,23 @@ const color                      clrLblNoDataHasSignal = clrAliceBlue;
 const color                      clrLblNoDataNoSignal = clrAliceBlue;
 const color                      clrLblSingular = clrAliceBlue;
 const color                      clrLblPlural = clrAliceBlue;
+*/
+const string                     Txt_Pin_Signal_Long  = "▲";
+const string                     Txt_Pin_Signal_Swing = " ≡";
+const string                     Txt_Pin_Signal_Short = "▼";
+const string                     Txt_Pin_Signal_None  = " ";
+
+const color                      clrLblPinBgSignalN = clrBlack;
+const color                      clrLblPinBgSignalL = clrLime;
+const color                      clrLblPinBgSignalS = clrRed;
+
+const color                      clrLblPinFontSignalN = clrBlack;
+const color                      clrLblPinFontSignalL = clrBlack;
+const color                      clrLblPinFontSignalS = clrWhite;
+
+const color                      clrLblPinBorderSignalN = clrWhite;
+const color                      clrLblPinBorderSignalL = clrAqua;
+const color                      clrLblPinBorderSignalS = clrBlueViolet;
 
 void SetInitShows() {
    if (!ShowGridSets) {
@@ -406,11 +435,12 @@ void setInput() {
    RowInfos = new CList;
    for (int i=0; i<pairCount; i++) {
       Pair2IndexMap.Add(Prefix+Pairs[i]+Surfix, i);
-      CRowInfo *rowInfo = new CRowInfo(Pairs[i], Prefix, Surfix, 9);
+      CRowInfo *rowInfo = new CRowInfo(Pairs[i], Prefix, Surfix, PinsCount);
       RowInfos.Add(rowInfo);
       rowInfo.MaxOrders(MaxOrdersPerSymbol____);
       rowInfo.InitLotSize(LotSize____);
       rowInfo.LotStep(LotStep____);
+      rowInfo.HoldMinutesSinceLastOpen(HoldMinutesSinceLastOpen____);
       rowInfo.OtherModeL(true);
       rowInfo.OtherModeS(true);
       rowInfo.SingularModeL(false);
@@ -483,9 +513,193 @@ void setInput() {
          rowInfo.TrailingStopPips(0);
       }
       
+      ArrayResize(UsePins, PinsCount);
+      ArrayInitialize(UsePins, false);
+      if (UsePIN1____) UsePins[0] = true;
+      if (UsePIN2____) UsePins[1] = true;
+      if (UsePIN3____) UsePins[2] = true;
+      if (UsePIN4____) UsePins[3] = true;
+      if (UsePIN5____) UsePins[4] = true;
+      if (UsePIN6____) UsePins[5] = true;
+      if (UsePIN7____) UsePins[6] = true;
+      if (UsePIN8____) UsePins[7] = true;
+      if (UsePIN9____) UsePins[8] = true;
+      
+      FilterBySpread = FilterBySpread____;
    }
 }
-void initShow() {
+
+void setRowShowL(int i) {
+   CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(i);
+   rowInfo.refreshL();
+   string objName;
+   bool isOnly1 = isOnly1Show();
+   bool isOnlyO = isOnlyOther();
+   
+   if (!isOnly1) {
+      objName = getObjectName(i, EAX_COL_SingularModeL);
+      setBtnSingularMode(objName, rowInfo.SingularModeL(), rowInfo.TradeModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
+
+      objName = getObjectName(i, EAX_COL_TradeModeL);
+      setBtnTradeMode(objName, rowInfo.SingularModeL(), rowInfo.TradeModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
+   }
+   
+   if (ShowGridSets) {
+      objName = getObjectName(i, EAX_COL_GridModeL);
+      //Print("rowInfo.HasSignalL()=", rowInfo.HasSignalL());
+      setBtnGROMode(objName, rowInfo.GridModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
+   }
+   
+   if (ShowRetraceSets) {
+      objName = getObjectName(i, EAX_COL_RetraceModeL);
+      setBtnGROMode(objName, rowInfo.RetraceModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
+   }
+   
+   if (!isOnlyO) {
+      objName = getObjectName(i, EAX_COL_OtherModeL);
+      setBtnGROMode(objName, rowInfo.OtherModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
+   }
+   
+   objName = getObjectName(i, EAX_COL_ClosePositiveL);
+   setBtnClosePositive(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
+   
+   objName = getObjectName(i, EAX_COL_CloseNegativeL);
+   setBtnCloseNegative(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
+   
+   objName = getObjectName(i, EAX_COL_EnableTpL);
+   setBtnActivity(objName, rowInfo.EnableTpL());
+   
+   objName = getObjectName(i, EAX_COL_EnableSlL);
+   setBtnActivity(objName, rowInfo.EnableSlL());
+   
+   objName = getObjectName(i, EAX_COL_OrdCntL);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   
+   if (ShowRetraceSets) {
+      objName = getObjectName(i, EAX_COL_ProfitLMinus);
+      setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+      if (rowInfo.TradeModeL()) {
+         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+      }
+   }
+   
+   objName = getObjectName(i, EAX_COL_LotsL);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   
+   objName = getObjectName(i, EAX_COL_ClosePositiveL);
+   setBtnClosePositive(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
+   
+   objName = getObjectName(i, EAX_COL_ProfitL);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   
+   objName = getObjectName(i, EAX_COL_CloseNegativeL);
+   setBtnCloseNegative(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
+   
+   objName = getObjectName(i, EAX_COL_Tp2OPL);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   if (rowInfo.TradeModeL()) {
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   }
+   
+   objName = getObjectName(i, EAX_COL_Tp2Bid);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   
+   objName = getObjectName(i, EAX_COL_Sl2OPL);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   if (rowInfo.TradeModeL()) {
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   }
+   
+   objName = getObjectName(i, EAX_COL_Sl2Ask);
+   setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   
+   refreshRowDataShowL(i);
+}
+
+void setRowShowS(int i) {
+   CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(i);
+   rowInfo.refreshS();
+   string objName;
+   bool isOnly1 = isOnly1Show();
+   bool isOnlyO = isOnlyOther();
+   
+   if (!isOnly1) {
+      objName = getObjectName(i, EAX_COL_SingularModeS);
+      setBtnSingularMode(objName, rowInfo.SingularModeS(), rowInfo.TradeModeS(), rowInfo.OrdCntS(), rowInfo.HasSignalS());
+
+      objName = getObjectName(i, EAX_COL_TradeModeS);
+      setBtnTradeMode(objName, rowInfo.SingularModeS(), rowInfo.TradeModeS(), rowInfo.OrdCntS(), rowInfo.HasSignalS());
+   }
+   
+   if (ShowGridSets) {
+      objName = getObjectName(i, EAX_COL_GridModeS);
+      setBtnGROMode(objName, rowInfo.GridModeS(), rowInfo.OrdCntS(), rowInfo.HasSignalS());
+   }
+   
+   if (ShowRetraceSets) {
+      objName = getObjectName(i, EAX_COL_RetraceModeS);
+      setBtnGROMode(objName, rowInfo.RetraceModeS(), rowInfo.OrdCntS(), rowInfo.HasSignalS());
+   }
+   
+   if (!isOnlyO) {
+      objName = getObjectName(i, EAX_COL_OtherModeS);
+      setBtnGROMode(objName, rowInfo.OtherModeS(), rowInfo.OrdCntS(), rowInfo.HasSignalS());
+   }
+   
+   objName = getObjectName(i, EAX_COL_ClosePositiveS);
+   setBtnClosePositive(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
+   
+   objName = getObjectName(i, EAX_COL_CloseNegativeS);
+   setBtnCloseNegative(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
+   
+   objName = getObjectName(i, EAX_COL_EnableTpS);
+   setBtnActivity(objName, rowInfo.EnableTpS());
+   
+   objName = getObjectName(i, EAX_COL_EnableSlS);
+   setBtnActivity(objName, rowInfo.EnableSlS());
+   
+   objName = getObjectName(i, EAX_COL_OrdCntS);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   
+   if (ShowRetraceSets) {
+      objName = getObjectName(i, EAX_COL_ProfitSMinus);
+      setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+      if (rowInfo.TradeModeS()) {
+         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+      }
+   }
+   
+   objName = getObjectName(i, EAX_COL_LotsS);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   
+   objName = getObjectName(i, EAX_COL_ClosePositiveS);
+   setBtnClosePositive(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
+   
+   objName = getObjectName(i, EAX_COL_ProfitS);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   
+   objName = getObjectName(i, EAX_COL_CloseNegativeS);
+   setBtnCloseNegative(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
+   
+   objName = getObjectName(i, EAX_COL_Tp2OPS);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   if (rowInfo.TradeModeS()) {
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   }
+   
+   objName = getObjectName(i, EAX_COL_Tp2Ask);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   
+   objName = getObjectName(i, EAX_COL_Sl2OPS);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   if (rowInfo.TradeModeS()) {
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   }
+   
+   objName = getObjectName(i, EAX_COL_Sl2Bid);
+   setLblDataShow(objName, rowInfo.TradeModeS(), rowInfo.SingularModeS(), rowInfo.OrdCntS());
+   
+   refreshRowDataShowS(i);
 
 }
 int OnInit() {
@@ -495,15 +709,26 @@ int OnInit() {
    
    DrawDataH1(StartX, StartY);
    DrawData(StartX, StartY+DataH1RowHeight);
-   EventSetTimer(1);
+   //EventSetTimer(1);
    
    trade.SetExpertMagicNumber(MagicNumber);
    
    loadOrders();
-   //Print("1111");
    readPins();
-   initShow();
-   //Print("222");
+   //setShowL();
+   //setShowS();
+   //setShowCommon();
+   string objName;
+   for (int i=0; i<pairCount; i++) {
+      CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(i);
+      setRowShowL(i);
+      setRowShowS(i);
+      objName = getObjectName(i, EAX_COL_EnableGrid);
+      setBtnActivity(objName, rowInfo.EnableGrid());
+      objName = getObjectName(i, EAX_COL_EnableRetrace);
+      setBtnActivity(objName, rowInfo.EnableRetrace());
+   }
+   ChartRedraw();
    return(INIT_SUCCEEDED);
 }
 
@@ -631,6 +856,23 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
    long chartId = 0;
    int index = -1;
    if (id == CHARTEVENT_OBJECT_CLICK) {
+      if ((0 <= StringFind(sparam, "BtnPIN"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnPIN")));
+         index--;
+         if (UsePins[index]) {
+            UsePins[index] = false;
+            disableButton(sparam, clrBlack, clrWhite);
+         } else {
+            UsePins[index] = true;
+            enableButton(sparam);
+         }
+         readPins();
+         for (int i=0; i<pairCount; i++) {
+            setRowShowL(i);
+            setRowShowS(i);
+         }
+
+      } else 
        // new Buy Order
       if ((0 <= StringFind(sparam, "BtnPlusOrdL"))) {
          index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnPlusOrdL")));
@@ -653,35 +895,12 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                   if (rowInfo.GridModeL()) comment = CommentMG; else if (rowInfo.RetraceModeL()) comment = CommentMR;
                   if (trade.Buy(rowInfo.LotsL(), rowInfo.SymbolNm(), openPrice, slPrice, tpPrice, comment)) {
                      trade.Result(TradeResult);
-                     //Print("TradeResult.order===", TradeResult.order);
                      if (rowInfo.EnableGrid() && rowInfo.GridModeL()) {
-                        //Print("Grid Order");
                         rowInfo.Add2OrdersGridL(TradeResult.order, comment);
                      } else if (rowInfo.EnableRetrace() && rowInfo.RetraceModeL()) {
-                        //Print("Retrace Order");
                         rowInfo.Add2OrdersRetraceL(TradeResult.order, comment);
                      } else {
-                        //Print("Normal Order");
-                        /*
-                        COrder *order;
-                        order = new COrder;
-                        OrderSelect(TradeResult.order);
-                        order.setTicket(TradeResult.order);
-                        order.OrderType((ENUM_ORDER_TYPE)OrderGetInteger(ORDER_TYPE));
-                        order.Volume(OrderGetDouble(ORDER_VOLUME_CURRENT));
-                        order.PriceOpen(OrderGetDouble(ORDER_PRICE_OPEN));
-                        order.StopLoss(OrderGetDouble(ORDER_SL));
-                        order.TakeProfit(OrderGetDouble(ORDER_TP));
-                        order.PairName(OrderGetString(ORDER_SYMBOL));
-                        //order.Select();
-                        //order.StoreState();
-                        order.Description(comment);
-                        //OrderSelect(TradeResult.order);
-                        rowInfo.Add2OrdersL(order);
-                        */
                         rowInfo.Add2OrdersL(TradeResult.order, comment);
-                        //Print("rowInfo.getCountL==" + rowInfo.getCountL());
-                        //Print("rowInfo.getTicketL==" + rowInfo.getTicketL());
                      }
                   }
                }
@@ -690,9 +909,9 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          } else if (rowInfo.SingularModeL()) {
             int cnt = rowInfo.OrdCntL()+1;
             rowInfo.OrdCntL(cnt);
-            //ObjectSetString(0,"LblOrdCntL"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(cnt,3));
          }
-         
+         setRowShowL(index);
+         //ChartRedraw();
       } else 
       // new Sell Order
       if ((0 <= StringFind(sparam, "BtnPlusOrdS"))) {
@@ -729,7 +948,31 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          } else if (rowInfo.SingularModeS()) {
             int cnt = rowInfo.OrdCntS()+1;
             rowInfo.OrdCntS(cnt);
-            //ObjectSetString(0,"LblOrdCntS"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(cnt,3));
+         }
+         
+         setRowShowS(index);
+         //ChartRedraw();
+      } else 
+      if ((0 <= StringFind(sparam, "BtnMinusOrdL"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusOrdL")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.SingularModeL()) {
+            int cnt = rowInfo.OrdCntL()-1;
+            if (0 <= cnt) {
+               rowInfo.OrdCntL(cnt);
+            }
+            setRowShowL(index);
+         }
+      } else 
+      if ((0 <= StringFind(sparam, "BtnMinusOrdS"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusOrdS")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.SingularModeS()) {
+            int cnt = rowInfo.OrdCntS()-1;
+            if (0 <= cnt) {
+               rowInfo.OrdCntS(cnt);
+            }
+            setRowShowS(index);
          }
       } else 
       // Close Positive Buy Order(C+/L+)
@@ -739,9 +982,21 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeL()) {
             double lots = rowInfo.LotsL()+rowInfo.LotStep();
             rowInfo.LotsL(lots);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
             //ObjectSetString(0,"LblLotsL"+IntegerToString(index),OBJPROP_TEXT,formatLot(lots, 1));
          } else {
-         
+            if (rowInfo.SingularModeL()) {
+               ulong ticket = rowInfo.getTicketL();
+               if (0.001 < rowInfo.ProfitL()) {
+                  if (trade.PositionClose(ticket)) {
+                     //rowInfo.DeleteOrderL(ticket);
+                     Print("Long Positive profit position@", ticket, " is closed.");
+                  }
+               }
+            } else {
+               closeOrdersByProfit(true, rowInfo.SymbolNm(), POSITION_TYPE_BUY);
+            }
          }
       } else
       // Close Positive Sell Order(C+/L+)
@@ -751,9 +1006,21 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeS()) {
             double lots = rowInfo.LotsS()+rowInfo.LotStep();
             rowInfo.LotsS(lots);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
             //ObjectSetString(0,"LblLotsS"+IntegerToString(index),OBJPROP_TEXT,formatLot(lots, 1));
          } else {
-         
+            if (rowInfo.SingularModeS()) {
+               ulong ticket = rowInfo.getTicketS();
+               if (0.001 < rowInfo.ProfitS()) {
+                  if (trade.PositionClose(ticket)) {
+                     //rowInfo.DeleteOrderL(ticket);
+                     Print("Short Positive profit position@", ticket, " is closed.");
+                  }
+               }
+            } else {
+               closeOrdersByProfit(true, rowInfo.SymbolNm(), POSITION_TYPE_SELL);
+            }
          }
       } else 
       // Close Negative Buy Order(C-/L-)
@@ -763,9 +1030,21 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeL()) {
             double lots = rowInfo.LotsL()-rowInfo.LotStep();
             rowInfo.LotsL(lots);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
             //ObjectSetString(0,"LblLotsL"+IntegerToString(index),OBJPROP_TEXT,formatLot(lots, 1));
          } else {
-         
+            if (rowInfo.SingularModeL()) {
+               ulong ticket = rowInfo.getTicketL();
+               if (rowInfo.ProfitL() < 0.01) {
+                  if (trade.PositionClose(ticket)) {
+                     //rowInfo.DeleteOrderL(ticket);
+                     Print("Long Negative profit position@", ticket, " is closed.");
+                  }
+               }
+            } else {
+               closeOrdersByProfit(false, rowInfo.SymbolNm(), POSITION_TYPE_BUY);
+            }
          }
       } else
       // Close Negative Sell Order(C-/L-)
@@ -775,22 +1054,51 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeS()) {
             double lots = rowInfo.LotsS()-rowInfo.LotStep();
             rowInfo.LotsS(lots);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
             //ObjectSetString(0,"LblLotsS"+IntegerToString(index),OBJPROP_TEXT,formatLot(lots, 1));
          } else {
-         
+            if (rowInfo.SingularModeS()) {
+               ulong ticket = rowInfo.getTicketS();
+               if (rowInfo.ProfitS() < 0.01) {
+                  if (trade.PositionClose(ticket)) {
+                     //rowInfo.DeleteOrderL(ticket);
+                     Print("Short Negative profit position@", ticket, " is closed.");
+                  }
+               }
+            } else {
+               closeOrdersByProfit(false, rowInfo.SymbolNm(), POSITION_TYPE_SELL);
+            }
          }
       } else 
       // Close Buy Order
       if ((0 <= StringFind(sparam, "BtnCloseL"))) {
          index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnCloseL")));
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
-         //trade.PositionClose(rowInfo.SymbolNm());
+         if (rowInfo.SingularModeL()) {
+            ulong ticket = rowInfo.getTicketL();
+            if (trade.PositionClose(ticket)) {
+               //rowInfo.DeleteOrderL(ticket);
+               Print("Long position@", ticket, " is closed.");
+            }
+         } else {
+            closeOrders(rowInfo.SymbolNm(), POSITION_TYPE_BUY);
+         }
+         
       } else
       // Close Sell Order
       if ((0 <= StringFind(sparam, "BtnCloseS"))) {
          index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnCloseS")));
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
-         //trade.PositionClose(rowInfo.SymbolNm());
+         if (rowInfo.SingularModeS()) {
+            ulong ticket = rowInfo.getTicketS();
+            if (trade.PositionClose(ticket)) {
+               //rowInfo.DeleteOrderS(ticket);
+               Print("Short position@", ticket, " is closed.");
+            }
+         } else {
+            closeOrders(rowInfo.SymbolNm(), POSITION_TYPE_SELL);
+         }
       } else
       // Close Long and Short Order
       if ((0 <= StringFind(sparam, "BtnCloseLS"))) {
@@ -809,6 +1117,7 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             rowInfo.EnableTpL(true);
             enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set EnableTpS
       if ((0 <= StringFind(sparam, "BtnEnableTpS"))) {
@@ -821,6 +1130,7 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             rowInfo.EnableTpS(true);
             enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set EnableSlL
       if ((0 <= StringFind(sparam, "BtnEnableSlL"))) {
@@ -833,6 +1143,7 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             rowInfo.EnableSlL(true);
             enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set EnableSlS
       if ((0 <= StringFind(sparam, "BtnEnableSlS"))) {
@@ -845,35 +1156,29 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             rowInfo.EnableSlS(true);
             enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set SingularModeL
       if ((0 <= StringFind(sparam, "BtnSingularModeL"))) {
          index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnSingularModeL")));
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
          if (rowInfo.SingularModeL()) {
-            rowInfo.SingularModeL(false);
-            //disableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Plural");
-            rowInfo.GridModeS(true);
-            //enableButton("BtnGridModeS"+IntegerToString(index));
-            rowInfo.RetraceModeS(true);
-            //enableButton("BtnRetraceModeS"+IntegerToString(index));
-            rowInfo.OtherModeS(true);
-            //enableButton("BtnOtherModeS"+IntegerToString(index));
-            rowInfo.refreshL();
+            if (!rowInfo.TradeModeL()) {
+               rowInfo.SingularModeL(false);
+               rowInfo.GridModeS(true);
+               rowInfo.RetraceModeS(true);
+               rowInfo.OtherModeS(true);
+            }
          } else {
             rowInfo.SingularModeL(true);
-            //enableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Singular");
             rowInfo.GridModeL(false);
-            //disableButton("BtnGridModeL"+IntegerToString(index));
             rowInfo.RetraceModeL(false);
-            //disableButton("BtnRetraceModeL"+IntegerToString(index));
             rowInfo.OtherModeL(true);
             rowInfo.OrdCntL(rowInfo.getCountL());
-            rowInfo.refreshL();
-            //enableButton("BtnOtherModeL"+IntegerToString(index));
          }
+         //rowInfo.refreshL();
+         setRowShowL(index);
+         //ChartRedraw();
       } else
       // Set TradeModeL
       if ((0 <= StringFind(sparam, "BtnTradeModeL"))) {
@@ -882,67 +1187,43 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeL()) {
             rowInfo.TradeModeL(false);
             rowInfo.OrdCntL(rowInfo.getCountL());
-            //disableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Data");
-            //ObjectSetString(0,"BtnClosePositiveL"+IntegerToString(index),OBJPROP_TEXT,"C+");
-            //ObjectSetString(0,"BtnCloseNegativeL"+IntegerToString(index),OBJPROP_TEXT,"C-");
-            
+            Print("OrdCntL==", rowInfo.OrdCntL());
          } else {
             rowInfo.LotsL(rowInfo.InitLotSize());
             rowInfo.TradeModeL(true);
-            //enableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Trade");
             rowInfo.SingularModeL(true);
-            //enableButton("BtnSingularModeL"+IntegerToString(index));
-            //ObjectSetString(0,"BtnSingularModeL"+IntegerToString(index),OBJPROP_TEXT,"Singular");
             rowInfo.GridModeL(false);
-            //disableButton("BtnGridModeL"+IntegerToString(index));
             rowInfo.RetraceModeL(false);
-            //disableButton("BtnRetraceModeL"+IntegerToString(index));
             rowInfo.OtherModeL(true);
-            //enableButton("BtnOtherModeL"+IntegerToString(index));
-            
-            
-            /*
-            ObjectSetString(0,"LblOrdCntL"+IntegerToString(index),OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblLotsL"+IntegerToString(index),OBJPROP_TEXT,formatLot(rowInfo.LotsL(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblProfitL"+IntegerToString(index),OBJPROP_TEXT,formatProfit(rowInfo.ProfitL(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblTp2OPL"+IntegerToString(index),OBJPROP_TEXT,formatPip(rowInfo.Tp2OPL(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(rowInfo.Tp2Bid(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblSl2OPL"+IntegerToString(index),OBJPROP_TEXT,formatPip(rowInfo.Sl2OPL(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"LblSl2Ask"+IntegerToString(index),OBJPROP_TEXT,formatPip(rowInfo.Sl2Ask(), rowInfo.OrdCntL()));
-            ObjectSetString(0,"BtnClosePositiveL"+IntegerToString(index),OBJPROP_TEXT,"L+");
-            ObjectSetString(0,"BtnCloseNegativeL"+IntegerToString(index),OBJPROP_TEXT,"L-");
-            */
          }
-         rowInfo.refreshL();
-         refreshLong(index);
+         //rowInfo.refreshL();
+         //Print("OrdCntL==", rowInfo.OrdCntL());
+         //Print("LotsL==", rowInfo.LotsL());
+         //Print("ProfitL==", rowInfo.ProfitL());
+         setRowShowL(index);
+         //ChartRedraw();
       } else
       // Set SingularModeS
       if ((0 <= StringFind(sparam, "BtnSingularModeS"))) {
          index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnSingularModeS")));
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
          if (rowInfo.SingularModeS()) {
-            rowInfo.SingularModeS(false);
-            //disableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Plural");
-            rowInfo.GridModeS(true);
-            //enableButton("BtnGridModeS"+IntegerToString(index));
-            rowInfo.RetraceModeS(true);
-            //enableButton("BtnRetraceModeS"+IntegerToString(index));
-            rowInfo.OtherModeS(true);
-            //enableButton("BtnOtherModeS"+IntegerToString(index));
+            if (!rowInfo.TradeModeS()) {
+               rowInfo.SingularModeS(false);
+               rowInfo.GridModeS(true);
+               rowInfo.RetraceModeS(true);
+               rowInfo.OtherModeS(true);
+            }
+            
          } else {
             rowInfo.SingularModeS(true);
-            //enableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Singular");
             rowInfo.GridModeS(false);
-            //disableButton("BtnGridModeS"+IntegerToString(index));
             rowInfo.RetraceModeS(false);
-            //disableButton("BtnRetraceModeS"+IntegerToString(index));
             rowInfo.OtherModeS(true);
-            //enableButton("BtnOtherModeS"+IntegerToString(index));
          }
+         //rowInfo.refreshS();
+         setRowShowS(index);
+         //ChartRedraw();
       } else
       // Set TradeModeS
       if ((0 <= StringFind(sparam, "BtnTradeModeS"))) {
@@ -951,30 +1232,17 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeS()) {
             rowInfo.TradeModeS(false);
             rowInfo.OrdCntS(rowInfo.getCountS());
-            //disableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Data");
-            //ObjectSetString(0,"BtnClosePositiveS"+IntegerToString(index),OBJPROP_TEXT,"C+");
-            //ObjectSetString(0,"BtnCloseNegativeS"+IntegerToString(index),OBJPROP_TEXT,"C-");
          } else {
             rowInfo.LotsS(rowInfo.InitLotSize());
             rowInfo.TradeModeS(true);
-            //enableButton(sparam);
-            //ObjectSetString(0,sparam,OBJPROP_TEXT,"Trade");
-            //rowInfo.OrdCntS(1);
             rowInfo.SingularModeS(true);
-            //enableButton("BtnSingularModeS"+IntegerToString(index));
-            //ObjectSetString(0,"BtnSingularModeS"+IntegerToString(index),OBJPROP_TEXT,"Singular");
             rowInfo.GridModeS(false);
-            //disableButton("BtnGridModeS"+IntegerToString(index));
             rowInfo.RetraceModeS(false);
-            //disableButton("BtnRetraceModeS"+IntegerToString(index));
             rowInfo.OtherModeS(true);
-            //enableButton("BtnOtherModeS"+IntegerToString(index));
-            //ObjectSetString(0,"BtnClosePositiveS"+IntegerToString(index),OBJPROP_TEXT,"L+");
-            //ObjectSetString(0,"BtnCloseNegativeS"+IntegerToString(index),OBJPROP_TEXT,"L-");
          }
-         rowInfo.refreshS();
-         //refreshLong(index);
+         //rowInfo.refreshS();
+         setRowShowS(index);
+         //ChartRedraw();;
          
       } else
       // Set GridModeL
@@ -984,22 +1252,18 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeL()) {
             rowInfo.GridModeL(true);
-            //enableButton(sparam);
             rowInfo.RetraceModeL(false);
-            //disableButton("BtnRetraceModeL"+IntegerToString(index));
             rowInfo.OtherModeL(false);
-            //disableButton("BtnOtherModeL"+IntegerToString(index));
             rowInfo.OrdCntL(rowInfo.getCountGridL());
          } else {
             if (rowInfo.GridModeL()) {
                rowInfo.GridModeL(false);
-               //disableButton(sparam);
             } else {
                rowInfo.GridModeL(true);
-               //enableButton(sparam);
             }
          }
-         rowInfo.refreshL();
+         setRowShowL(index);
+         //ChartRedraw();
       } else
       // Set RetraceModeL
       if ((0 <= StringFind(sparam, "BtnRetraceModeL"))) {
@@ -1008,22 +1272,18 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeL()) {
             rowInfo.RetraceModeL(true);
-            //enableButton(sparam);
             rowInfo.GridModeL(false);
-            //disableButton("BtnGridModeL"+IntegerToString(index));
             rowInfo.OtherModeL(false);
-            //disableButton("BtnOtherModeL"+IntegerToString(index));
             rowInfo.OrdCntL(rowInfo.getCountRetraceL());
          } else {
             if (rowInfo.RetraceModeL()) {
                rowInfo.RetraceModeL(false);
-               //disableButton(sparam);
             } else {
                rowInfo.RetraceModeL(true);
-               //enableButton(sparam);
             }
          }
-         rowInfo.refreshL();
+         setRowShowL(index);
+         //ChartRedraw();
       } else
       // Set OtherModeL
       if ((0 <= StringFind(sparam, "BtnOtherModeL"))) {
@@ -1032,22 +1292,18 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeL()) {
             rowInfo.OtherModeL(true);
-            //enableButton(sparam);
             rowInfo.RetraceModeL(false);
-            //disableButton("BtnRetraceModeL"+IntegerToString(index));
             rowInfo.GridModeL(false);
-            //disableButton("BtnGridModeL"+IntegerToString(index));
             rowInfo.OrdCntL(rowInfo.getCountL());
          } else {
             if (rowInfo.OtherModeL()) {
                rowInfo.OtherModeL(false);
-               //disableButton(sparam);
             } else {
                rowInfo.OtherModeL(true);
-               //enableButton(sparam);
             }
          }
-         rowInfo.refreshL();
+         setRowShowL(index);
+         //ChartRedraw();
       } else
       // Set GridModeS
       if ((0 <= StringFind(sparam, "BtnGridModeS"))) {
@@ -1056,20 +1312,17 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeS()) {
             rowInfo.GridModeS(true);
-            //enableButton(sparam);
             rowInfo.RetraceModeS(false);
-            //disableButton("BtnRetraceModeS"+IntegerToString(index));
             rowInfo.OtherModeS(false);
-            //disableButton("BtnOtherModeS"+IntegerToString(index));
          } else {
             if (rowInfo.GridModeS()) {
                rowInfo.GridModeS(false);
-               //disableButton(sparam);
             } else {
                rowInfo.GridModeS(true);
-               //enableButton(sparam);
             }
          }
+         setRowShowS(index);
+         //ChartRedraw();
       } else
       // Set RetraceModeS
       if ((0 <= StringFind(sparam, "BtnRetraceModeS"))) {
@@ -1078,20 +1331,17 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeS()) {
             rowInfo.RetraceModeS(true);
-            //enableButton(sparam);
             rowInfo.GridModeS(false);
-            //disableButton("BtnGridModeS"+IntegerToString(index));
             rowInfo.OtherModeS(false);
-            //disableButton("BtnOtherModeS"+IntegerToString(index));
          } else {
             if (rowInfo.RetraceModeS()) {
                rowInfo.RetraceModeS(false);
-               //disableButton(sparam);
             } else {
                rowInfo.RetraceModeS(true);
-               //enableButton(sparam);
             }
          }
+         setRowShowS(index);
+         //ChartRedraw();
       } else
       // Set OtherModeS
       if ((0 <= StringFind(sparam, "BtnOtherModeS"))) {
@@ -1100,20 +1350,17 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          
          if (rowInfo.SingularModeS()) {
             rowInfo.OtherModeS(true);
-            //enableButton(sparam);
             rowInfo.RetraceModeS(false);
-            //disableButton("BtnRetraceModeS"+IntegerToString(index));
             rowInfo.GridModeS(false);
-            //disableButton("BtnGridModeS"+IntegerToString(index));
          } else {
             if (rowInfo.OtherModeS()) {
                rowInfo.OtherModeS(false);
-               //disableButton(sparam);
             } else {
                rowInfo.OtherModeS(true);
-               //enableButton(sparam);
             }
          }
+         setRowShowS(index);
+         //ChartRedraw();
       } else
       // Set EnableGrid
       if ((0 <= StringFind(sparam, "BtnEnableGrid"))) {
@@ -1121,11 +1368,12 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
          if (rowInfo.EnableGrid()) {
             rowInfo.EnableGrid(false);
-            //disableButton(sparam);
+            disableButton(sparam);
          } else {
             rowInfo.EnableGrid(true);
-            //enableButton(sparam);
+            enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set EnableRetrace
       if ((0 <= StringFind(sparam, "BtnEnableRetrace"))) {
@@ -1133,11 +1381,12 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
          if (rowInfo.EnableRetrace()) {
             rowInfo.EnableRetrace(false);
-            //disableButton(sparam);
+            disableButton(sparam);
          } else {
             rowInfo.EnableRetrace(true);
-            //enableButton(sparam);
+            enableButton(sparam);
          }
+         //ChartRedraw();
       } else
       // Set AddTpL
       if ((0 <= StringFind(sparam, "BtnAddTpL"))) {
@@ -1146,13 +1395,153 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          if (rowInfo.TradeModeL()) {
             ushort pips = rowInfo.TpPips()+1;
             rowInfo.TpPips(pips);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
             //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
          } else {
          
          }
+      } else
+      // Set AddTpS
+      if ((0 <= StringFind(sparam, "BtnAddTpS"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnAddTpS")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeS()) {
+            ushort pips = rowInfo.TpPips()+1;
+            rowInfo.TpPips(pips);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
+         } else {
+         
+         }
+      } else
+      // Set MinusTpL
+      if ((0 <= StringFind(sparam, "BtnMinusTpL"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusTpL")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeL()) {
+            ushort pips = rowInfo.TpPips()-1;
+            rowInfo.TpPips(pips);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
+            //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
+         } else {
+         
+         }
+      } else
+      // Set MinusTpS
+      if ((0 <= StringFind(sparam, "BtnMinusTpS"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusTpS")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeS()) {
+            ushort pips = rowInfo.TpPips()-1;
+            rowInfo.TpPips(pips);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
+         } else {
+         
+         }
+      } else
+      // Set AddSlL
+      if ((0 <= StringFind(sparam, "BtnAddSlL"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnAddSlL")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeL()) {
+            ushort pips = rowInfo.SlPips()+1;
+            rowInfo.SlPips(pips);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
+            //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
+         } else {
+         
+         }
+      } else
+      // Set AddSlS
+      if ((0 <= StringFind(sparam, "BtnAddSlS"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnAddSlS")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeS()) {
+            ushort pips = rowInfo.SlPips()+1;
+            rowInfo.SlPips(pips);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
+            //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
+         } else {
+         
+         }
+      } else
+      // Set MinusSlL
+      if ((0 <= StringFind(sparam, "BtnMinusSlL"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusSlL")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeL()) {
+            ushort pips = rowInfo.SlPips()-1;
+            rowInfo.SlPips(pips);
+            rowInfo.refreshL();
+            refreshRowDataShowL(index);
+            //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
+         } else {
+         
+         }
+      } else
+      // Set MinusSlS
+      if ((0 <= StringFind(sparam, "BtnMinusSlS"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusSlS")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         if (rowInfo.TradeModeS()) {
+            ushort pips = rowInfo.SlPips()-1;
+            rowInfo.SlPips(pips);
+            rowInfo.refreshS();
+            refreshRowDataShowS(index);
+            //ObjectSetString(0,"LblTp2Bid"+IntegerToString(index),OBJPROP_TEXT,formatPip(pips, 1));
+         } else {
+         
+         }
+      } else
+      // Set PlusGrid
+      if ((0 <= StringFind(sparam, "BtnPlusGrid"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnPlusGrid")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         ushort pips = rowInfo.GridPips()+1;
+         rowInfo.GridPips(pips);
+         //rowInfo.refreshL();
+         //refreshRowDataShowL(index);
+         ObjectSetString(0,"LblGridPips"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(pips, 3));
+      } else
+      // Set MinusGrid
+      if ((0 <= StringFind(sparam, "BtnMinusGrid"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusGrid")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         ushort pips = rowInfo.GridPips()-1;
+         rowInfo.GridPips(pips);
+         //rowInfo.refreshL();
+         //refreshRowDataShowL(index);
+         ObjectSetString(0,"LblGridPips"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(pips, 3));
+      } else
+      // Set PlusRetrace
+      if ((0 <= StringFind(sparam, "BtnPlusRetrace"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnPlusRetrace")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         ushort pips = rowInfo.RetracePips()+1;
+         rowInfo.RetracePips(pips);
+         //rowInfo.refreshL();
+         //refreshRowDataShowL(index);
+         ObjectSetString(0,"LblRetracePips"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(pips, 3));
+      } else
+      // Set MinusRetrace
+      if ((0 <= StringFind(sparam, "BtnMinusRetrace"))) {
+         index = (int) StringToInteger(StringSubstr(sparam, StringLen("BtnMinusRetrace")));
+         CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(index);
+         ushort pips = rowInfo.RetracePips()-1;
+         rowInfo.RetracePips(pips);
+         //rowInfo.refreshL();
+         //refreshRowDataShowL(index);
+         ObjectSetString(0,"LblRetracePips"+IntegerToString(index),OBJPROP_TEXT,IntegerToString(pips, 3));
       }
       
+      Print(sparam);
       //if (0 <= index) refreshRow(index);
+      ChartRedraw();
    }
    
 }
@@ -1160,19 +1549,110 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
 void OnBookEvent(const string &symbol) {
 
 }
-
+bool isOk4Filter(CRowInfo *rowInfo) {
+   //Print("FilterBySpread=", FilterBySpread, " rowInfo.Spread()", rowInfo.Spread());
+   if (FilterBySpread) {
+      if (SpreadLimit____ < rowInfo.Spread()) {
+         return false;
+      }
+   }
+   
+   return true;
+}
+/*
+bool hasSignal(const char& pins[], const char signalType) {
+   for (int i=0; i<PinsCount; i++) {
+      if (UsePins[i] && signalType != pins[i]) return false;
+   }
+   return true;
+}
+*/
+void setSignalShow(CRowInfo *rowInfo, int index) {
+   color clrBgSignalL = clrGreen;
+   color clrBgSignalS = clrCrimson;
+   color clrBgSignalN = clrBlack;
+   string objName;
+   if (rowInfo.HasSignalL()) {
+      objName = getObjectName(index, EAX_COL_SymbolN);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalL);
+      objName = getObjectName(index, EAX_COL_PlusOrdL);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalL);
+      objName = getObjectName(index, EAX_COL_PlusOrdS);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalN);
+   } else if (rowInfo.HasSignalS()) {
+      objName = getObjectName(index, EAX_COL_SymbolN);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalS);
+      objName = getObjectName(index, EAX_COL_PlusOrdL);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalN);
+      objName = getObjectName(index, EAX_COL_PlusOrdS);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalS);
+   } else {
+      objName = getObjectName(index, EAX_COL_SymbolN);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalN);
+      objName = getObjectName(index, EAX_COL_PlusOrdL);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalN);
+      objName = getObjectName(index, EAX_COL_PlusOrdS);
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBgSignalN);
+   }
+}
+void setLblPinShow(string objName, char signalType) {
+   if (Signal_Long == signalType) {
+      ObjectSetString( 0,objName,OBJPROP_TEXT, Txt_Pin_Signal_Long);
+      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrLblPinFontSignalL);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_COLOR,  clrLblPinBorderSignalL);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrLblPinBgSignalL);
+   } else if (Signal_Short == signalType) {
+      ObjectSetString( 0,objName,OBJPROP_TEXT, Txt_Pin_Signal_Short);
+      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrLblPinFontSignalS);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_COLOR,  clrLblPinBorderSignalS);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrLblPinBgSignalS);
+   } else {
+      ObjectSetString( 0,objName,OBJPROP_TEXT, Txt_Pin_Signal_None);
+      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrLblPinFontSignalN);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_COLOR,  clrLblPinBorderSignalN);
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrLblPinBgSignalN);
+   }
+   
+}
+bool hasUseAnyPin() {
+   for (int i=0; i<PinsCount; i++) {
+      if (UsePins[i]) return true;
+   }
+   return false;
+}
 void readPins() {
    string gvName;
    string symbolName;
+   char signalTypes[] = {Signal_Long, Signal_Swing, Signal_Short};
+   int signalTypeCount = ArraySize(signalTypes);
+   bool useAnyPin = hasUseAnyPin();
    for (int i=0; i<pairCount; i++) {
       CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(i);
-      //symbolName = RowInfos[i].SymbolN();
-      symbolName = rowInfo.SymbolN(); 
-      for (int j=1; j<=9; j++) {
-         gvName = symbolName + "pin" + IntegerToString(j);
-         //if (GlobalVariableCheck(gvName)) RowInfos[i].SetPin(char (GlobalVariableGet(gvName)), j-1);
-         if (GlobalVariableCheck(gvName)) rowInfo.SetPin(char (GlobalVariableGet(gvName)), j-1);
+      symbolName = rowInfo.SymbolN();
+      bool hasSignalTypes[] = {true, true, true};
+      for (int j=0; j<PinsCount; j++) {
+         gvName = symbolName + "pin" + IntegerToString(j+1);
+         if (GlobalVariableCheck(gvName)) rowInfo.SetPin(char (GlobalVariableGet(gvName)), j);
+         else rowInfo.SetPin(Signal_None, j);
+         setLblPinShow("LblPIN"+IntegerToString(j+1)+IntegerToString(i), rowInfo.GetPin(j));
+         if (!useAnyPin) continue;
+         for (int k=0; k<signalTypeCount; k++) {
+            //Print(symbolName, " gvName=", gvName, " signalTypes[k]=", signalTypes[k], " rowInfo.GetPin(",j, ")=", rowInfo.GetPin(j), " UsePins[j]=", UsePins[j]);
+            if (UsePins[j] && signalTypes[k] != rowInfo.GetPin(j)) hasSignalTypes[k]=false;
+         }
       }
+      //Print(hasSignalTypes[0], hasSignalTypes[1], hasSignalTypes[2]);
+      rowInfo.HasSignalL(false);
+      rowInfo.HasSignalS(false);
+      if (useAnyPin) {
+         //Print(symbolName, " isOk4Filter(rowInfo)==", isOk4Filter(rowInfo), " useAnyPin=", useAnyPin);
+         if (isOk4Filter(rowInfo)) {
+            rowInfo.HasSignalL(hasSignalTypes[0]);
+            rowInfo.HasSignalS(hasSignalTypes[2]);
+         }
+      }
+      setSignalShow(rowInfo, i);
+      //Print(symbolName, " Pin1=", rowInfo.GetPin(0), " Pin2=", rowInfo.GetPin(1), " Pin3=", rowInfo.GetPin(2), " Pin4=", rowInfo.GetPin(3), " Pin5=", rowInfo.GetPin(4), " Pin6=", rowInfo.GetPin(5), " Pin7=", rowInfo.GetPin(6), " Pin8=", rowInfo.GetPin(7), " Pin9=", rowInfo.GetPin(8), " SignalL=", rowInfo.HasSignalL(), " SignalS=", rowInfo.HasSignalS());
    }
 }
 
@@ -1246,23 +1726,7 @@ bool isOnlyOther() {
    if (UseRetrace____) return false;
    return true;
 }
-/*
-void setConditionShowBtn(CRowInfo *rowInfo, string objName) {
-         if (rowInfo.TradeModeL())                             setShow(objName, "", clrBgBtnTrade,             clrBtnTrade);
-   else  if (rowInfo.OrdCntL() < 1 &&  rowInfo.HasSignalL())   setShow(objName, "", clrBgBtnNoDataHasSignal,   clrBtnNoDataHasSignal);
-   else  if (rowInfo.OrdCntL() < 1 && !rowInfo.HasSignalL())   setShow(objName, "", clrBgBtnNoDataNoSignal,    clrBtnNoDataNoSignal);
-   else  if (rowInfo.SingularModeL())                          setShow(objName, "", clrBgBtnSingular,          clrBtnSingular);
-   else                                                        setShow(objName, "", clrBgBtnPlural,            clrBtnPlural);
-}
 
-void setConditionShowLbl(CRowInfo *rowInfo, string objName) {
-         if (rowInfo.TradeModeL())                             setShow(objName, "", clrBgLblTrade,             clrLblTrade);
-   else  if (rowInfo.OrdCntL() < 1 &&  rowInfo.HasSignalL())   setShow(objName, "", clrBgLblNoDataHasSignal,   clrLblNoDataHasSignal);
-   else  if (rowInfo.OrdCntL() < 1 && !rowInfo.HasSignalL())   setShow(objName, "", clrBgLblNoDataNoSignal,    clrLblNoDataNoSignal);
-   else  if (rowInfo.SingularModeL())                          setShow(objName, "", clrBgLblSingular,          clrLblSingular);
-   else                                                        setShow(objName, "", clrBgLblPlural,            clrLblPlural);
-}
-*/
 void setBtnSingularMode(string objName, bool isSingularMode, bool isTradeMode, int OrdCnt, bool hasSignal) {
       if (isSingularMode) ObjectSetString(0,objName,OBJPROP_TEXT,"Singular");
       else ObjectSetString(0,objName,OBJPROP_TEXT,"Plural");
@@ -1297,7 +1761,7 @@ void setBtnTradeMode(string objName, bool isSingularMode, bool isTradeMode, int 
       }
 }
 
-void setBtnGROMode(string objName, bool isGridMode, int OrdCnt, bool hasSignal) {
+void setBtnGROMode(string objName, bool isGROMode, int OrdCnt, bool hasSignal) {
    if (OrdCnt < 1) {
       if (hasSignal) {
          disableButtonNoDataHasSignal(objName, clrYellow);
@@ -1307,7 +1771,7 @@ void setBtnGROMode(string objName, bool isGridMode, int OrdCnt, bool hasSignal) 
          ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
       }
    } else {
-      if (isGridMode) {
+      if (isGROMode) {
          enableButton(objName, clrAqua, clrBlack);
          ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
       } else {
@@ -1317,214 +1781,110 @@ void setBtnGROMode(string objName, bool isGridMode, int OrdCnt, bool hasSignal) 
    }
 }
 
-void refreshLong(const int rowId) {
-   string objName;
-   CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(rowId);
-   int chartId = 0;
-
-   
-   bool isOnly1 = isOnly1Show();
-   bool isOnlyO = isOnlyOther();
-   if (!isOnly1) {
-      objName = getObjectName(rowId, EAX_COL_SingularModeL);
-      setBtnSingularMode(objName, rowInfo.SingularModeL(), rowInfo.TradeModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
-      /*
-      setConditionShowBtn(rowInfo, objName);
-      if (rowInfo.SingularModeL()) ObjectSetString(0,objName,OBJPROP_TEXT,"Singular");
-      else ObjectSetString(0,objName,OBJPROP_TEXT,"Plural");
-      */
-      /*
-      if (rowInfo.SingularModeL()) ObjectSetString(0,objName,OBJPROP_TEXT,"Singular");
-      else ObjectSetString(0,objName,OBJPROP_TEXT,"Plural");
-      
-      if (rowInfo.TradeModeL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      
-      } else if (rowInfo.OrdCntL() < 1 && rowInfo.HasSignalL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      
-      } else if (rowInfo.OrdCntL() < 1 && !rowInfo.HasSignalL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      } else if (rowInfo.SingularModeL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrNavy);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      }
-      */
-      
-      objName = getObjectName(rowId, EAX_COL_TradeModeL);
-      setBtnTradeMode(objName, rowInfo.SingularModeL(), rowInfo.TradeModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
-      /*
-      //setConditionShowBtn(rowInfo, objName);
-      if (rowInfo.TradeModeL()) ObjectSetString(0,objName,OBJPROP_TEXT,"Trade");
-      else ObjectSetString(0,objName,OBJPROP_TEXT,"Data");
-      /*
-            if (rowInfo.TradeModeL())                             setShow(objName, "Trade",  clrHBGC1, clrBlack);
-      else  if (rowInfo.OrdCntL() < 1 &&  rowInfo.HasSignalL())   setShow(objName, "Data",   clrHBGC1, clrBlack);
-      else  if (rowInfo.OrdCntL() < 1 && !rowInfo.HasSignalL())   setShow(objName, "Data",   clrHBGC1, clrBlack);
-      else  if (rowInfo.SingularModeL())                          setShow(objName, "Data",   clrHBGC1, clrBlack);
-      else                                                        setShow(objName, "Data",   clrHBGC1, clrBlack);
-      */
-      /*
-      if (rowInfo.TradeModeL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkViolet);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      
-      } else if (rowInfo.OrdCntL() < 1 && rowInfo.HasSignalL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      
-      } else if (rowInfo.OrdCntL() < 1 && !rowInfo.HasSignalL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      } else if (rowInfo.SingularModeL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrNavy);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      }
-      */
-   }
-   
-   if (ShowGridSets) {
-      objName = getObjectName(rowId, EAX_COL_GridModeL);
-      setBtnGROMode(objName, rowInfo.GridModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
-      /*
-      if (rowInfo.OrdCntL() < 1) {
-         if (rowInfo.HasSignalL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.GridModeL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-      */
-   }
-   
-   if (ShowRetraceSets) {
-      objName = getObjectName(rowId, EAX_COL_RetraceModeL);
-      setBtnGROMode(objName, rowInfo.RetraceModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
-      /*
-      if (rowInfo.OrdCntL() < 1) {
-         if (rowInfo.HasSignalL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.RetraceModeL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-      */
-   }
-   
-   if (!isOnlyO) {
-      objName = getObjectName(rowId, EAX_COL_OtherModeL);
-      setBtnGROMode(objName, rowInfo.OtherModeL(), rowInfo.OrdCntL(), rowInfo.HasSignalL());
-      /*
-      if (rowInfo.OrdCntL() < 1) {
-         if (rowInfo.HasSignalL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.OtherModeL()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-      */
-   }
-   
-   /*
-   objName = getObjectName(rowId, EAX_COL_PlusOrdL);
-   if (rowInfo.TradeModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"+");
+void setBtnClosePositive(string objName, bool isTradeMode, double profit) {
+   if (isTradeMode) {
+      ObjectSetString(0,objName,OBJPROP_TEXT,"L+");
       ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"+");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgSingularColor);
    } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgPluralColor);
+      ObjectSetString(0,objName,OBJPROP_TEXT,"C+");
+      if (0.001 < profit) {
+         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrGreen);
+      } else {
+         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
+      }
    }
-   */
-   objName = getObjectName(rowId, EAX_COL_OrdCntL);
-   //Print("OrdCntL=", rowInfo.OrdCntL(), "||LotsL=", rowInfo.LotsL(), "||ProfitL=", rowInfo.ProfitL(), "||Tp2OPL=", rowInfo.Tp2OPL(), "||Tp2Bid=", rowInfo.Tp2Bid(), "||Sl2OPL=", rowInfo.Sl2OPL(), "||Sl2Ask=", rowInfo.Sl2Ask());
-   ObjectSetString(0,objName,OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntL()));
-   if (rowInfo.TradeModeL()) {
+}
+
+void setBtnCloseNegative(string objName, bool isTradeMode, double profit) {
+   if (isTradeMode) {
+      ObjectSetString(0,objName,OBJPROP_TEXT,"L-");
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
+   } else {
+      ObjectSetString(0,objName,OBJPROP_TEXT,"C -");
+      if (profit < 0.0) {
+         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMaroon);
+      } else {
+         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
+      }
+   }
+}
+
+void setBtnActivity(string objName, bool isActive) {
+   if (isActive) {
+      enableButton(objName);
+   } else {
+      disableButton(objName);
+   }
+}
+void setLblDataShow(string objName, bool isTradeMode, bool isSingularMode, int OrdCnt) {
+   //ObjectSetString(0,objName,OBJPROP_TEXT,text);
+   if (isTradeMode) {
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
+   } else if (OrdCnt < 1) {
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
+   } else if (isSingularMode) {
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
    } else {
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
    }
-   
+}
+void refreshRowDataShowL(const int rowId) {
+   string objName;
+   CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(rowId);
+
+   objName = getObjectName(rowId, EAX_COL_OrdCntL);
+   ObjectSetString(0,objName,OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntL()));
    /*
-   objName = getObjectName(rowId, EAX_COL_MinusOrdL);
-   if (rowInfo.TradeModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgSingularColor);
+   if (!rowInfo.SingularModeL()) {
+      if (rowInfo.GridModeL() && !rowInfo.RetraceModeL() && !rowInfo.OtherModeL()) {
+         if (rowInfo.GridMaxTimes() <= rowInfo.getCountGridL()) {
+            ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrOrangeRed);
+         }
+      } else if (!rowInfo.GridModeL() && rowInfo.RetraceModeL() && !rowInfo.OtherModeL()) {
+         if (rowInfo.RetraceMaxTimes() <= rowInfo.getCountRetraceL()) {
+            ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrOrangeRed);
+         }
+      } else if (!rowInfo.GridModeL() && !rowInfo.RetraceModeL() && rowInfo.OtherModeL()) {
+         if (rowInfo.MaxOrders() <= rowInfo.getCountL()) {
+            ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,clrOrangeRed);
+         }
+      } else {
+         if (rowInfo.OrdCntL() < 1) {
+            ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+         } else {
+            ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
+         }
+      }
    } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgPluralColor);
+      setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL());
+   }
+   */
+   /*
+   if (rowInfo.TradeModeL()) {
+      ObjectSetString(0,objName,OBJPROP_TEXT,"1");
+   } else {
+      ObjectSetString(0,objName,OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntL()));
    }
    */
    
    if (ShowRetraceSets) {
       objName = getObjectName(rowId, EAX_COL_ProfitLMinus);
       ObjectSetString(0,objName,OBJPROP_TEXT,formatProfit(rowInfo.ProfitLMinus(), rowInfo.OrdCntL()));
+      /*
+      if (rowInfo.TradeModeL()) {
+         ObjectSetString(0,objName,OBJPROP_TEXT," ");
+      } else {
+         ObjectSetString(0,objName,OBJPROP_TEXT,formatProfit(rowInfo.ProfitLMinus(), rowInfo.OrdCntL()));
+      }
+      */
+      //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatProfit(rowInfo.ProfitLMinus(), rowInfo.OrdCntL()));
+      /*
+      if (rowInfo.TradeModeL()) {
+         ObjectSetString(0,objName,OBJPROP_TEXT," ");
+         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+      }
+      */
+      /*
       if (rowInfo.TradeModeL()) {
          ObjectSetString(0,objName,OBJPROP_TEXT," ");
          ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
@@ -1536,59 +1896,35 @@ void refreshLong(const int rowId) {
       } else {
          ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
       }
+      */
    }
    
    objName = getObjectName(rowId, EAX_COL_LotsL);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatLot(rowInfo.LotsL(), rowInfo.OrdCntL()));
    ObjectSetString(0,objName,OBJPROP_TEXT,formatLot(rowInfo.LotsL(), rowInfo.OrdCntL()));
-   if (rowInfo.TradeModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_ClosePositiveL);
-   if (rowInfo.TradeModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"L+");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"C+");
-      if (0.001 < rowInfo.ProfitL()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrGreen);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      }
-   }
+   setBtnClosePositive(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
    
    objName = getObjectName(rowId, EAX_COL_ProfitL);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatProfit(rowInfo.ProfitL(), rowInfo.OrdCntL()));
    ObjectSetString(0,objName,OBJPROP_TEXT,formatProfit(rowInfo.ProfitL(), rowInfo.OrdCntL()));
-   if (rowInfo.TradeModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_CloseNegativeL);
-   if (rowInfo.TradeModeL()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"L-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"C -");
-      if (rowInfo.ProfitL() < 0.0) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMaroon);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      }
-   }
+   setBtnCloseNegative(objName, rowInfo.TradeModeL(), rowInfo.ProfitL());
    
    objName = getObjectName(rowId, EAX_COL_Tp2OPL);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatPip(rowInfo.Tp2OPL(), rowInfo.OrdCntL()));
+   ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPL(), rowInfo.OrdCntL()));
+   /*
+   if (rowInfo.TradeModeL()) {
+      ObjectSetString(0,objName,OBJPROP_TEXT," ");
+      //ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   } else {
+      ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPL(), rowInfo.OrdCntL()));
+   }
+   */
+   /*
    if (rowInfo.TradeModeL()) {
       ObjectSetString(0,objName,OBJPROP_TEXT," ");
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
@@ -1601,32 +1937,22 @@ void refreshLong(const int rowId) {
    } else {
       ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPL(), rowInfo.OrdCntL()));
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
-   
-   /*
-   objName = getObjectName(rowId, EAX_COL_EnableTpL);
-   if (rowInfo.EnableTpL()) {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMediumSpringGreen);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   } else {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
    }
    */
    
    objName = getObjectName(rowId, EAX_COL_Tp2Bid);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatPip(rowInfo.Tp2Bid(), rowInfo.OrdCntL()));
    ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2Bid(), rowInfo.OrdCntL()));
-   if (rowInfo.TradeModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_Sl2OPL);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatPip(rowInfo.Sl2OPL(), rowInfo.OrdCntL()));
+   ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2OPL(), rowInfo.OrdCntL()));
+   /*
+   if (rowInfo.TradeModeL()) {
+      ObjectSetString(0,objName,OBJPROP_TEXT," ");
+      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
+   }
+   /*
    if (rowInfo.TradeModeL()) {
       ObjectSetString(0,objName,OBJPROP_TEXT," ");
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
@@ -1639,344 +1965,57 @@ void refreshLong(const int rowId) {
    } else {
       ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2OPL(), rowInfo.OrdCntL()));
       ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
-   
-   /*
-   objName = getObjectName(rowId, EAX_COL_EnableSlL);
-   if (rowInfo.EnableSlL()) {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMediumSpringGreen);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   } else {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
    }
    */
    
    objName = getObjectName(rowId, EAX_COL_Sl2Ask);
+   //setLblDataShow(objName, rowInfo.TradeModeL(), rowInfo.SingularModeL(), rowInfo.OrdCntL(), formatPip(rowInfo.Sl2Ask(), rowInfo.OrdCntL()));
    ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2Ask(), rowInfo.OrdCntL()));
-   if (rowInfo.TradeModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntL() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeL()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
 }
 
-void refreshShort(const int rowId) {
+void refreshRowDataShowS(const int rowId) {
    string objName;
    CRowInfo *rowInfo = RowInfos.GetNodeAtIndex(rowId);
-   int chartId = 0;
 
-   
-   bool isOnly1 = isOnly1Show();
-   bool isOnlyO = isOnlyOther();
-   if (!isOnly1) {
-      objName = getObjectName(rowId, EAX_COL_SingularModeS);
-      if (rowInfo.SingularModeS()) ObjectSetString(0,objName,OBJPROP_TEXT,"Singular");
-      else ObjectSetString(0,objName,OBJPROP_TEXT,"Plural");
-      
-      if (rowInfo.TradeModeS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      
-      } else if (rowInfo.OrdCntS() < 1 && rowInfo.HasSignalS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      
-      } else if (rowInfo.OrdCntS() < 1 && !rowInfo.HasSignalS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      } else if (rowInfo.SingularModeS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrNavy);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      }
-      
-      
-      objName = getObjectName(rowId, EAX_COL_TradeModeS);
-      if (rowInfo.TradeModeS()) ObjectSetString(0,objName,OBJPROP_TEXT,"Trade");
-      else ObjectSetString(0,objName,OBJPROP_TEXT,"Data");
-      if (rowInfo.TradeModeS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkViolet);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      
-      } else if (rowInfo.OrdCntS() < 1 && rowInfo.HasSignalS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      
-      } else if (rowInfo.OrdCntS() < 1 && !rowInfo.HasSignalS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-      } else if (rowInfo.SingularModeS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrBlue);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrNavy);
-         ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-      }
-   }
-   
-   if (ShowGridSets) {
-      objName = getObjectName(rowId, EAX_COL_GridModeS);
-      if (rowInfo.OrdCntS() < 1) {
-         if (rowInfo.HasSignalS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.GridModeS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-   }
-   
-   if (ShowRetraceSets) {
-      objName = getObjectName(rowId, EAX_COL_RetraceModeS);
-      if (rowInfo.OrdCntS() < 1) {
-         if (rowInfo.HasSignalS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.RetraceModeS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-   }
-   
-   if (!isOnlyO) {
-      objName = getObjectName(rowId, EAX_COL_OtherModeS);
-      if (rowInfo.OrdCntS() < 1) {
-         if (rowInfo.HasSignalS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrYellow);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrAqua);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      } else {
-         if (rowInfo.OtherModeS()) {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrAqua);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         } else {
-            ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDimGray);
-            ObjectSetInteger(0,objName,OBJPROP_COLOR,clrWhite);
-            ObjectSetInteger(0,objName,OBJPROP_BORDER_COLOR,clrSilver);
-         }
-      }
-      
-   }
-   
-   objName = getObjectName(rowId, EAX_COL_PlusOrdS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"+");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"+");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
-   
    objName = getObjectName(rowId, EAX_COL_OrdCntS);
    ObjectSetString(0,objName,OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntS()));
+   /*
    if (rowInfo.TradeModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
+      ObjectSetString(0,objName,OBJPROP_TEXT,"1");
    } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
+      ObjectSetString(0,objName,OBJPROP_TEXT,formatOrderCount(rowInfo.OrdCntS()));
    }
-   
-   objName = getObjectName(rowId, EAX_COL_MinusOrdS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
+   */
    
    if (ShowRetraceSets) {
       objName = getObjectName(rowId, EAX_COL_ProfitSMinus);
       ObjectSetString(0,objName,OBJPROP_TEXT,formatProfit(rowInfo.ProfitSMinus(), rowInfo.OrdCntS()));
-      if (rowInfo.TradeModeS()) {
-         ObjectSetString(0,objName,OBJPROP_TEXT," ");
-         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      } else if (rowInfo.OrdCntS() < 1) {
-         ObjectSetString(0,objName,OBJPROP_TEXT," ");
-         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      } else if (rowInfo.SingularModeS()) {
-         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-      } else {
-         ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-      }
    }
    
    objName = getObjectName(rowId, EAX_COL_LotsS);
    ObjectSetString(0,objName,OBJPROP_TEXT,formatLot(rowInfo.LotsS(), rowInfo.OrdCntS()));
-   if (rowInfo.TradeModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_ClosePositiveS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"L+");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"C+");
-      if (0.001 < rowInfo.ProfitS()) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrGreen);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      }
-   }
+   setBtnClosePositive(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
    
    objName = getObjectName(rowId, EAX_COL_ProfitS);
    ObjectSetString(0,objName,OBJPROP_TEXT,formatProfit(rowInfo.ProfitS(), rowInfo.OrdCntS()));
-   if (rowInfo.TradeModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_CloseNegativeS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"L-");
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,"C -");
-      if (rowInfo.ProfitS() < 0.0) {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMaroon);
-      } else {
-         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,bgNoDataColor);
-      }
-   }
+   setBtnCloseNegative(objName, rowInfo.TradeModeS(), rowInfo.ProfitS());
    
    objName = getObjectName(rowId, EAX_COL_Tp2OPS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPS(), rowInfo.OrdCntS()));
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPS(), rowInfo.OrdCntS()));
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
-   
-   objName = getObjectName(rowId, EAX_COL_EnableTpS);
-   if (rowInfo.EnableTpS()) {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMediumSpringGreen);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   } else {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   }
+   ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2OPS(), rowInfo.OrdCntS()));
    
    objName = getObjectName(rowId, EAX_COL_Tp2Ask);
    ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Tp2Ask(), rowInfo.OrdCntS()));
-   if (rowInfo.TradeModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
    objName = getObjectName(rowId, EAX_COL_Sl2OPS);
-   if (rowInfo.TradeModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetString(0,objName,OBJPROP_TEXT," ");
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2OPS(), rowInfo.OrdCntS()));
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2OPS(), rowInfo.OrdCntS()));
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
-   
-   objName = getObjectName(rowId, EAX_COL_EnableSlS);
-   if (rowInfo.EnableSlS()) {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrMediumSpringGreen);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   } else {
-      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrDarkGray);
-      ObjectSetInteger(0,objName,OBJPROP_COLOR,clrBlack);
-   }
+   ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2OPS(), rowInfo.OrdCntS()));
    
    objName = getObjectName(rowId, EAX_COL_Sl2Bid);
    ObjectSetString(0,objName,OBJPROP_TEXT,formatPip(rowInfo.Sl2Bid(), rowInfo.OrdCntS()));
-   if (rowInfo.TradeModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgTradeColor);
-   } else if (rowInfo.OrdCntS() < 1) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgNoDataColor);
-   } else if (rowInfo.SingularModeS()) {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgSingularColor);
-   } else {
-      ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_BGCOLOR,bgPluralColor);
-   }
    
 }
 
@@ -2020,7 +2059,7 @@ void refreshRow(const int rowId) {
    
    // MinProfit
    //colId++;
-   refreshLong(rowId);
+   refreshRowDataShowL(rowId);
    /*
    // SingularModeL
    objName = getObjectName(rowId, EAX_COL_SingularModeL);
@@ -2137,13 +2176,7 @@ void refreshRow(const int rowId) {
    
    // Symbols
    
-   // EnableGrid
-   objName = getObjectName(rowId, EAX_COL_EnableGrid);
-   if (rowInfo.EnableGrid()) {enableButton(objName);} else {disableButton(objName);}
-   
-   // EnableRetrace
-   objName = getObjectName(rowId, EAX_COL_EnableRetrace);
-   if (rowInfo.EnableRetrace()) {enableButton(objName);} else {disableButton(objName);}
+
    
    
    // SwapS
@@ -2154,7 +2187,7 @@ void refreshRow(const int rowId) {
    } else {
       ObjectSetInteger(0,objName,OBJPROP_COLOR,clrLime);
    }
-   refreshShort(rowId);
+   refreshRowDataShowS(rowId);
    /*
    // SingularModeS
    objName = getObjectName(rowId, EAX_COL_SingularModeS);
@@ -2236,6 +2269,7 @@ void refreshRow(const int rowId) {
    // CDR
    objName = getObjectName(rowId, EAX_COL_CDR);
    ObjectSetString(chartId, objName, OBJPROP_TEXT, IntegerToString(rowInfo.CDR(), 4, ' '));
+   /*
    // PIN1
    objName = getObjectName(rowId, EAX_COL_PIN1);
    ObjectSetString(chartId, objName, OBJPROP_TEXT, formatPin(rowInfo.GetPin(0)));
@@ -2263,18 +2297,18 @@ void refreshRow(const int rowId) {
    // PIN9
    objName = getObjectName(rowId, EAX_COL_PIN9);
    ObjectSetString(chartId, objName, OBJPROP_TEXT, formatPin(rowInfo.GetPin(8)));
+   */
    ChartRedraw();
 }
 double calcLotSize() {
    return 0.01;
 }
 void closeOrders(const string symbolName="", const int orderType=9) {
-   int total=PositionsTotal();
    ulong ticket;
    ENUM_POSITION_TYPE ot;
    int index;
    string pairName, orderComment;
-   for(int i=0; i<total; i++) {
+   for(int i=PositionsTotal()-1; 0<=i; i--) {
       ticket = PositionGetTicket(i);
       if (0 == ticket) continue;
       if (MagicNumber != PositionGetInteger(POSITION_MAGIC)) continue;
@@ -2310,13 +2344,12 @@ void closeOrders(const string symbolName="", const int orderType=9) {
 }
 
 void closeOrdersByProfit(const bool isPositive, const string symbolName="", const int orderType=9) {
-   int total=PositionsTotal();
    ulong ticket;
    ENUM_POSITION_TYPE ot;
    int index;
    double profit;
    string pairName, orderComment;
-   for(int i=0; i<total; i++) {
+   for(int i=PositionsTotal()-1; 0<=i; i--) {
       ticket = PositionGetTicket(i);
       if (0 == ticket) continue;
       if (MagicNumber != PositionGetInteger(POSITION_MAGIC)) continue;
@@ -2425,13 +2458,15 @@ void DrawData(const int startXi, const int startYi) {
             RectLabelCreate(PanelNamePrefix+objName,x,y,dataWidth[colIndex],dataRowHeight,dataBgColor[colIndex],dataBorderColor[colIndex],Border_Width);
             LabelCreate(objName,dataText[colIndex],x+dataWidthAdjust[colIndex],y+RowInterval+Border_Width*2,dataFontColor[colIndex],dataFontSize[colIndex],dataFontName[colIndex]);
             x += dataWidth[colIndex] + ColumnInterval;
-            if(1==i%2) {
+            //if(1==i%2) {
                //ObjectSetInteger(chartId,PanelNamePrefix+columnType+dataName[colIndex]+IntegerToString(i),OBJPROP_BGCOLOR,C'41,41,41');
-            }
+            //}
+            //ObjectSetInteger(0,PanelNamePrefix+objName,OBJPROP_WIDTH,10);
 
          } else if ("Btn"==columnType) {
             ButtonCreate(objName,dataText[colIndex],x,y,dataWidth[colIndex],dataRowHeight,dataBgColor[colIndex],dataFontColor[colIndex],dataFontSize[colIndex],dataFontName[colIndex]);
             x += dataWidth[colIndex] + ColumnInterval;
+            //ObjectSetInteger(0,objName,OBJPROP_WIDTH,10);
 
          } else if ("lbo"==columnType) {
             //CreatePanel(PanelNamePrefix+columnType+ColumnName[colIndex]+IntegerToString(i),x,y,ColumnWidth[colIndex],RowHeight,ColumnColorBackground[colIndex],ColumnColorBorder[colIndex],Border_Width);
@@ -2536,7 +2571,7 @@ bool RectLabelCreate(const string           name="RectLabel",         // 标签�
                      const color            back_clr=C'236,233,216',  // 背景色
                      const color            clr=clrRed,               // 平面边框颜色 (Flat)
                      const int              line_width=1,             // 平面边框宽度
-                     const ENUM_BORDER_TYPE border=BORDER_SUNKEN,     // 边框类型
+                     const ENUM_BORDER_TYPE border=BORDER_FLAT,       // 边框类型
                      const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER, // 图表定位角
                      const ENUM_LINE_STYLE  style=STYLE_SOLID,        // 平面边框风格
                      const long             chart_ID=0,               // 图表 ID

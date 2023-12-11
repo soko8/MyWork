@@ -59,7 +59,8 @@ ENUM_MA_METHOD _tsmMaMethod;
 ENUM_APPLIED_PRICE _tsmMaAppliedPrice, _tsmBBAppliedPrice;
 double _tsmSarStep, _tsmSarMaximum, _tsmBBDeviation;
 
-
+datetime barTime = 0;
+bool     Stop_EA = true;
 
 
 int OnInit() {
@@ -99,6 +100,15 @@ void OnDeinit(const int reason) {
 void OnTick() {}
 
 void OnTimer() {
+   if (Stop_EA) return;
+   if (TSM_Fix != _trailingStopMode) {
+      datetime nowBarTime = iTime(NULL, Timeframe, 0);
+      // not new bar
+      if (barTime == nowBarTime) return;
+
+      // new bar then go on
+      barTime = nowBarTime;
+   }
    for (int i=OrdersTotal()-1; 0<=i; i--) {
       if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
          if (!isTargetOrder()) continue;
@@ -136,16 +146,16 @@ double getSlByIndicator(string symbolName) {
    
    switch (_trailingStopMode) {
       case TSM_MA:
-         sl = iMA(symbolName, _tfTsmMa, _tsmMaPeriod, 0, _tsmMaMethod, _tsmMaAppliedPrice, 0);
+         sl = iMA(symbolName, _tfTsmMa, _tsmMaPeriod, 0, _tsmMaMethod, _tsmMaAppliedPrice, 1);
          break;
       case TSM_Sar:
-         sl = iSAR(symbolName, _tfTsmSar, _tsmSarStep, _tsmSarMaximum, 0);
+         sl = iSAR(symbolName, _tfTsmSar, _tsmSarStep, _tsmSarMaximum, 1);
          break;
       case TSM_ATR:
-         sl = iATR(symbolName, _tfTsmAtr, _tsmAtrPeriod, 0);
+         sl = iATR(symbolName, _tfTsmAtr, _tsmAtrPeriod, 1);
          break;
       case TSM_BollingerBands:
-         sl = iBands(symbolName, _tfTsmBB, _tsmBBPeriod, _tsmBBDeviation, 0, _tsmBBAppliedPrice, _tsmBBLineIndex, 0);
+         sl = iBands(symbolName, _tfTsmBB, _tsmBBPeriod, _tsmBBDeviation, 0, _tsmBBAppliedPrice, _tsmBBLineIndex, 1);
          break;
       default: break;
    }
@@ -212,7 +222,6 @@ const int            PanelWidth        = 830;
 const int            PanelHeight       = 400;
 const string         ObjNamePrefix     = "TS_";
 const int            RowHeight         = 35;
-//const string         LineText          = "-----------------------------------------------------------------------------";
 
 void draw() {
    int x = Coordinates_X;
@@ -230,7 +239,8 @@ void draw() {
    CreateButton(ObjNamePrefix+"btn_"+"OPM_MagicNumber_And_CurrentWindowSymbol", "MagicNumber ＆ CurrentSymbol", x+15+50+140+130+30, y+RowHeight-4, 294, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
    SetText(ObjNamePrefix+"lbl_"+"OPM_MagicNumber", "Magic Number ：", x+15, y+2*RowHeight, lblFontColor, lblFontSize);
    CreateEdit(ObjNamePrefix+"edt_"+"OPM_MagicNumber", x+15+170, y+2*RowHeight-4, 474, RowHeight, lblFontSize, "1234567890");
-   //SetText(ObjNamePrefix+"lbl_"+"line1", LineText, x+15, y+3*RowHeight-8, lblFontColor, lblFontSize);
+   
+   CreateButton(ObjNamePrefix+"btn_"+"EA_Status", "Stopped", x+690, y+RowHeight-4, 130, 4*RowHeight, btnBgColor, btnFontColor, 9);
    
    SetText(ObjNamePrefix+"lbl_"+"TSM", "Trailing Stop Method ：", x+3, y+4*RowHeight, lblFontColor, lblFontSize);
    CreateButton(ObjNamePrefix+"btn_"+"TSM_Fix",             "Fix",            x+10,       y+5*RowHeight-4,   50, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
@@ -239,9 +249,11 @@ void draw() {
    CreateButton(ObjNamePrefix+"btn_"+"TSM_ATR",             "ATR",            x+40+150,   y+5*RowHeight-4,   50, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
    CreateButton(ObjNamePrefix+"btn_"+"TSM_BollingerBands",  "BollingerBands", x+50+200,   y+5*RowHeight-4,  140, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
    
+   SetText(ObjNamePrefix+"lbl_"+"FixPoint", "Fix Point ：", x+460, y+5*RowHeight-4, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"FixPoint", x+570, y+5*RowHeight-4, 80, RowHeight, lblFontSize, "12345");
+   
    SetText(ObjNamePrefix+"lbl_"+"Offset", "Offset Point   ：", x+50, y+6*RowHeight+2, lblFontColor, lblFontSize);
    CreateEdit(ObjNamePrefix+"edt_"+"Offset", x+210, y+6*RowHeight, 80, RowHeight, lblFontSize, "12345");
-   
    SetText(ObjNamePrefix+"lbl_"+"Period", "Period ：", x+370, y+6*RowHeight+2, lblFontColor, lblFontSize);
    CreateEdit(ObjNamePrefix+"edt_"+"Period", x+460, y+6*RowHeight, 80, RowHeight, lblFontSize, "123");
    
@@ -259,6 +271,18 @@ void draw() {
    CreateButton(ObjNamePrefix+"btn_"+"MM_EMA",  "EMA",   x+310,       y+8*RowHeight+4,  78, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
    CreateButton(ObjNamePrefix+"btn_"+"MM_SMMA", "SMMA",  x+410,       y+8*RowHeight+4,  78, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
    CreateButton(ObjNamePrefix+"btn_"+"MM_LWMA", "LWMA",  x+510,       y+8*RowHeight+4,  78, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
+
+   SetText(ObjNamePrefix+"lbl_"+"SarStep", "Sar Step        ：", x+50, y+9*RowHeight+5, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"SarStep", x+210, y+9*RowHeight+6, 80, RowHeight, lblFontSize, "12345");
+   SetText(ObjNamePrefix+"lbl_"+"SarMaximum", "Sar Maximum ：", x+370, y+9*RowHeight+5, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"SarMaximum", x+530, y+9*RowHeight+6, 80, RowHeight, lblFontSize, "123");
+   
+   SetText(ObjNamePrefix+"lbl_"+"BB_Deviation", "BB Deviation ：", x+50, y+10*RowHeight+8, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"BB_Deviation", x+210, y+10*RowHeight+9, 80, RowHeight, lblFontSize, "12345");
+   SetText(ObjNamePrefix+"lbl_"+"BB_LineIndex", "BB LineIndex  ：", x+370, y+10*RowHeight+8, lblFontColor, lblFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"BB_MAIN",  "MAIN",   x+530,       y+10*RowHeight+9,  82, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"BB_UPPER",  "UPPER",   x+620,       y+10*RowHeight+9,  82, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"BB_LOWER", "LOWER",  x+710,       y+10*RowHeight+9,  82, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
 }
 
 

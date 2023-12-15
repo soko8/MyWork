@@ -16,23 +16,27 @@ input datetime Input3=D'2023.12.06 22:34:45';
 input double Input4=1.0;
 input string Input5="a";
 */
-input int         In_Offset_Point_CurrentPrice     = 200;
+input int         In_Offset_Point_CurrentPrice     = 400;
 input int         In_Stoploss_Point                = 200;
 input int         In_TakeProfit_Point              = 300;
 input double      In_Lots                          = 0.01;
 input int         Magic_Number                     = 168;
+input bool        In_4Kdisplay                     = false;
 
 const int StartX=4;
 const int StartY=4;
-const int PanelWidth=400;
-const int PanelHeight=160;
-const string ObjNamePrefix="OO_";
-const int slippage = 0;
-const string COMMENT = "OOP_Order";
 
-const int            RowHeight         = 35;
+const string   ObjNamePrefix  ="OO_";
+const int      slippage       = 0;
+const string   COMMENT        = "OOP_Order";
 
-int offsetPoint, slPoint, tpPoint, trade_operation;
+const color          ClrBtnBgSelected  = clrGreen;
+const color          ClrBtnFtSelected  = clrBlack;
+const color          ClrBtnBg          = clrGray;
+const color          ClrBtnFt          = clrWhiteSmoke;
+
+
+int offsetPoint, slPoint, tpPoint, trade_operation=-1;
 double lots, offset, sl, tp;
 
 int OnInit() {
@@ -44,55 +48,120 @@ int OnInit() {
    sl = NormalizeDouble(slPoint*Point, Digits);
    tp = NormalizeDouble(tpPoint*Point, Digits);
 
-   int x = StartX;
-   int y = StartY;
-   color btnBgColor = clrGray;
-   color btnFontColor = clrWhiteSmoke;
-   int btnFontSize = 6;
-   int lblFontSize = 7;
-   color lblFontColor = clrWhite;
-   CreatePanel(ObjNamePrefix+"Panel",x,y,PanelWidth,PanelHeight);
-   CreateButton(ObjNamePrefix+"btn_"+"buyStop",    "Buy Stop",    x+12,    y+12,             100, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"sellLimit",  "Sell Limit",  x+116,   y+12,             100, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"buy",        "Buy",         x+12,    y+RowHeight+12,    50, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"Offset_Point",                x+14+50, y+RowHeight+11,   100, RowHeight,   lblFontSize, "12345");
-   CreateButton(ObjNamePrefix+"btn_"+"sell",       "Sell",        x+166,   y+RowHeight+12,    50, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"buyLimit",   "Buy Limit",   x+12,    y+2*RowHeight+12, 100, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"sellStop",   "Sell Stop",   x+116,   y+2*RowHeight+12, 100, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
+   if (In_4Kdisplay) draw4k(); else draw();
    
-   CreateButton(ObjNamePrefix+"btn_"+"NewOrder", "New Order", x+12, y+3*RowHeight+12, 204, RowHeight-4, btnBgColor, btnFontColor, btnFontSize);
+   checkInputLot();
+   checkInputSl();
+   checkInputTp();
    
-   SetText(ObjNamePrefix+"lbl_"+"tp", "   TP ：", x+222, y+12, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"tp", x+290, y+10, 100, RowHeight, lblFontSize, "12345");
-   
-   SetText(ObjNamePrefix+"lbl_"+"lots", "Lots ：", x+222, y+RowHeight+11, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"lots", x+290, y+RowHeight+11, 100, RowHeight, lblFontSize, "12345");
-   
-   SetText(ObjNamePrefix+"lbl_"+"sl", "   SL ：", x+222, y+2*RowHeight+12, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"sl", x+290, y+2*RowHeight+12, 100, RowHeight, lblFontSize, "12345");
-   
-//--- create timer
    EventSetTimer(60);
 
-//---
    return(INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) {
-//--- destroy timer
    EventKillTimer();
-   ObjectsDeleteAll();
+   ObjectsDeleteAll(0, ObjNamePrefix);
 }
 
-void OnTick() {
-
-}
+void OnTick() {}
 
 void OnTimer() {
 }
 
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
+   if (CHARTEVENT_OBJECT_CLICK == id) {
+      if (ObjNamePrefix+"btn_"+"buy" == sparam) {
+         trade_operation = OP_BUY;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"sell" == sparam) {
+         trade_operation = OP_SELL;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"buyLimit" == sparam) {
+         trade_operation = OP_BUYLIMIT;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"sellLimit" == sparam) {
+         trade_operation = OP_SELLLIMIT;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"buyStop" == sparam) {
+         trade_operation = OP_BUYSTOP;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"sellStop" == sparam) {
+         trade_operation = OP_SELLSTOP;
+         setBtnEnable(sparam);
+         setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+         setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+      } else
+      if (ObjNamePrefix+"btn_"+"NewOrder" == sparam) {
+         bool error = checkInputLot();
+         error = error || checkInputSl();
+         error = error || checkInputTp();
+         if (error) return;
+         if (OP_BUY != trade_operation && OP_SELL != trade_operation) {
+            if (offsetPoint < 1) {
+               ObjectSetInteger(0, ObjNamePrefix+"edt_"+"Offset_Point", OBJPROP_BGCOLOR, clrRed);
+               Alert("Offset Point is invalid.");
+               return;
+            }
+            ObjectSetInteger(0, ObjNamePrefix+"edt_"+"Offset_Point", OBJPROP_BGCOLOR, clrWhite);
+         }
+         if (trade_operation < 0 || 5 < trade_operation) Alert("trade operation not select");
+         else createOrder();
+      }
+   }
+   else if (CHARTEVENT_OBJECT_ENDEDIT == id) {
+      if (ObjNamePrefix+"edt_"+"Offset_Point" == sparam) {
+         offsetPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+         offset = NormalizeDouble(offsetPoint*Point, Digits);
+      } else
 
+      if (ObjNamePrefix+"edt_"+"lots" == sparam) {
+         lots = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+      } else
+
+      if (ObjNamePrefix+"edt_"+"tp" == sparam) {
+         tpPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+         tp = NormalizeDouble(tpPoint*Point, Digits);
+      } else
+
+      if (ObjNamePrefix+"edt_"+"sl" == sparam) {
+         slPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+         sl = NormalizeDouble(slPoint*Point, Digits);
+      }
+   }
 }
 
 void createOrder() {
@@ -140,6 +209,189 @@ void createOrder() {
    
    if (ticket < 0) Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
    else Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+}
+
+bool checkInputLot() {
+   bool isError = false;
+   isError = !isValidLot(lots);
+   if (isError) {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"lots", OBJPROP_BGCOLOR, clrRed);
+   } else {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"lots", OBJPROP_BGCOLOR, clrWhite);
+   }
+   return isError;
+}
+
+bool checkInputSl() {
+   bool isError = false;
+   isError = !isValidStopLevel(slPoint);
+   if (isError) {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"sl", OBJPROP_BGCOLOR, clrRed);
+   } else {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"sl", OBJPROP_BGCOLOR, clrWhite);
+   }
+   return isError;
+}
+
+bool checkInputTp() {
+   bool isError = false;
+   isError = !isValidStopLevel(tpPoint);
+   if (isError) {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"tp", OBJPROP_BGCOLOR, clrRed);
+   } else {
+      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"tp", OBJPROP_BGCOLOR, clrWhite);
+   }
+   return isError;
+}
+
+bool isValidLot(double lot) {
+   double minLot = MarketInfo(_Symbol, MODE_MINLOT);
+   if (lot < minLot) {
+      Print("The lot(", lot, ") is less than the Minimum permitted amount of a lot(", minLot, ").");
+      return false;
+   }
+   
+   double maxLot = MarketInfo(_Symbol, MODE_MAXLOT);
+   if (maxLot < lot) {
+      Print("The lot(", lot, ") is greater than the Maximum permitted amount of a lot(", maxLot, ").");
+      return false;
+   }
+   
+   return true;
+}
+
+bool isValidStopLevel(int inputPoint) {
+   int stopLevel = (int) MarketInfo(_Symbol, MODE_STOPLEVEL);
+   if (0 == stopLevel) return true;
+   if (inputPoint < stopLevel) {
+      Print("The input point(", inputPoint, ") is less than the Minimum permitted amount of stop level(", stopLevel, ").");
+      return false;
+   }
+   return true;
+} 
+
+void draw4k() {
+   const int            PanelWidth        = 400;
+   const int            PanelHeight       = 160;
+   const int            RowHeight         = 35;
+   const int            btnFontSize       = 6;
+   const int            lblFontSize       = 7;
+   const color          lblFontColor      = clrWhite;
+   int x = StartX;
+   int y = StartY;
+
+   CreatePanel(ObjNamePrefix+"Panel",x,y,PanelWidth,PanelHeight);
+   CreateButton(ObjNamePrefix+"btn_"+"buyStop",    "Buy Stop",    x+12,    y+12,             100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"sellLimit",  "Sell Limit",  x+116,   y+12,             100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"buy",        "Buy",         x+12,    y+RowHeight+12,    50, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"Offset_Point",                x+14+50, y+RowHeight+11,   100, RowHeight,   lblFontSize, "12345");
+   CreateButton(ObjNamePrefix+"btn_"+"sell",       "Sell",        x+166,   y+RowHeight+12,    50, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"buyLimit",   "Buy Limit",   x+12,    y+2*RowHeight+12, 100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(ObjNamePrefix+"btn_"+"sellStop",   "Sell Stop",   x+116,   y+2*RowHeight+12, 100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   
+   CreateButton(ObjNamePrefix+"btn_"+"NewOrder", "New Order", x+12, y+3*RowHeight+12, 204, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   
+   SetText(ObjNamePrefix+"lbl_"+"tp", "   TP ：", x+222, y+12, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"tp", x+290, y+10, 100, RowHeight, lblFontSize, "12345");
+   
+   SetText(ObjNamePrefix+"lbl_"+"lots", "Lots ：", x+222, y+RowHeight+11, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"lots", x+290, y+RowHeight+11, 100, RowHeight, lblFontSize, "12345");
+   
+   SetText(ObjNamePrefix+"lbl_"+"sl", "   SL ：", x+222, y+2*RowHeight+12, lblFontColor, lblFontSize);
+   CreateEdit(ObjNamePrefix+"edt_"+"sl", x+290, y+2*RowHeight+12, 100, RowHeight, lblFontSize, "12345");
+}
+
+void draw() {
+   const int            PanelWidth        = 236;
+   const int            PanelHeight       = 99;
+   const int            RowHeight         = 21;
+   const int            btnFontSize       = 6;
+   const int            lblFontSize       = 7;
+   const int            edtFontSize       = 8;
+   const color          lblFontColor      = clrWhite;
+   const int            RowHeightEdt      = 21;
+   const int            MarginLeft        = 6;
+   const int            MarginTop         = 6;
+   const int            Interval          = 2;
+
+   string objName = ObjNamePrefix+"Panel";
+   int x = StartX;
+   int y = StartY;
+   CreatePanel(objName,x,y,PanelWidth,PanelHeight);
+
+   objName = ObjNamePrefix+"btn_"+"buyStop";
+   x += MarginLeft;
+   y += MarginTop;
+   CreateButton(objName,    "Buy Stop",    x, y, 60, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"sellLimit";
+   x += (60 + Interval);
+   CreateButton(objName,  "Sell Limit",  x, y, 60, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"buy";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,        "Buy",         x, y, 30, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"edt_"+"Offset_Point";
+   x += (30 + Interval -1);
+   CreateEdit(objName,                x, y, 60, RowHeightEdt,edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(offsetPoint));
+
+   objName = ObjNamePrefix+"btn_"+"sell";
+   x += (60 + Interval -1);
+   CreateButton(objName,       "Sell",        x, y, 30, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"buyLimit";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,   "Buy Limit",   x, y, 60, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"sellStop";
+   x += (60 + Interval);
+   CreateButton(objName,   "Sell Stop",   x, y, 60, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"NewOrder";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,   "New Order",   x, y, 123,RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+   
+   objName = ObjNamePrefix+"lbl_"+"tp";
+   x = StartX + MarginLeft + 4*Interval + 60*2;
+   y = StartY + MarginTop;
+   SetText(objName, "TP   :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"tp";
+   x += 40;
+   CreateEdit(objName,          x, y, 60, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(tpPoint));
+   
+   objName = ObjNamePrefix+"lbl_"+"lots";
+   x = StartX + MarginLeft + 4*Interval + 60*2;
+   y = StartY + MarginTop + RowHeight + Interval;
+   SetText(objName, "Lots :", x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"lots";
+   x += 40;
+   CreateEdit(objName,        x, y, 60, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lots, 2));
+   
+   objName = ObjNamePrefix+"lbl_"+"sl";
+   x = StartX + MarginLeft + 4*Interval + 60*2;
+   y = StartY + MarginTop + 2*RowHeight + 2*Interval;
+   SetText(objName, "SL   :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"sl";
+   x += 40;
+   CreateEdit(objName,          x, y, 60, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(slPoint));
+}
+
+void setBtnEnable(string btnName) {
+   ObjectSetInteger(0,btnName,OBJPROP_BGCOLOR,ClrBtnBgSelected);
+   ObjectSetInteger(0,btnName,OBJPROP_COLOR,ClrBtnFtSelected);
+}
+
+void setBtnDisable(string btnName) {
+   ObjectSetInteger(0,btnName,OBJPROP_BGCOLOR,ClrBtnBg);
+   ObjectSetInteger(0,btnName,OBJPROP_COLOR,ClrBtnFt);
 }
 
 void SetText(string name,string text,int x,int y,color fontColor,int fontSize=8) {

@@ -14,7 +14,7 @@ input int            In_Seconds              = 300;
 input int            In_Offset_Point         = 100;
 input double         In_Lots                 = 0.01;
 input int            In_Stoploss_Point       = 200;
-input int            In_TakeProfit_Point     = 30000;
+input int            In_TakeProfit_Point     = 6000;
 input int            Magic_Number            = 88888;
 
 
@@ -23,7 +23,7 @@ bool Stop_EA=true, isCreated=false;
 bool NeedDeletePendingOrder=true, isDeletedPendingOrder=false;
 
 
-int seconds, offsetPoint, slPoint, tpPoint, openedOrderTicket=-1;
+int seconds, offsetPoint, slPoint, tpPoint, openedOrderTicket=-1, ticketL=-1, ticketS=-1;
 double lots, offset, sl, tp;
 
 const int slippage = 0;
@@ -47,6 +47,9 @@ int OnInit() {
    offset = NormalizeDouble(offsetPoint*Point, Digits);
    sl = NormalizeDouble(slPoint*Point, Digits);
    tp = NormalizeDouble(tpPoint*Point, Digits);
+   newsTime = TimeLocal() - 60;
+   string timeStr = TimeToStr(newsTime)+":00";
+   newsTime = StringToTime(timeStr);
 
    draw();
    //EventSetTimer(1);
@@ -69,35 +72,42 @@ void OnTick() {
    if (!isCreated && nowLocalTime < newsTime && newsTime <= nowLocalTime+seconds) {
       double openPrice = 0.0, slPrice = 0.0, tpPrice = 0.0;
       
-      openPrice = Ask + offset;
-      if (0 < slPoint) slPrice = openPrice - sl;
-      if (0 < tpPoint) tpPrice = openPrice + tp;
-      openPrice = NormalizeDouble(openPrice, Digits);
-      slPrice = NormalizeDouble(slPrice, Digits);
-      tpPrice = NormalizeDouble(tpPrice, Digits);
-      int ticket = OrderSend(_Symbol, OP_BUYSTOP, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
-      if (ticket < 0) Print("OrderSend(BUYSTOP) failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
-      else Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+      if (ticketL < 0) {
+         openPrice = Ask + offset;
+         if (0 < slPoint) slPrice = openPrice - sl;
+         if (0 < tpPoint) tpPrice = openPrice + tp;
+         openPrice = NormalizeDouble(openPrice, Digits);
+         slPrice = NormalizeDouble(slPrice, Digits);
+         tpPrice = NormalizeDouble(tpPrice, Digits);
+         ticketL = OrderSend(_Symbol, OP_BUYSTOP, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
+         if (ticketL < 0) Print("OrderSend(BUYSTOP) failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
+         else Print("OrderSend placed successfully. Ticket ID=", ticketL, " Symbol=", _Symbol);
+      }
       
-      openPrice = Bid - offset;
-      if (0 < slPoint) slPrice = openPrice + sl;
-      if (0 < tpPoint) tpPrice = openPrice - tp;
-      openPrice = NormalizeDouble(openPrice, Digits);
-      slPrice = NormalizeDouble(slPrice, Digits);
-      tpPrice = NormalizeDouble(tpPrice, Digits);
-      ticket = OrderSend(_Symbol, OP_SELLSTOP, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
-      if (ticket < 0) Print("OrderSend(SELLSTOP) failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
-      else Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+      if (ticketS < 0) {
+         openPrice = Bid - offset;
+         if (0 < slPoint) slPrice = openPrice + sl;
+         if (0 < tpPoint) tpPrice = openPrice - tp;
+         openPrice = NormalizeDouble(openPrice, Digits);
+         slPrice = NormalizeDouble(slPrice, Digits);
+         tpPrice = NormalizeDouble(tpPrice, Digits);
+         ticketS = OrderSend(_Symbol, OP_SELLSTOP, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
+         if (ticketS < 0) Print("OrderSend(SELLSTOP) failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
+         else Print("OrderSend placed successfully. Ticket ID=", ticketS, " Symbol=", _Symbol);
+      }
+
+      if (0<=ticketL && 0<=ticketS) isCreated = true;
    }
    else if (newsTime < nowLocalTime) {
       if (openedOrderTicket < 0) {
+         // from latest(newest) to oldest (positon 0 == the oldest Order. position Max == the latest(newest) Order.)
          for (int i=OrdersTotal()-1; 0<=i; i--) {
             if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
                if (Magic_Number == OrderMagicNumber() && _Symbol == OrderSymbol()) {
                   if (OP_BUY == OrderType() || OP_SELL == OrderType()) openedOrderTicket = OrderTicket();
                }
             } else {
-               Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+               Print("Failed to call OrderSelect() method @ position #", i, " Error code=", ErrorDescription(GetLastError()));
             }
          }
       }
@@ -109,6 +119,7 @@ void OnTick() {
 void trailing_stop() {
    if (openedOrderTicket < 0) return;
    if (NeedDeletePendingOrder && !isDeletedPendingOrder) {
+      // from latest(newest) to oldest (positon 0 == the oldest Order. position Max == the latest(newest) Order.)
       for (int i=OrdersTotal()-1; 0<=i; i--) {
          if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
             if (Magic_Number == OrderMagicNumber() && _Symbol == OrderSymbol()) {
@@ -118,7 +129,7 @@ void trailing_stop() {
                }
             }
          } else {
-            Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+            Print("Failed to call OrderSelect() method @ position #", i, " Error code=", ErrorDescription(GetLastError()));
          }
       }
    }
@@ -178,21 +189,7 @@ bool isValidNewsTime() {
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
    if (CHARTEVENT_OBJECT_CLICK == id) {
       if (ObjNamePrefix+"btn_"+"EA_Status" == sparam) {
-         if (Stop_EA) {
-            bool isValidTime = isValidNewsTime();
-            if (!isValidTime) {
-               ObjectSetInteger(0,ObjNamePrefix+"edt_"+"NewsTime",OBJPROP_BGCOLOR,clrRed);
-               return;
-            }
-            Stop_EA = false;
-            ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,ClrBtnBgEnabled);
-            ObjectSetInteger(0,sparam,OBJPROP_COLOR,ClrBtnFtEnabled);
-            
-         } else {
-            Stop_EA = true;
-            ObjectSetInteger(0,sparam,OBJPROP_BGCOLOR,ClrBtnBg);
-            ObjectSetInteger(0,sparam,OBJPROP_COLOR,ClrBtnFt);
-         }
+         clickBtnStopEA();
       }
    } else
    if (CHARTEVENT_OBJECT_ENDEDIT == id) {
@@ -213,6 +210,37 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0, sparam, OBJPROP_BGCOLOR, clrWhite);
          }
       }
+   }
+}
+
+void setBtnStopEA(bool status) {
+   string objName = ObjNamePrefix+"btn_"+"EA_Status";
+   if (status) {
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,ClrBtnBg);
+      ObjectSetInteger(0,objName,OBJPROP_COLOR,ClrBtnFt);
+      ObjectSetString(0,objName,OBJPROP_TEXT,TxtStatusStop);
+      
+   } else {
+      ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,ClrBtnBgEnabled);
+      ObjectSetInteger(0,objName,OBJPROP_COLOR,ClrBtnFtEnabled);
+      ObjectSetString(0,objName,OBJPROP_TEXT,TxtStatusRun);
+   }
+}
+
+void clickBtnStopEA() {
+   string objName = ObjNamePrefix+"btn_"+"EA_Status";
+   if (Stop_EA) {
+      bool isValidTime = isValidNewsTime();
+      if (!isValidTime) {
+         ObjectSetInteger(0,objName,OBJPROP_BGCOLOR,clrRed);
+         return;
+      }
+      Stop_EA = false;
+      setBtnStopEA(Stop_EA);
+      
+   } else {
+      Stop_EA = true;
+      setBtnStopEA(Stop_EA);
    }
 }
 
@@ -244,7 +272,9 @@ void draw() {
    objName = ObjNamePrefix+"edt_"+"NewsTime";
    //x += (30 + Interval -1);
    y += RowHeight;
-   CreateEdit(objName,              x, y, 160, RowHeightEdt, edtFontSize, "2023-12-06 22:34");
+   string timeStr = TimeToStr(newsTime);
+   StringReplace(timeStr, ".", "-");
+   CreateEdit(objName,              x, y, 160, RowHeightEdt, edtFontSize, timeStr);
    //ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(offsetPoint));
    
    objName = ObjNamePrefix+"lbl_"+"NewsTimeTips1";
@@ -263,6 +293,7 @@ void draw() {
    objName = ObjNamePrefix+"btn_"+"EA_Status";
    y += RowHeight;
    CreateButton(objName, TxtStatusStop, x, y, 100, 2*RowHeight, ClrBtnBg, ClrBtnFt, 9);
+   setBtnStopEA(Stop_EA);
 }
 
 void SetText(string name,string text,int x,int y,color fontColor,int fontSize=8) {

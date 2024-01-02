@@ -245,14 +245,14 @@ void clickBtnStopEA() {
 }
 
 void draw() {
-   const int PanelWidth = 168;
-   const int PanelHeight = 158;
+   const int PanelWidth = 268;
+   const int PanelHeight = 268;
    const int Start_X = 6;
    const int Start_Y = 6;
    const int MarginLeft = 6;
    const int MarginTop = 6;
-   const int RowHeight = 21;
-   const int RowHeightEdt = 23;
+   const int RowHeight = 35;
+   const int RowHeightEdt = 35;
    const int Interval = 2;
    
    const int   lblFontSize    = 8;
@@ -274,7 +274,7 @@ void draw() {
    y += RowHeight;
    string timeStr = TimeToStr(newsTime);
    StringReplace(timeStr, ".", "-");
-   CreateEdit(objName,              x, y, 160, RowHeightEdt, edtFontSize, timeStr);
+   CreateEdit(objName,              x, y, 260, RowHeightEdt, edtFontSize, timeStr);
    //ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(offsetPoint));
    
    objName = ObjNamePrefix+"lbl_"+"NewsTimeTips1";
@@ -292,7 +292,7 @@ void draw() {
    
    objName = ObjNamePrefix+"btn_"+"EA_Status";
    y += RowHeight;
-   CreateButton(objName, TxtStatusStop, x, y, 100, 2*RowHeight, ClrBtnBg, ClrBtnFt, 9);
+   CreateButton(objName, TxtStatusStop, x, y, 150, 2*RowHeight, ClrBtnBg, ClrBtnFt, 9);
    setBtnStopEA(Stop_EA);
 }
 

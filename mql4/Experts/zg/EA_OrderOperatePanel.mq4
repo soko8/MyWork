@@ -21,7 +21,7 @@ input int         In_Stoploss_Point                = 200;
 input int         In_TakeProfit_Point              = 300;
 input double      In_Lots                          = 0.01;
 input int         Magic_Number                     = 168;
-input bool        In_4Kdisplay                     = false;
+input bool        In_4Kdisplay                     = true;
 
 const int StartX=4;
 const int StartY=4;
@@ -30,7 +30,7 @@ const string   ObjNamePrefix  ="OO_";
 const int      slippage       = 0;
 const string   COMMENT        = "OOP_Order";
 
-const color          ClrBtnBgSelected  = clrGreen;
+const color          ClrBtnBgSelected  = clrGreenYellow;
 const color          ClrBtnFtSelected  = clrBlack;
 const color          ClrBtnBg          = clrGray;
 const color          ClrBtnFt          = clrWhiteSmoke;
@@ -139,7 +139,29 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0, ObjNamePrefix+"edt_"+"Offset_Point", OBJPROP_BGCOLOR, clrWhite);
          }
          if (trade_operation < 0 || 5 < trade_operation) Alert("trade operation not select");
-         else createOrder();
+         else if (createOrder()) {
+            switch (trade_operation) {
+               case OP_BUY:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"buy");
+                  break;
+               case OP_SELL:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"sell");
+                  break;
+               case OP_BUYLIMIT:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"buyLimit");
+                  break;
+               case OP_SELLLIMIT:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"sellLimit");
+                  break;
+               case OP_BUYSTOP:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
+                  break;
+               case OP_SELLSTOP:
+                  setBtnDisable(ObjNamePrefix+"btn_"+"sellStop");
+                  break;
+               default: break;
+            }
+         }
       }
    }
    else if (CHARTEVENT_OBJECT_ENDEDIT == id) {
@@ -164,7 +186,7 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
    }
 }
 
-void createOrder() {
+bool createOrder() {
    double openPrice = 0.0, slPrice = 0.0, tpPrice = 0.0;
 
    switch (trade_operation) {
@@ -207,8 +229,10 @@ void createOrder() {
 
    int ticket = OrderSend(_Symbol, trade_operation, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
    
-   if (ticket < 0) Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol);
-   else Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+   if (ticket < 0) {Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol); return false;}
+   
+   Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+   return true;
 }
 
 bool checkInputLot() {
@@ -271,34 +295,86 @@ bool isValidStopLevel(int inputPoint) {
 } 
 
 void draw4k() {
-   const int            PanelWidth        = 400;
+   const int            PanelWidth        = 450;
    const int            PanelHeight       = 160;
    const int            RowHeight         = 35;
-   const int            btnFontSize       = 6;
+   const int            btnFontSize       = 7;
    const int            lblFontSize       = 7;
+   const int            edtFontSize       = 12;
    const color          lblFontColor      = clrWhite;
+   const int            RowHeightEdt      = 35;
+   const int            MarginLeft        = 6;
+   const int            MarginTop         = 6;
+   const int            Interval          = 2;
+
+   string objName = ObjNamePrefix+"Panel";
    int x = StartX;
    int y = StartY;
+   CreatePanel(objName,x,y,PanelWidth,PanelHeight);
 
-   CreatePanel(ObjNamePrefix+"Panel",x,y,PanelWidth,PanelHeight);
-   CreateButton(ObjNamePrefix+"btn_"+"buyStop",    "Buy Stop",    x+12,    y+12,             100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"sellLimit",  "Sell Limit",  x+116,   y+12,             100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"buy",        "Buy",         x+12,    y+RowHeight+12,    50, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"Offset_Point",                x+14+50, y+RowHeight+11,   100, RowHeight,   lblFontSize, "12345");
-   CreateButton(ObjNamePrefix+"btn_"+"sell",       "Sell",        x+166,   y+RowHeight+12,    50, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"buyLimit",   "Buy Limit",   x+12,    y+2*RowHeight+12, 100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
-   CreateButton(ObjNamePrefix+"btn_"+"sellStop",   "Sell Stop",   x+116,   y+2*RowHeight+12, 100, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   objName = ObjNamePrefix+"btn_"+"buyStop";
+   x += MarginLeft;
+   y += MarginTop;
+   CreateButton(objName,    "Buy Stop",    x, y, 100, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"sellLimit";
+   x += (100 + Interval);
+   CreateButton(objName,  "Sell Limit",  x, y, 100, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"buy";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,        "Buy",         x, y, 50, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"edt_"+"Offset_Point";
+   x += (50 + Interval -1);
+   CreateEdit(objName,                x, y, 100, RowHeightEdt,edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(offsetPoint));
+
+   objName = ObjNamePrefix+"btn_"+"sell";
+   x += (100 + Interval -1);
+   CreateButton(objName,       "Sell",        x, y, 50, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"buyLimit";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,   "Buy Limit",   x, y, 100, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"sellStop";
+   x += (100 + Interval);
+   CreateButton(objName,   "Sell Stop",   x, y, 100, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"NewOrder";
+   x = StartX + MarginLeft;
+   y += RowHeight + Interval;
+   CreateButton(objName,   "New Order",   x, y, 202, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
    
-   CreateButton(ObjNamePrefix+"btn_"+"NewOrder", "New Order", x+12, y+3*RowHeight+12, 204, RowHeight-4, ClrBtnBg, ClrBtnFt, btnFontSize);
+   objName = ObjNamePrefix+"lbl_"+"tp";
+   x = StartX + MarginLeft + 10*Interval + 100*2;
+   y = StartY + MarginTop;
+   SetText(objName, "TP  :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"tp";
+   x += 70;
+   CreateEdit(objName,          x, y, 150, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(tpPoint));
    
-   SetText(ObjNamePrefix+"lbl_"+"tp", "   TP ：", x+222, y+12, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"tp", x+290, y+10, 100, RowHeight, lblFontSize, "12345");
+   objName = ObjNamePrefix+"lbl_"+"lots";
+   x = StartX + MarginLeft + 10*Interval + 100*2;
+   y = StartY + MarginTop + RowHeight + Interval;
+   SetText(objName, "Lots:", x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"lots";
+   x += 70;
+   CreateEdit(objName,        x, y, 150, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lots, 2));
    
-   SetText(ObjNamePrefix+"lbl_"+"lots", "Lots ：", x+222, y+RowHeight+11, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"lots", x+290, y+RowHeight+11, 100, RowHeight, lblFontSize, "12345");
-   
-   SetText(ObjNamePrefix+"lbl_"+"sl", "   SL ：", x+222, y+2*RowHeight+12, lblFontColor, lblFontSize);
-   CreateEdit(ObjNamePrefix+"edt_"+"sl", x+290, y+2*RowHeight+12, 100, RowHeight, lblFontSize, "12345");
+   objName = ObjNamePrefix+"lbl_"+"sl";
+   x = StartX + MarginLeft + 10*Interval + 100*2;
+   y = StartY + MarginTop + 2*RowHeight + 2*Interval;
+   SetText(objName, "SL  :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"sl";
+   x += 70;
+   CreateEdit(objName,          x, y, 150, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(slPoint));
 }
 
 void draw() {
@@ -394,7 +470,17 @@ void setBtnDisable(string btnName) {
    ObjectSetInteger(0,btnName,OBJPROP_COLOR,ClrBtnFt);
 }
 
-void SetText(string name,string text,int x,int y,color fontColor,int fontSize=8) {
+/**
+ * link:   https://en.wikipedia.org/wiki/List_of_typefaces_included_with_Microsoft_Windows
+ * monospace fonts:
+ *   Courier New
+ *   Lucida Sans Typewriter
+ *   Cascadia Code
+ *   Consolas
+ *   Lucida Console
+ *   Fixedsys
+ */
+void SetText(string name,string text,int x,int y,color fontColor,int fontSize=8, string font="Lucida Sans Typewriter") {
    long chartId = 0;
    if(ObjectFind(chartId,name)<0)
       ObjectCreate(chartId,name,OBJ_LABEL,0,0,0);
@@ -404,6 +490,7 @@ void SetText(string name,string text,int x,int y,color fontColor,int fontSize=8)
    ObjectSetInteger(chartId,name,OBJPROP_FONTSIZE,fontSize);
    ObjectSetInteger(chartId,name,OBJPROP_CORNER,CORNER_LEFT_UPPER);
    ObjectSetString(chartId,name,OBJPROP_TEXT,text);
+   ObjectSetString(chartId,name,OBJPROP_FONT,font);
 }
 
 void SetObjText(string name,string str,int x,int y,color colour,string fontName="Wingdings 3",int fontsize=12) {
@@ -443,7 +530,11 @@ void CreatePanel(string name,int x,int y,int width,int height,color backgroundCo
      }
   }
 
-void CreateButton(string btnName,string text,int x,int y,int width,int height,int backgroundColor=clrBlack,int textColor=clrWhite, int fontSize = 8, ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER) {
+/*
+   font : "Times New Roman"  "Microsoft Sans Serif"  "Cambria"  "Georgia"  "Impact"   "Tahoma"
+*/
+void CreateButton(string btnName,string text,int x,int y,int width,int height,int backgroundColor=clrBlack
+                  ,int textColor=clrWhite, int fontSize = 8, string font="Tahoma", ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER) {
    ResetLastError();
    long chartId = 0;
    if(ObjectFind(chartId,btnName)<0) {
@@ -463,6 +554,7 @@ void CreateButton(string btnName,string text,int x,int y,int width,int height,in
    ObjectSetInteger(chartId,btnName,OBJPROP_FONTSIZE,fontSize);
    ObjectSetInteger(chartId,btnName,OBJPROP_HIDDEN,true);
    ObjectSetInteger(chartId,btnName,OBJPROP_BORDER_TYPE,BORDER_RAISED);
+   ObjectSetString(chartId,btnName,OBJPROP_FONT,font);
 }
 
 
@@ -473,7 +565,7 @@ void CreateEdit(const string           name="Edit",              // object name
                 const int              height=18,                // height
                 const int              font_size=10,             // font size
                 const string           text="Text",              // text
-                const string           font="Arial",             // font
+                const string           font="Fixedsys",          // font
                 const ENUM_ALIGN_MODE  align=ALIGN_CENTER,       // alignment type
                 const bool             read_only=false,          // ability to edit
                 const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER, // chart corner for anchoring

@@ -127,14 +127,14 @@ enum ENUM_INDICATOR_CUSTOM {
 #define WIDTH_SYMBOL_4K                         108
 #define WIDTH_SIGNAL                            40
 #define WIDTH_SIGNAL_4K                         60
-#define HEIGHT_ROW                              24
-#define HEIGHT_ROW_4K                           30
+#define HEIGHT_ROW                              19
+#define HEIGHT_ROW_4K                           36
 #define HEIGHT_ROW_MA                           19
-#define HEIGHT_ROW_MA_4K                        30
+#define HEIGHT_ROW_MA_4K                        35
 #define HEIGHT_ROW_ADX                          24
 #define HEIGHT_ROW_ADX_4K                       30
 #define HEIGHT_ROW_HEADER                       14
-#define HEIGHT_ROW_HEADER_4K                    30
+#define HEIGHT_ROW_HEADER_4K                    26
 
 
 class CIndicatorBase : public CObject {
@@ -681,6 +681,7 @@ ENUM_CROSS CKDJCross::GetCross(const int index) const {
    double kVal1 = indicator.GetData(index, MODE_MAIN);
    double dVal1 = indicator.GetData(index, MODE_SIGNAL);
    double jVal1 = 3*kVal1 - 2*dVal1;
+   //double jVal0 = 3*indicator.GetData(0, MODE_MAIN) - 2*indicator.GetData(0, MODE_SIGNAL);
    
    double kVal2 = indicator.GetData(index+1, MODE_MAIN);
    double dVal2 = indicator.GetData(index+1, MODE_SIGNAL);
@@ -778,11 +779,11 @@ SymbolInfo::SymbolInfo(string SymbolShortName, string SymbolPrefix="", string Sy
    indicators = new CList();
 }
 
-input bool                 In_Use_Timeframe1          = true;
+input bool                 In_Use_Timeframe1          = false;
 input ENUM_TIMEFRAMES      In_Timeframe1              = PERIOD_M5;
 input bool                 In_Use_Timeframe2          = false;
 input ENUM_TIMEFRAMES      In_Timeframe2              = PERIOD_M15;
-input bool                 In_Use_Timeframe3          = true;
+input bool                 In_Use_Timeframe3          = false;
 input ENUM_TIMEFRAMES      In_Timeframe3              = PERIOD_M30;
 input bool                 In_Use_Timeframe4          = false;
 input ENUM_TIMEFRAMES      In_Timeframe4              = PERIOD_H1;
@@ -793,10 +794,10 @@ input ENUM_TIMEFRAMES      In_Timeframe6              = PERIOD_D1;
 input bool                 In_Use_Timeframe7          = false;
 input ENUM_TIMEFRAMES      In_Timeframe7              = PERIOD_W1;
 
-input bool                 In_Use_MA                  = true;
+input bool                 In_Use_MA                  = false;
 input bool                 In_Use_MACD                = false;
 input bool                 In_Use_RSI                 = false;
-input bool                 In_Use_KDJ                 = true;
+input bool                 In_Use_KDJ                 = false;
 input bool                 In_Use_ADX                 = false;
 
 input int                  In_MACD_Fast_EMA_Period_TF1         = 12;
@@ -926,39 +927,39 @@ input int                  In_long_term_MA_shift_TF7           = 0;
 input ENUM_APPLIED_PRICE   In_long_term_MA_applied_price_TF7   = PRICE_CLOSE;
 
 
-input int                  In_short_term_RSI_period_TF1        = 13;
+input int                  In_short_term_RSI_period_TF1        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF1 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF1         = 55;
+input int                  In_long_term_RSI_period_TF1         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF1  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF2        = 13;
+input int                  In_short_term_RSI_period_TF2        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF2 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF2         = 55;
+input int                  In_long_term_RSI_period_TF2         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF2  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF3        = 13;
+input int                  In_short_term_RSI_period_TF3        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF3 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF3         = 55;
+input int                  In_long_term_RSI_period_TF3         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF3  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF4        = 13;
+input int                  In_short_term_RSI_period_TF4        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF4 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF4         = 55;
+input int                  In_long_term_RSI_period_TF4         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF4  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF5        = 13;
+input int                  In_short_term_RSI_period_TF5        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF5 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF5         = 55;
+input int                  In_long_term_RSI_period_TF5         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF5  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF6        = 13;
+input int                  In_short_term_RSI_period_TF6        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF6 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF6         = 55;
+input int                  In_long_term_RSI_period_TF6         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF6  = PRICE_CLOSE;
 
-input int                  In_short_term_RSI_period_TF7        = 13;
+input int                  In_short_term_RSI_period_TF7        = 5;
 input ENUM_APPLIED_PRICE   In_short_term_RSI_applied_price_TF7 = PRICE_CLOSE;
-input int                  In_long_term_RSI_period_TF7         = 55;
+input int                  In_long_term_RSI_period_TF7         = 13;
 input ENUM_APPLIED_PRICE   In_long_term_RSI_applied_price_TF7  = PRICE_CLOSE;
 
 
@@ -1021,6 +1022,8 @@ input ENUM_MA_METHOD       In_KDJ_method_TF7                   = MODE_SMA;
 input int                  In_KDJ_price_field_TF7              = 0;           // 0 - Low/High or 1 - Close/Close
 
 input string               In_Template_Name           = "MyTemplate";
+input double               In_Lots                    = 0.01;
+input int                  Magic_Number               = 88888;
 input string               Prefix                     = "";
 input string               Surfix                     = "";
 input bool                 UseDefaultPairs            = true;
@@ -1029,10 +1032,12 @@ input int                  Coordinates_X              = 1;
 input int                  Coordinates_Y              = 1;
 input bool                 In_4Kdisplay               = false;
 
-const string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY"};
+const string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY", "CNHJPY", "USDCNH", "XAGUSD", "XAUUSD", "XNGUSD", "XTIUSD", "ETHUSD", "JP225"};
+//const string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY"};
 //const string DefaultPairs[] = {"GBPUSD","EURUSD","USDJPY"};
-const string   ObjNamePrefix     = "DBSIGNALS_";
+const string   ObjNamePrefix     = "DB_Signals_";
 const string   panelNamePrefix   = "Rec_";
+const string   COMMENT           = "DB_Signals";
 const int      ColumnInterval = 0;
 const int      RowInterval    = 0;
 const int      Border_Width   = 2;
@@ -1043,30 +1048,30 @@ const int      FONT_SIZE_SIGN   = 10;
 const color    ClrColBgBtn          = clrBlack;
 const color    ClrColFtBtn          = clrWhite;
 
-const color    COLOR_BD_USED        = clrAqua;
+const color    COLOR_BD_USED        = clrGold;
 const color    COLOR_BD_UNUSE       = clrBlack;
 
 const color    ClrColBgLbl_N        = clrBlack;
 const color    ClrColBdLbl_N        = clrWhite;
 const color    ClrColFtLbl_N        = clrWhite;
 
-const color    ClrBgTrend_L_P       = clrGreen;
+const color    ClrBgTrend_L_P       = clrMidnightBlue;
 const color    ClrBdTrend_L_P       = clrBlack;
-const color    ClrFtTrend_L_P       = clrBlack;
-const color    ClrBgTrend_L         = clrLime;
+const color    ClrFtTrend_L_P       = clrWhite;
+const color    ClrBgTrend_L         = clrRoyalBlue;
 const color    ClrBdTrend_L         = clrBlack;
-const color    ClrFtTrend_L         = clrBlack;
-const color    ClrBgTrend_L_M       = clrLightCyan;
+const color    ClrFtTrend_L         = clrWhite;
+const color    ClrBgTrend_L_M       = clrMediumSeaGreen;
 const color    ClrBdTrend_L_M       = clrBlack;
-const color    ClrFtTrend_L_M       = clrBlack;
+const color    ClrFtTrend_L_M       = clrWhite;
 
 const color    ClrBgTrend_S_P       = clrMaroon;
 const color    ClrBdTrend_S_P       = clrWhite;
 const color    ClrFtTrend_S_P       = clrWhite;
-const color    ClrBgTrend_S         = clrOrangeRed;
+const color    ClrBgTrend_S         = clrCrimson;
 const color    ClrBdTrend_S         = clrWhite;
 const color    ClrFtTrend_S         = clrWhite;
-const color    ClrBgTrend_S_M       = clrPaleVioletRed;
+const color    ClrBgTrend_S_M       = clrCoral;
 const color    ClrBdTrend_S_M       = clrWhite;
 const color    ClrFtTrend_S_M       = clrWhite;
 
@@ -1075,6 +1080,8 @@ CList *SymbolList;
 string SymbolArray[], gvTemplateName;
 int gvCountSymbol;
 bool gvUseTfs[INDICATOR_TYPE_COUNT][TIMEFRAME_COUNT];//, gvUseIndicators[INDICATOR_TYPE_COUNT];
+bool gvSymbolSelected[];
+double gvLots;
 
 int OnInit() {
 
@@ -1082,6 +1089,9 @@ int OnInit() {
    if (!initFlag) {
       return(INIT_FAILED);
    }
+   ArrayResize(gvSymbolSelected, gvCountSymbol);
+   ArrayInitialize(gvSymbolSelected, false);
+   gvLots = In_Lots;
    gvTemplateName = In_Template_Name;
    Draw(Coordinates_X, Coordinates_Y, SymbolList);
    EventSetTimer(1);
@@ -1114,6 +1124,7 @@ void OnTimer() {
          ColName = ic.getName() + getTimeframeStr(ic.getTimeframe());
          resetSign(ColName, si.getName(), signSettings);
       }
+      setRowHighlight(si);
    }
 }
 
@@ -1156,10 +1167,53 @@ void resetTimeframe(string indicatorName, int indexIndicator, int indexTF, strin
    if (gvUseTfs[indexIndicator][indexTF]) setBtnSelected(btnName); else setBtnUnselected(btnName);
 }
 
+int getIndexByTimeframeName(const string timeframeName) {
+   for (int i=0; i<TIMEFRAME_COUNT; i++) {
+      if (timeframeName == getTimeframeStr(tfs[i])) return i;
+   }
+   return -1;
+}
+
+void setRowHighlight(SymbolInfo *si ) {
+   int index = si.getIndex();
+   bool isSelected = gvSymbolSelected[index];
+   color bdColor;
+   string btnName = ObjNamePrefix+"Symbol"+si.getName();
+   if (isSelected) {
+      setBtnSelected(btnName);
+      bdColor = COLOR_BD_USED;
+   } else {
+      setBtnUnselected(btnName);
+      bdColor = COLOR_BD_UNUSE;
+   }
+   int obj_total = ObjectsTotal();
+   string name = NULL;
+   string symbolNameI = NULL;
+   string Search = ObjNamePrefix + panelNamePrefix;
+   for(int i=0;i<obj_total;i++) {
+      name=ObjectName(i);
+      symbolNameI = StringSubstr(name, StringLen(name)-6, 6);
+      if (0 == StringFind(name, Search) && symbolNameI == si.getName()) {
+         if (isSelected) ObjectSetInteger(0,name,OBJPROP_COLOR,bdColor);
+         else {
+            int indicatorIndex, timeframeIndex;
+            string tfStr;
+            if       (0 == StringFind(name, Search+"MACD")) {indicatorIndex = 1; tfStr = StringSubstr(name, StringLen(name)-8, 2);}
+            else if  (0 == StringFind(name, Search+"MA"))   {indicatorIndex = 0; tfStr = StringSubstr(name, StringLen(name)-8, 2);}
+            else if  (0 == StringFind(name, Search+"RSI"))  {indicatorIndex = 2; tfStr = StringSubstr(name, StringLen(name)-8, 2);}
+            else if  (0 == StringFind(name, Search+"KDJ"))  {indicatorIndex = 3; tfStr = StringSubstr(name, StringLen(name)-8, 2);}
+            else if  (0 == StringFind(name, Search+"ADX"))  {indicatorIndex = 4; tfStr = StringSubstr(name, StringLen(name)-8, 2);}
+            
+            timeframeIndex = getIndexByTimeframeName(tfStr);
+            if (!gvUseTfs[indicatorIndex][timeframeIndex]) ObjectSetInteger(0,name,OBJPROP_COLOR,bdColor);
+         }
+      }
+   }
+}
+
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
    if (CHARTEVENT_OBJECT_CLICK != id) return;
    string objName = ObjNamePrefix+"MV";
-   //ObjNamePrefix+"MV"+si.getName()
    string symbolName = NULL;
    Print("sparam==", sparam);
    if ((0 == StringFind(sparam, objName))) {
@@ -1188,6 +1242,29 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
       return;
    }
    
+   objName = ObjNamePrefix+"Symbol";
+   if ((0 == StringFind(sparam, objName))) {
+      symbolName = StringSubstr(sparam, StringLen(sparam)-6, 6);
+      SymbolInfo *si = getSymbolInfoByName(SymbolList, symbolName);
+      int index = si.getIndex();
+      gvSymbolSelected[index] = !gvSymbolSelected[index];
+      setRowHighlight(si);return;
+   }
+
+   objName = ObjNamePrefix+"NewL";
+   if ((0 == StringFind(sparam, objName))) {
+      symbolName = StringSubstr(sparam, StringLen(sparam)-6, 6);
+      SymbolInfo *si = getSymbolInfoByName(SymbolList, symbolName);
+      createOrder(si, OP_BUY);return;
+   }
+   
+   objName = ObjNamePrefix+"NewS";
+   if ((0 == StringFind(sparam, objName))) {
+      symbolName = StringSubstr(sparam, StringLen(sparam)-6, 6);
+      SymbolInfo *si = getSymbolInfoByName(SymbolList, symbolName);
+      createOrder(si, OP_SELL);return;
+   }
+
    objName = ObjNamePrefix+"MA_TF0";
    if (sparam == objName) {
       resetTimeframe("MA", 0, 0, sparam);
@@ -1369,6 +1446,31 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
    }
 
 
+}
+
+int createOrder(SymbolInfo *si, const int trade_operation) {
+   double openPrice = 0.0, slPrice = 0.0, tpPrice = 0.0;
+   double askPrice = MarketInfo(si.getRealName(), MODE_ASK);
+   double bidPrice = MarketInfo(si.getRealName(), MODE_BID);
+   string op_type = NULL;
+   switch (trade_operation) {
+      case OP_BUY:
+         openPrice = askPrice;op_type="Buy";
+         break;
+      case OP_SELL:
+         openPrice = bidPrice;op_type="Sell";
+         break;
+      default: return -1;
+   }
+   
+   openPrice = NormalizeDouble(openPrice, si.getDigits());
+
+   int ticket = OrderSend(si.getRealName(), trade_operation, gvLots, openPrice, 0, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
+   
+   if (ticket < 0) Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", si.getRealName(), " Operation=", op_type);
+   else Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", si.getRealName(), " Operation=", op_type);
+   
+   return ticket;
 }
 
 bool initSymbols() {
@@ -2923,12 +3025,12 @@ void getCrossSignSet(const CIndicatorCustom *ic, sign_settings &signSettings) {
    switch (cross) {
       case CROSS_MA_LONG:                             {signSettings.sign="●";             signSettings.fontName="Lucida Sans Unicode"; break;}
       case CROSS_MA_SHORT:                            {signSettings.sign="○";             signSettings.fontName="Lucida Sans Unicode"; break;}
-      case CROSS_MACD_BELOW0_LONG:                    {signSettings.sign=CharToStr(189);  signSettings.fontName="Wingdings 2";         break;}
-      case CROSS_MACD_OVER0_LONG:                     {signSettings.sign=CharToStr(188);  signSettings.fontName="Wingdings 2";         break;}
-      case CROSS_MACD_BELOW0_SHORT:                   {signSettings.sign="㊦";             signSettings.fontName="Lucida Sans Unicode"; break;}
-      case CROSS_MACD_OVER0_SHORT:                    {signSettings.sign="㊤";             signSettings.fontName="Lucida Sans Unicode"; break;}
-      case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.sign=CharToStr(117);  signSettings.fontName="Wingdings 2";         break;}
-      case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.sign=CharToStr(118);  signSettings.fontName="Wingdings 2";         break;}
+      case CROSS_MACD_BELOW0_LONG:                    {signSettings.sign=CharToStr(88);   signSettings.fontName="Wingdings";           break;} //
+      case CROSS_MACD_OVER0_LONG:                     {signSettings.sign=CharToStr(124);  signSettings.fontName="Wingdings";           break;} //
+      case CROSS_MACD_BELOW0_SHORT:                   {signSettings.sign=CharToStr(123);  signSettings.fontName="Wingdings";           break;} //
+      case CROSS_MACD_OVER0_SHORT:                    {signSettings.sign=CharToStr(84);   signSettings.fontName="Wingdings";           break;} //
+      case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.sign=CharToStr(117);  signSettings.fontName="Wingdings 2";         break;} //❶
+      case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.sign=CharToStr(118);  signSettings.fontName="Wingdings 2";         break;} //❷
       case CROSS_MACD_0AXIS_TOP2BOTTOM_MAIN:          {signSettings.sign="①";             signSettings.fontName="Lucida Sans Unicode"; break;}
       case CROSS_MACD_0AXIS_TOP2BOTTOM_SIGNAL:        {signSettings.sign="②";             signSettings.fontName="Lucida Sans Unicode"; break;}
       case CROSS_ADX_LONG:                            {signSettings.sign="●";             signSettings.fontName="Lucida Sans Unicode"; break;}
@@ -2941,68 +3043,68 @@ void getCrossSignSet(const CIndicatorCustom *ic, sign_settings &signSettings) {
       case CROSS_RSI_SHORT:                           {signSettings.sign="○";             signSettings.fontName="Lucida Sans Unicode"; break;}
       case CROSS_KDJ_LONG:                            {signSettings.sign="●";             signSettings.fontName="Lucida Sans Unicode"; break;}
       case CROSS_KDJ_SHORT:                           {signSettings.sign="○";             signSettings.fontName="Lucida Sans Unicode"; break;}
-      case CROSS_KDJ_BELOW_0:                         {signSettings.sign=CharToStr(124);  signSettings.fontName="Wingdings";           break;}
-      case CROSS_KDJ_OVER_100:                        {signSettings.sign=CharToStr(123);  signSettings.fontName="Wingdings";           break;}
-      case CROSS_KDJ_OVERBOUGHT:                      {signSettings.sign=CharToStr(90);   signSettings.fontName="Wingdings";           break;}
-      case CROSS_KDJ_OVERSOLD:                        {signSettings.sign=CharToStr(82);   signSettings.fontName="Wingdings";           break;}
+      case CROSS_KDJ_BELOW_0:                         {signSettings.sign=CharToStr(112);  signSettings.fontName="Wingdings 3";         break;} //
+      case CROSS_KDJ_OVER_100:                        {signSettings.sign=CharToStr(113);  signSettings.fontName="Wingdings 3";         break;} //
+      case CROSS_KDJ_OVERBOUGHT:                      {signSettings.sign=CharToStr(90);   signSettings.fontName="Wingdings";           break;} //☪
+      case CROSS_KDJ_OVERSOLD:                        {signSettings.sign=CharToStr(82);   signSettings.fontName="Wingdings";           break;} //☼
       default:                                        {signSettings.sign=CharToStr(32);   signSettings.fontName="Wingdings";           break;}
    }
    
    if (In_4Kdisplay) {
       switch (cross) {
-         case CROSS_MA_LONG:                             {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_MA_SHORT:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_MACD_BELOW0_LONG:                    {signSettings.xAdjust=10;signSettings.yAdjust=-2 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_OVER0_LONG:                     {signSettings.xAdjust=10;signSettings.yAdjust=2 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_BELOW0_SHORT:                   {signSettings.xAdjust=12;signSettings.yAdjust=1 ;signSettings.fontSize=9 ;break;}
-         case CROSS_MACD_OVER0_SHORT:                    {signSettings.xAdjust=12;signSettings.yAdjust=1 ;signSettings.fontSize=9 ;break;}
-         case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_0AXIS_TOP2BOTTOM_MAIN:          {signSettings.xAdjust=11;signSettings.yAdjust=-8;signSettings.fontSize=13;break;}
-         case CROSS_MACD_0AXIS_TOP2BOTTOM_SIGNAL:        {signSettings.xAdjust=11;signSettings.yAdjust=-8;signSettings.fontSize=13;break;}
-         case CROSS_ADX_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_ADX_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_ADX_DIPLUS_BOTTOM2TOP:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIPLUS_TOP2BOTTOM:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIMINUS_BOTTOM2TOP:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIMINUS_TOP2BOTTOM:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_RSI_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_RSI_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_BELOW_0:                         {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVER_100:                        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVERBOUGHT:                      {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVERSOLD:                        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         default:                                        {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=8 ;break;}
+         case CROSS_MA_LONG:                             {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_MA_SHORT:                            {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_MACD_BELOW0_LONG:                    {signSettings.xAdjust=12;signSettings.yAdjust=-9 ;signSettings.fontSize=16;break;}
+         case CROSS_MACD_OVER0_LONG:                     {signSettings.xAdjust=14;signSettings.yAdjust=0  ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_BELOW0_SHORT:                   {signSettings.xAdjust=14;signSettings.yAdjust=-1 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_OVER0_SHORT:                    {signSettings.xAdjust=14;signSettings.yAdjust=-1 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.xAdjust=10;signSettings.yAdjust=-2 ;signSettings.fontSize=13;break;}
+         case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.xAdjust=10;signSettings.yAdjust=-2 ;signSettings.fontSize=13;break;}
+         case CROSS_MACD_0AXIS_TOP2BOTTOM_MAIN:          {signSettings.xAdjust=10;signSettings.yAdjust=-12;signSettings.fontSize=14;break;}
+         case CROSS_MACD_0AXIS_TOP2BOTTOM_SIGNAL:        {signSettings.xAdjust=10;signSettings.yAdjust=-12;signSettings.fontSize=14;break;}
+         case CROSS_ADX_LONG:                            {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_ADX_SHORT:                           {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_ADX_DIPLUS_BOTTOM2TOP:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIPLUS_TOP2BOTTOM:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIMINUS_BOTTOM2TOP:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIMINUS_TOP2BOTTOM:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_RSI_LONG:                            {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_RSI_SHORT:                           {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_KDJ_LONG:                            {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_KDJ_SHORT:                           {signSettings.xAdjust=14;signSettings.yAdjust=-10;signSettings.fontSize=12;break;}
+         case CROSS_KDJ_BELOW_0:                         {signSettings.xAdjust=14;signSettings.yAdjust=0  ;signSettings.fontSize=10;break;}
+         case CROSS_KDJ_OVER_100:                        {signSettings.xAdjust=14;signSettings.yAdjust=0  ;signSettings.fontSize=10;break;}
+         case CROSS_KDJ_OVERBOUGHT:                      {signSettings.xAdjust=14;signSettings.yAdjust=-4 ;signSettings.fontSize=12;break;}
+         case CROSS_KDJ_OVERSOLD:                        {signSettings.xAdjust=13;signSettings.yAdjust=-4 ;signSettings.fontSize=12;break;}
+         default:                                        {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=8 ;break;}
       }
    } else {
       switch (cross) {
-         case CROSS_MA_LONG:                             {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_MA_SHORT:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_MACD_BELOW0_LONG:                    {signSettings.xAdjust=10;signSettings.yAdjust=-2 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_OVER0_LONG:                     {signSettings.xAdjust=10;signSettings.yAdjust=2 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_BELOW0_SHORT:                   {signSettings.xAdjust=12;signSettings.yAdjust=1 ;signSettings.fontSize=9 ;break;}
-         case CROSS_MACD_OVER0_SHORT:                    {signSettings.xAdjust=12;signSettings.yAdjust=1 ;signSettings.fontSize=9 ;break;}
-         case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_MACD_0AXIS_TOP2BOTTOM_MAIN:          {signSettings.xAdjust=11;signSettings.yAdjust=-8;signSettings.fontSize=13;break;}
-         case CROSS_MACD_0AXIS_TOP2BOTTOM_SIGNAL:        {signSettings.xAdjust=11;signSettings.yAdjust=-8;signSettings.fontSize=13;break;}
-         case CROSS_ADX_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_ADX_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_ADX_DIPLUS_BOTTOM2TOP:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIPLUS_TOP2BOTTOM:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIMINUS_BOTTOM2TOP:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_ADX_DIMINUS_TOP2BOTTOM:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=7 ;break;}
-         case CROSS_RSI_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_RSI_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-4;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_BELOW_0:                         {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVER_100:                        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVERBOUGHT:                      {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         case CROSS_KDJ_OVERSOLD:                        {signSettings.xAdjust=10;signSettings.yAdjust=0 ;signSettings.fontSize=12;break;}
-         default:                                        {signSettings.xAdjust=0 ;signSettings.yAdjust=0 ;signSettings.fontSize=8 ;break;}
+         case CROSS_MA_LONG:                             {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_MA_SHORT:                            {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_BELOW0_LONG:                    {signSettings.xAdjust=10;signSettings.yAdjust=-5 ;signSettings.fontSize=14;break;}
+         case CROSS_MACD_OVER0_LONG:                     {signSettings.xAdjust=10;signSettings.yAdjust=-2 ;signSettings.fontSize=12;break;}
+         case CROSS_MACD_BELOW0_SHORT:                   {signSettings.xAdjust=10;signSettings.yAdjust=-3 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_OVER0_SHORT:                    {signSettings.xAdjust=11;signSettings.yAdjust=-3 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_0AXIS_BOTTOM2TOP_MAIN:          {signSettings.xAdjust=10;signSettings.yAdjust=-1 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_0AXIS_BOTTOM2TOP_SIGNAL:        {signSettings.xAdjust=10;signSettings.yAdjust=-1 ;signSettings.fontSize=11;break;}
+         case CROSS_MACD_0AXIS_TOP2BOTTOM_MAIN:          {signSettings.xAdjust=11;signSettings.yAdjust=-11;signSettings.fontSize=13;break;}
+         case CROSS_MACD_0AXIS_TOP2BOTTOM_SIGNAL:        {signSettings.xAdjust=11;signSettings.yAdjust=-11;signSettings.fontSize=13;break;}
+         case CROSS_ADX_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_ADX_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_ADX_DIPLUS_BOTTOM2TOP:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIPLUS_TOP2BOTTOM:               {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIMINUS_BOTTOM2TOP:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_ADX_DIMINUS_TOP2BOTTOM:              {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=7 ;break;}
+         case CROSS_RSI_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_RSI_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_KDJ_LONG:                            {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_KDJ_SHORT:                           {signSettings.xAdjust=11;signSettings.yAdjust=-6 ;signSettings.fontSize=11;break;}
+         case CROSS_KDJ_BELOW_0:                         {signSettings.xAdjust=12;signSettings.yAdjust=1  ;signSettings.fontSize=8 ;break;}
+         case CROSS_KDJ_OVER_100:                        {signSettings.xAdjust=12;signSettings.yAdjust=2  ;signSettings.fontSize=8 ;break;}
+         case CROSS_KDJ_OVERBOUGHT:                      {signSettings.xAdjust=12;signSettings.yAdjust=0  ;signSettings.fontSize=9 ;break;}
+         case CROSS_KDJ_OVERSOLD:                        {signSettings.xAdjust=10;signSettings.yAdjust=-3 ;signSettings.fontSize=11;break;}
+         default:                                        {signSettings.xAdjust=0 ;signSettings.yAdjust=0  ;signSettings.fontSize=8 ;break;}
       }
    }
    

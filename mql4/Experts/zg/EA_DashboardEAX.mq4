@@ -134,7 +134,7 @@ input bool                 UseDefaultPairs            = true;
 input string               In_Pairs                   = "";
 input int                  Magic_Number               = 88888;
 input int                  Coordinates_X              = 1;
-input int                  Coordinates_Y              = 40;
+input int                  Coordinates_Y              = 1;
 input bool                 In_4Kdisplay               = true;
 
 const int      SLIPPAGE          = 0;
@@ -143,39 +143,40 @@ const string   ObjNamePrefix     = "DBEAX_";
 const string   panelNamePrefix   = "Rec_";
 const string   H1NamePrefix      = "H1";
 
-const string   ColH2Name[57]        ={ "Auto"  ,"CloseL","CloseS","CloseP","CloseM","CloseAll" ,"LotTxt"   ,"AddLot","Lot"      ,"MnsLot","StepPointTxt","AddStep","Step","MnsStep","CountS" ,"CloseS","LotS"    ,"ProfitS"  ,"Spread"   ,"Profit","Pin1"  ,"Pin2"  ,"Pin3"  ,"Pin4"  ,"Pin5"  ,"Pin6"  ,"Pin7"  ,"Pin8"  ,"Pin9"     ,"PairNm","UseSl","AddSlP","SlP"  ,"MnsSlP","UseTp","AddTpP","TpP" ,"MnsTpP"   ,"TSfix" ,"AddFixP","FixP" ,"MnsFixP"  ,"TSatr" ,"TSsar" ,"SarVal"   ,"TSma","MaVal"   ,"AddOffset","Offset","MnsOffset"   ,"Sl2Open"  ,"AddSl2Now","Sl2Now"   ,"MnsSl2Now"   ,"Tp2Open"  ,"AddTp2Now","Tp2Now"      };
-const string   ColH2Text[57]        ={ "Manual","CL"    ,"CS"    ,"C+"    ,"C-"    ,"CA"       ,"Lot :"    ,"+"     ,"999.99"   ,"-"     ,"Step Point :","+"      ,"12345","-"     ,"Count S",""      ,"Lot S"   ,"Profit S" ,"Spd"      ,"Profit","P1"    ,"P2"    ,"P3"    ,"P4"    ,"P5"    ,"P6"    ,"P7"    ,"P8"    ,"P9"       ,"Symbol","SL"   ,"+"     ,"SL P" ,"-"     ,"TP"   ,"+"     ,"TP P","-"        ,"Fix"   ,"+"      ,"Fix P","-"        ,"ATR"   ,"Sar"   ,"Sar SL"   ,"MA"  ,"MA SL"   ,"+"        ,"Ofset" ,"-"           ,"Open"     ,""         ,"SL To Now",""            ,"Open"     ,""         ,"TP To Now"   };
-      string   ColH2Type[57]        ={ "btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"      ,"lbl"      ,"btn"   ,"lbl"      ,"btn"   ,"lbl"         ,"btn"    ,"lbl" ,"btn"    ,"unu"    ,"unu"   ,"unu"     ,"unu"      ,"unu"      ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"   ,"unu"      ,"unu"  ,"unu"   ,"unu"   ,"unu"  ,"unu"   ,"unu"  ,"unu"   ,"unu" ,"unu"      ,"unu"   ,"unu"    ,"unu"  ,"unu"      ,"unu"   ,"unu"   ,"unu"      ,"unu" ,"unu"     ,"unu"      ,"unu"   ,"unu"         ,"unu"      ,"unu"      ,"unu"      ,"unu"         ,"unu"      ,"unu"      ,"unu"         };
-const int      ColH2Width[57]       ={  58     , 30     , 30     , 30     , 30     , 30        , 50        , 18     , 54        , 18     , 86           , 18      , 50   , 18      , 0       , 46     , 58       , 30        , 58        , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 64        , 24    , 18     , 40     , 18    , 24     , 18    , 40     , 18   , 24        , 18     , 40      , 18    , 40        , 30     , 50     , 26        , 50   , 18       , 40        , 18     , 50           , 0         , 86        , 0         , 50           , 0         , 86        , 0            };
-const int      ColH2AdjustX[57]     ={  0      , 0      , 0      , 0      , 0      , 0         , 18        , 0      , 5         , 0      , 10           , 0       , 5    , 0       , 0       , 4      , 6        , 2         , 12        , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 8         , 0     , 0      , 5      , 0     , 0      , 0     , 5      , 0    , 0         , 0      , 4       , 0     , 0         , 0      , 2      , 0         , 4    , 0        , 2         , 0      , 7            , 0         , 10        , 0         , 7            , 0         , 8         , 0            };
-const int      ColH2Width4K[57]     ={  88     , 44     , 44     , 44     , 44     , 44        , 70        , 24     , 88        , 24     , 146          , 24      , 60   , 24      , 0       , 46     , 58       , 30        , 58        , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 64        , 24    , 18     , 40     , 18    , 24     , 18    , 40     , 18   , 24        , 18     , 40      , 18    , 40        , 30     , 50     , 26        , 50   , 18       , 40        , 18     , 50           , 0         , 86        , 0         , 50           , 0         , 86        , 0            };
-const int      ColH2AdjustX4K[57]   ={  0      , 0      , 0      , 0      , 0      , 0         , 20        , 0      , 10        , 0      , 26           , 0       , 5    , 0       , 0       , 4      , 6        , 2         , 12        , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 8         , 0     , 0      , 5      , 0     , 0      , 0     , 5      , 0    , 0         , 0      , 4       , 0     , 0         , 0      , 2      , 0         , 4    , 0        , 2         , 0      , 7            , 0         , 10        , 0         , 7            , 0         , 8         , 0            };
+const string   ColH2Name[57]        ={ "Auto"  ,""      ,""      ,""      ,"CloseL","CountHL"  ,"CloseS"   ,"LotHL" ,"ProfitHL" ,"Pad1"  ,"Pad2"  ,"Pad3"  ,"CloseP","CountHS"  ,"CloseM"   ,"LotHS" ,"ProfitHS" ,"CloseAll" ,"ProfitH"  ,"AnyEntry"  ,"AnyExit"  ,"LotTxt","AddLot","Lot"   ,"MnsLot","StepPointTxt"   ,"AddStep"  ,"Step"  ,"MnsStep"  ,""      ,""      ,""   ,""         ,""      ,""      ,""   ,""         ,""      ,""         ,""      ,""            ,""      ,""      ,""         ,""      ,""         ,""            ,""      ,""            ,""         ,""         ,""      ,""            ,""         ,""         ,""      ,""         };
+const string   ColH2Text[57]        ={ "M"     ,"H"     ,"D"     ,"N"     ,"CL"    ,""         ,"CS"       ,""      ,""         ,""      ,""      ,""      ,"C+"    ,""         ,"C-"       ,""      ,""         ,"CA"       ,""         ,"Any Entry" ,"Any Exit" ,"Lot :" ,"+"     ,"999.99","-"     ,"Step Point :"   ,"+"        ,"12345" ,"-"        ,""      ,""      ,""   ,""         ,""      ,""      ,""   ,""         ,""      ,""         ,""      ,"-"           ,""      ,""      ,""         ,""      ,""         ,""            ,""      ,""            ,""         ,""         ,""      ,""            ,""         ,""         ,""      ,""         };
+      string   ColH2Type[57]        ={ "btn"   ,"unu"   ,"unu"   ,"unu"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"lbl"   ,"lbl"   ,"lbl"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"btn"      ,"lbl"      ,"btn"       ,"btn"      ,"lbl"   ,"btn"   ,"lbl"   ,"btn"   ,"lbl"            ,"btn"      ,"lbl"   ,"btn"      ,"unu"   ,"unu"   ,"unu","unu"      ,"unu"   ,"unu"   ,"unu","unu"      ,"unu"   ,"unu"      ,"unu"   ,"unu"         ,"unu"   ,"unu"   ,"unu"      ,"unu"   ,"unu"      ,"unu"         ,"unu"   ,"unu"         ,"unu"      ,"unu"      ,"unu"   ,"unu"         ,"unu"      ,"unu"      ,"unu"   ,"unu"       };
+const int      ColH2Width[57]       ={  18     , 18     , 18     , 18     , 22     , 20        , 22        , 46     , 58        , 40     , 64     , 40     , 22     , 20        , 22        , 46     , 58        , 30        , 58        , 62         , 52        , 50     , 18     , 54     , 18     , 86              , 18        , 50     , 18        , 24     , 18     , 40  , 18        , 24     , 18     , 40  , 18        , 24     , 18        , 40     , 18           , 40     , 30     , 50        , 26     , 50        , 18           , 40     , 18           , 50        , 0         , 86     , 0            , 50        , 0         , 86     , 0          };
+const int      ColH2AdjustX[57]     ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 0      , 4         , 6      , 8      , 6      , 0      , 2         , 0         , 0      , 4         , 2         , 4         , 0          , 0         , 18     , 0      , 5      , 0      , 10              , 0         , 5      , 0         , 0      , 0      , 5   , 0         , 0      , 0      , 5   , 0         , 0      , 0         , 4      , 0            , 0      , 0      , 2         , 0      , 4         , 0            , 2      , 0            , 7         , 0         , 10     , 0            , 7         , 0         , 8      , 0          };
+const int      ColH2Width4K[57]     ={  24     , 24     , 24     , 24     , 30     , 40        , 30        , 74     , 106       , 66     , 108    , 66     , 30     , 40        , 30        , 74     , 106       , 50        , 106       , 94         , 84        , 70     , 24     , 88     , 24     , 146             , 24        , 60     , 24        , 34     , 24     , 60  , 24        , 34     , 24     , 60  , 24        , 34     , 24        , 60     , 24           , 70     , 44     , 80        , 40     , 80        , 24           , 70     , 24           , 70        , 0         , 118    , 0            , 70        , 0         , 118    , 0          };
+const int      ColH2AdjustX4K[57]   ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 6      , 6         , 6      , 8      , 6      , 0      , 6         , 0         , 4      , 6         , 2         , 20        , 0          , 0         , 20     , 0      , 10     , 0      , 26              , 0         , 5      , 0         , 0      , 0      , 5   , 0         , 0      , 0      , 5   , 0         , 0      , 0         , 4      , 0            , 0      , 0      , 6         , 0      , 6         , 0            , 6      , 0            , 7         , 0         , 2      , 0            , 7         , 0         , 2      , 0          };
 
 
-const string   ColH1Text[57]        ={ ""      ,"H"     ,"D"     ,"N"     ,""      ,"Count L"  ,""         ,"Lot L" ,"Profit L" ,"CDR"   ,"Symbol","ADR"   ,""      ,"Count S"  ,""         ,"Lot S" ,"Profit S" ,"Spd"      ,"Profit"   ,"P1"    ,"P2"    ,"P3"    ,"P4"    ,"P5"    ,"P6"    ,"P7"    ,"P8"    ,"P9"    ,"Symbol"   ,"SL"   ,"+"     ,"SL P","-"       ,"TP"   ,"+"     ,"TP P","-"       ,"Fix"   ,"+"      ,"Fix P","-"        ,"ATR"   ,"Sar"   ,"Sar SL"   ,"MA"  ,"MA SL"  ,"+"        ,"Ofset" ,"-"           ,"Open"     ,""         ,"SL To Now",""         ,"Open"     ,""         ,"TP To Now",""       };
-      string   ColH1Type[57]        ={ "lbl"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"      ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"      ,"btn"      ,"lbl"      ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"lbl"      ,"btn"  ,"btn"   ,"lbl","btn"      ,"btn"  ,"btn"   ,"lbl","btn"      ,"btn"   ,"btn"    ,"lbl" ,"btn"       ,"btn"   ,"btn"   ,"lbl"      ,"btn" ,"lbl"    ,"btn"      ,"lbl"   ,"btn"         ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"         ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"       };
-const int      ColH1Width[57]       ={  18     , 18     , 18     , 18     , 0      , 56        , 0         , 46     , 58        , 40     , 64     , 40     , 0      , 56        , 0         , 46     , 58        , 30        , 58        , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 64        , 24    , 18     , 40  , 18        , 24    , 18     , 40  , 18        , 24     , 18      , 40   , 18         , 40     , 30     , 50        , 26   , 50      , 18        , 40     , 18           , 50        , 0         , 86     , 0            , 50        , 0         , 86     , 0          };
-const int      ColH1AdjustX[57]     ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 6      , 6         , 6      , 8      , 6      , 0      , 2         , 0         , 4      , 6         , 2         , 12        , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 8         , 0     , 0      , 5   , 0         , 0     , 0      , 5   , 0         , 0      , 0       , 4    , 0          , 0      , 0      , 2         , 0    , 4       , 0         , 2      , 0            , 7         , 0         , 10     , 0            , 7         , 0         , 8      , 0          };
 
-const int      ColH1Width4K[57]     ={  24     , 24     , 24     , 24     , 0      , 88        , 0         , 74     , 106       , 66     , 108    , 66     , 0      , 98        , 0         , 74     , 106       , 50        , 106       , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 108       , 34    , 24     , 60  , 24        , 34    , 24     , 60  , 24        , 34     , 24      , 60   , 24         , 70     , 44     , 80        , 40   , 80      , 24        , 70     , 24           , 70        , 0         , 118    , 0            , 70        , 0         , 118    , 0          };
-const int      ColH1AdjustX4K[57]   ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 6      , 6         , 6      , 8      , 6      , 0      , 6         , 0         , 4      , 6         , 2         , 20        , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 0      , 14        , 0     , 0      , 5   , 0         , 0     , 0      , 5   , 0         , 0      , 0       , 4    , 0          , 0      , 0      , 6         , 0    , 6       , 0         , 6      , 0            , 7         , 0         , 2      , 0            , 7         , 0         , 2      , 0          };
+const string   ColH1Text[57]        ={ ""      ,"H"     ,"D"     ,"N"     ,""      ,"Count L"  ,""         ,"Lot L" ,"Profit L" ,"CDR"   ,"Symbol","ADR"   ,""      ,"Count S"  ,""         ,"Lot S" ,"Profit S" ,"Spd"      ,"Profit"   ,"P1"        ,"P2"       ,"P3"    ,"P4"    ,"P5"    ,"P6"    ,"P7"             ,"P8"       ,"P9"    ,"Symbol"   ,"SL"    ,"+"     ,"SL P","-"       ,"TP"    ,"+"     ,"TP P","-"       ,"Fix"   ,"+"        ,"Fix P" ,"-"           ,"ATR"   ,"Sar"   ,"Sar SL"   ,"MA"    ,"MA SL"    ,"+"           ,"Ofset" ,"-"           ,"Open"     ,""         ,"SL To Now",""         ,"Open"     ,""         ,"TP To Now",""       };
+      string   ColH1Type[57]        ={ "lbl"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"      ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"      ,"btn"      ,"lbl"      ,"btn"       ,"btn"      ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"            ,"btn"      ,"btn"   ,"lbl"      ,"btn"   ,"btn"   ,"lbl","btn"      ,"btn"   ,"btn"   ,"lbl","btn"      ,"btn"   ,"btn"      ,"lbl"   ,"btn"         ,"btn"   ,"btn"   ,"lbl"      ,"btn"   ,"lbl"      ,"btn"         ,"lbl"   ,"btn"         ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"         ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"       };
+const int      ColH1Width[57]       ={  18     , 18     , 18     , 18     , 0      , 64        , 0         , 46     , 58        , 40     , 64     , 40     , 0      , 64        , 0         , 46     , 58        , 30        , 58        , 22         , 22        , 22     , 22     , 22     , 22     , 22              , 22        , 22     , 64        , 24     , 18     , 40  , 18        , 24     , 18     , 40  , 18        , 24     , 18        , 40     , 18           , 40     , 30     , 50        , 26     , 50        , 18           , 40     , 18           , 50        , 0         , 86     , 0            , 50        , 0         , 86     , 0          };
+const int      ColH1AdjustX[57]     ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 6      , 6         , 6      , 8      , 6      , 0      , 2         , 0         , 4      , 6         , 2         , 12        , 0          , 0         , 0      , 0      , 0      , 0      , 0               , 0         , 0      , 8         , 0      , 0      , 5   , 0         , 0      , 0      , 5   , 0         , 0      , 0         , 4      , 0            , 0      , 0      , 2         , 0      , 4         , 0            , 2      , 0            , 7         , 0         , 10     , 0            , 7         , 0         , 8      , 0          };
 
-                                    //   1       2        3        4        5        6           7           8        9           10       11       12       13       14          15         　16        17         18          19          20       21       22       23       24       25       26       27       28       29          30      31       32    33          34      35       36    37          38       39        40     41           42       43       44          45     46        47          48       49             50          51          52      53              54          55          56       57
-const string   ColName[57]          ={ "Move"  ,"H"     ,"D"     ,"N"     ,"NewL"  ,"CountL"   ,"CloseL"   ,"LotL"  ,"ProfitL"  ,"CDR"   ,"Pair"  ,"ADR"   ,"NewS"  ,"CountS"   ,"CloseS"   ,"LotS"  ,"ProfitS"  ,"Spread"   ,"Profit"   ,"Pin1"  ,"Pin2"  ,"Pin3"  ,"Pin4"  ,"Pin5"  ,"Pin6"  ,"Pin7"  ,"Pin8"  ,"Pin9"  ,"PairNm"   ,"UseSl","AddSlP","SlP","MnsSlP"   ,"UseTp","AddTpP","TpP","MnsTpP"   ,"TSfix" ,"AddFixP","FixP","MnsFixP"   ,"TSatr" ,"TSsar" ,"SarVal"   ,"TSma","MaVal"  ,"AddOffset","Offset","MnsOffset"   ,"Sl2Open"  ,"AddSl2Now","Sl2Now","MnsSl2Now"   ,"Tp2Open"  ,"AddTp2Now","Tp2Now","MnsTp2Now" };
-const string   ColText[57]          ={ "~"     ,"H"     ,"D"     ,"N"     ,"+"     ,"99"       ,"-"        ,"99.99" ,"9999.99"  ,"CDR"   ,"EURUSD","ADR"   ,"+"     ,"10"       ,"-"        ,"12.12" ,"1234.12"  ,"123"      ,"1234.12"  ,""      ,""      ,""      ,""      ,""      ,""      ,""      ,""      ,""      ,""         ,"Sl"   ,"+"     ,"123","-"        ,"Tp"   ,"+"     ,"123","-"        ,"Fix"   ,"+"      ,"123" ,"-"         ,"ATR"   ,"Sar"   ,"12.12345" ,"MA"  ,"12.1234","+"        ,"123"   ,"-"           ,"12345"    ,"+"        ,"12345" ,"-"           ,"12345"    ,"+"        ,"12345" ,"-"         };
-      string   ColType[57]          ={ "btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"lbl"   ,"btn"   ,"lbl"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"lbl"      ,"lbl"      ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"btn"      ,"btn"  ,"btn"   ,"btn","btn"      ,"btn"  ,"btn"   ,"btn","btn"      ,"btn"   ,"btn"    ,"btn" ,"btn"       ,"btn"   ,"btn"   ,"lbl"      ,"btn" ,"lbl"    ,"btn"      ,"lbl"   ,"btn"         ,"lbl"      ,"btn"      ,"lbl"   ,"btn"         ,"lbl"      ,"btn"      ,"lbl"   ,"btn"       };
-const int      ColWidth[57]         ={  18     , 18     , 18     , 18     , 18     , 20        , 18        , 46     , 58        , 40     , 64     , 40     , 18     , 20        , 18        , 46     , 58        , 30        , 58        , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 22     , 64        , 24    , 18     , 40  , 18        , 24    , 18     , 40  , 18        , 24     , 18      , 40   , 18         , 40     , 30     , 50        , 26   , 50      , 18        , 40     , 18           , 50        , 18        , 50     , 18           , 50        , 18        , 50     , 18         };
-const int      ColAdjustX[57]       ={  0      , 0      , 0      , 0      , 0      , 2         , 0         , 2      , 2         , 2      , 0      , 2      , 0      , 2         , 0         , 2      , 2         , 2         , 2         , 2      , 2      , 2      , 2      , 2      , 2      , 2      , 2      , 2      , 0         , 0     , 0      , 0   , 0         , 0     , 0      , 0   , 0         , 0      , 0       , 0    , 0          , 0      , 0      , 8         , 0    , 8       , 0         , 6      , 0            , 9         , 0         , 9      , 0            , 9         , 0         , 9      , 0          };
+const int      ColH1Width4K[57]     ={  24     , 24     , 24     , 24     , 0      , 100       , 0         , 74     , 106       , 66     , 108    , 66     , 0      , 110       , 0         , 74     , 106       , 50        , 106       , 34         , 34        , 34     , 34     , 34     , 34     , 34              , 34        , 34     , 108       , 34     , 24     , 60  , 24        , 34     , 24     , 60  , 24        , 34     , 24        , 60     , 24           , 70     , 44     , 80        , 40     , 80        , 24           , 70     , 24           , 70        , 0         , 118    , 0            , 70        , 0         , 118    , 0          };
+const int      ColH1AdjustX4K[57]   ={  0      , 0      , 0      , 0      , 0      , 4         , 0         , 6      , 6         , 6      , 8      , 6      , 0      , 6         , 0         , 4      , 6         , 2         , 20        , 0          , 0         , 0      , 0      , 0      , 0      , 0               , 0         , 0      , 14        , 0      , 0      , 5   , 0         , 0      , 0      , 5   , 0         , 0      , 0         , 4      , 0            , 0      , 0      , 6         , 0      , 6         , 0            , 6      , 0            , 7         , 0         , 2      , 0            , 7         , 0         , 2      , 0          };
 
-const int      ColWidth4K[57]       ={  24     , 24     , 24     , 24     , 24     , 40        , 24        , 74     , 106       , 66     , 108    , 66     , 24     , 50        , 24        , 74     , 106       , 50        , 106       , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 34     , 108       , 34    , 24     , 60  , 24        , 34    , 24     , 60  , 24        , 34     , 24      , 60   , 24         , 70     , 44     , 80        , 40   , 80      , 24        , 70     , 24           , 70        , 24        , 70     , 24           , 70        , 24        , 70     , 24         };
-const int      ColAdjustX4K[57]     ={  0      , 0      , 0      , 2      , 0      , 2         , 0         , 2      , 2         , 2      , 2      , 6      , 0      , 2         , 0         , 6      , 4         , 2         , 6         , 2      , 4      , 4      , 4      , 2      , 2      , 2      , 2      , 2      , 2         , 2     , 0      , 2   , 0         , 0     , 2      , 0   , 2         , 0      , 0       , 2    , 0          , 0      , 0      , 8         , 0    , 8       , 0         , 8      , 0            , 9         , 2         , 9      , 2            , 9         , 2         , 9      , 2          };
+                                    //   1       2        3        4        5        6           7           8        9           10       11       12       13       14          15         　16        17         18          19          20           21          22       23       24       25       26                27          28       29          30       31       32    33          34       35       36    37          38       39          40       41             42       43       44          45       46          47             48       49             50          51          52      53              54          55          56       57
+const string   ColName[57]          ={ "Move"  ,"H"     ,"D"     ,"N"     ,"NewL"  ,"CountL"   ,"CloseL"   ,"LotL"  ,"ProfitL"  ,"CDR"   ,"Pair"  ,"ADR"   ,"NewS"  ,"CountS"   ,"CloseS"   ,"LotS"  ,"ProfitS"  ,"Spread"   ,"Profit"   ,"Pin1"      ,"Pin2"     ,"Pin3"  ,"Pin4"  ,"Pin5"  ,"Pin6"  ,"Pin7"           ,"Pin8"     ,"Pin9"  ,"PairNm"   ,"UseSl" ,"AddSlP","SlP","MnsSlP"   ,"UseTp" ,"AddTpP","TpP","MnsTpP"   ,"TSfix" ,"AddFixP"  ,"FixP"  ,"MnsFixP"     ,"TSatr" ,"TSsar" ,"SarVal"   ,"TSma"  ,"MaVal"    ,"AddOffset"   ,"Offset","MnsOffset"   ,"Sl2Open"  ,"AddSl2Now","Sl2Now","MnsSl2Now"   ,"Tp2Open"  ,"AddTp2Now","Tp2Now","MnsTp2Now" };
+const string   ColText[57]          ={ "~"     ,"H"     ,"D"     ,"N"     ,"+"     ,"99"       ,"-"        ,"99.99" ,"9999.99"  ,"CDR"   ,"EURUSD","ADR"   ,"+"     ,"10"       ,"-"        ,"12.12" ,"1234.12"  ,"123"      ,"1234.12"  ,""          ,""         ,""      ,""      ,""      ,""      ,""               ,""         ,""      ,""         ,"SL"    ,"+"     ,"123","-"        ,"TP"    ,"+"     ,"123","-"        ,"Fix"   ,"+"        ,"123"   ,"-"           ,"ATR"   ,"Sar"   ,"12.12345" ,"MA"    ,"12.1234"  ,"+"           ,"123"   ,"-"           ,"12345"    ,"+"        ,"12345" ,"-"           ,"12345"    ,"+"        ,"12345" ,"-"         };
+      string   ColType[57]          ={ "btn"   ,"btn"   ,"btn"   ,"btn"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"lbl"   ,"btn"   ,"lbl"   ,"btn"   ,"lbl"      ,"btn"      ,"lbl"   ,"lbl"      ,"lbl"      ,"lbl"      ,"lbl"       ,"lbl"      ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"   ,"lbl"            ,"lbl"      ,"lbl"   ,"btn"      ,"btn"   ,"btn"   ,"btn","btn"      ,"btn"   ,"btn"   ,"btn","btn"      ,"btn"   ,"btn"      ,"btn"   ,"btn"         ,"btn"   ,"btn"   ,"lbl"      ,"btn"   ,"lbl"      ,"btn"         ,"lbl"   ,"btn"         ,"lbl"      ,"btn"      ,"lbl"   ,"btn"         ,"lbl"      ,"btn"      ,"lbl"   ,"btn"       };
+const int      ColWidth[57]         ={  18     , 18     , 18     , 18     , 22     , 20        , 22        , 46     , 58        , 40     , 64     , 40     , 22     , 20        , 22        , 46     , 58        , 30        , 58        , 22         , 22        , 22     , 22     , 22     , 22     , 22              , 22        , 22     , 64        , 24     , 18     , 40  , 18        , 24     , 18     , 40  , 18        , 24     , 18        , 40     , 18           , 40     , 30     , 50        , 26     , 50        , 18           , 40     , 18           , 50        , 18        , 50     , 18           , 50        , 18        , 50     , 18         };
+const int      ColAdjustX[57]       ={  0      , 0      , 0      , 0      , 0      , 2         , 0         , 2      , 2         , 2      , 0      , 2      , 0      , 2         , 0         , 2      , 2         , 2         , 2         , 2          , 2         , 2      , 2      , 2      , 2      , 2               , 2         , 2      , 0         , 0      , 0      , 0   , 0         , 0      , 0      , 0   , 0         , 0      , 0         , 0      , 0            , 0      , 0      , 8         , 0      , 8         , 0            , 6      , 0            , 9         , 0         , 9      , 0            , 9         , 0         , 9      , 0          };
 
-const string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY"};
+const int      ColWidth4K[57]       ={  24     , 24     , 24     , 24     , 30     , 40        , 30        , 74     , 106       , 66     , 108    , 66     , 30     , 50        , 30        , 74     , 106       , 50        , 106       , 34         , 34        , 34     , 34     , 34     , 34     , 34              , 34        , 34     , 108       , 34     , 24     , 60  , 24        , 34     , 24     , 60  , 24        , 34     , 24        , 60     , 24           , 70     , 44     , 80        , 40     , 80        , 24           , 70     , 24           , 70        , 24        , 70     , 24           , 70        , 24        , 70     , 24         };
+const int      ColAdjustX4K[57]     ={  0      , 0      , 0      , 2      , 0      , 2         , 0         , 2      , 2         , 2      , 2      , 6      , 0      , 2         , 0         , 6      , 4         , 2         , 6         , 2          , 4         , 4      , 4      , 2      , 2      , 2               , 2         , 2      , 2         , 2      , 0      , 2   , 0         , 0      , 2      , 0   , 2         , 0      , 0         , 2      , 0            , 0      , 0      , 8         , 0      , 8         , 0            , 8      , 0            , 9         , 2         , 9      , 2            , 9         , 2         , 9      , 2          };
+
+const string DefaultPairs[] = {"AUDCAD","AUDCHF","AUDJPY","AUDNZD","AUDUSD","CADCHF","CADJPY","CHFJPY","EURAUD","EURCAD","EURCHF","EURGBP","EURJPY","EURNZD","EURUSD","GBPAUD","GBPCAD","GBPCHF","GBPJPY","GBPNZD","GBPUSD","NZDCAD","NZDCHF","NZDJPY","NZDUSD","USDCAD","USDCHF","USDJPY", "CNHJPY", "USDCNH", "XAGUSD", "XAUUSD", "XNGUSD", "XTIUSD", "ETHUSD", "JP225"};
 //const string DefaultPairs[] = {"GBPUSD","EURUSD","USDJPY"};
 
 
 const int      Border_Width   = 1;
-const int      RowHeight2K    = 25;
+const int      RowHeight2K    = 19;
 const int      RowHeight4K    = 35;
 const int      RowInterval    = 0;
 const int      ColumnInterval = 0;
@@ -215,7 +216,7 @@ const int      Signal_NONE    = 0;
 CList *SymbolList;
 string SymbolArray[], gvTemplateName;
 int gvCountSymbol, gvMaxCntOnePair, gvStepAddPoint, gvLimitSpread;
-bool  gvIsAuto = false, gvUsePin[9], gvUseSl, gvUseTp, gvUseAnyEntry, gvUseAnyExit, gvSpreadFilter;
+bool  gvIsAuto = false, gvUsePin[9], gvUseSl, gvUseTp, gvUseAnyEntry, gvUseAnyExit, gvSpreadFilter, gvSymbolSelected[];
 double gvLots, gvTrailingStopSarStep, gvTrailingStopSarMaximum;
 Trailing_Stop_Method gvTrailingStopMethod;
 int gvTrailingStopFixPoint,gvTrailingStopPeriod=0,gvTrailingStopATRMultiple,gvTrailingStopOffsetPoint;
@@ -257,6 +258,8 @@ int OnInit() {
    
    
    initSymbols();
+   ArrayResize(gvSymbolSelected, gvCountSymbol);
+   ArrayInitialize(gvSymbolSelected, false);
    Draw(Coordinates_X, Coordinates_Y, SymbolList);
    EventSetTimer(1);
    
@@ -295,7 +298,7 @@ void trailingStop() {
          CList *orders = si.getOrderListL();
          for (int j=(orders.Total()-1); 0<=j; j--) {
             OrderInfo *oi = orders.GetNodeAtIndex(j);
-            if (oi.getSlPrice() < slL) oi.modifySL(slL);
+            if (oi.getSlPrice() < slL || oi.getSlPrice() < 0.00001) oi.modifySL(slL);
          }
       }
       if (0 < si.getOrderCountS()) {
@@ -303,7 +306,7 @@ void trailingStop() {
          CList *orders = si.getOrderListS();
          for (int j=(orders.Total()-1); 0<=j; j--) {
             OrderInfo *oi = orders.GetNodeAtIndex(j);
-            if (slS < oi.getSlPrice()) oi.modifySL(slS);
+            if (slS < oi.getSlPrice() || oi.getSlPrice() < 0.00001) oi.modifySL(slS);
          }
       }
    }
@@ -366,8 +369,11 @@ double getSl4Sell(string symbolName, Trailing_Stop_Method tsm) {
    return NormalizeDouble(sl, (int) MarketInfo(symbolName, MODE_DIGITS));
 }
 
+
+
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
    if (CHARTEVENT_OBJECT_CLICK != id) return;
+   Print("sparam===", sparam);
    string objNamePrefix_ = ObjNamePrefix+"btn";
    string objNm = objNamePrefix_+ColName[COL_NO_NewL];
    if ((0 <= StringFind(sparam, objNm))) {
@@ -384,6 +390,20 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
       SymbolInfo *si = SymbolList.GetNodeAtIndex(index);
       int cnt = si.closeOrdersL();
       Print("Long orders is closed. Count=", cnt);return;
+   }
+   
+   objNm = objNamePrefix_+ColName[COL_NO_PairNm];
+   if ((0 <= StringFind(sparam, objNm))) {
+      int index = StrToInteger(StringSubstr(sparam, StringLen(objNm)));
+      SymbolInfo *si = SymbolList.GetNodeAtIndex(index);
+      setRowHighlight(si, ColName[COL_NO_PairNm]);return;
+   }
+   
+   objNm = objNamePrefix_+ColName[COL_NO_Pair];
+   if ((0 <= StringFind(sparam, objNm))) {
+      int index = StrToInteger(StringSubstr(sparam, StringLen(objNm)));
+      SymbolInfo *si = SymbolList.GetNodeAtIndex(index);
+      setRowHighlight(si, ColName[COL_NO_Pair]);return;
    }
 
    objNm = objNamePrefix_+ColName[COL_NO_NewS];
@@ -434,27 +454,32 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
 
    objNm = ObjNamePrefix+"btn"+"CloseL";
    if (sparam == objNm) {
-   
+      closeOrdersL();
+      OnTimer();
    }
 
    objNm = ObjNamePrefix+"btn"+"CloseS";
    if (sparam == objNm) {
-   
+      closeOrdersS();
+      OnTimer();
    }
 
    objNm = ObjNamePrefix+"btn"+"CloseP";
    if (sparam == objNm) {
-   
+      closeOrdersP();
+      OnTimer();
    }
 
    objNm = ObjNamePrefix+"btn"+"CloseM";
    if (sparam == objNm) {
-   
+      closeOrdersM();
+      OnTimer();
    }
 
    objNm = ObjNamePrefix+"btn"+"CloseAll";
    if (sparam == objNm) {
-   
+      closeOrders();
+      OnTimer();
    }
 
    objNm = objNamePrefix_+ColName[COL_NO_Move];
@@ -1109,7 +1134,19 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
       return;
    }
 
+   objNm = ObjNamePrefix+"btnAnyEntry";
+   if (sparam == objNm) {
+      gvUseAnyEntry=!gvUseAnyEntry;
+      if (gvUseAnyEntry) setBtnSelected(objNm); else setBtnUnselected(objNm);
+      return;
+   }
 
+   objNm = ObjNamePrefix+"btnAnyExit";
+   if (sparam == objNm) {
+      gvUseAnyExit=!gvUseAnyExit;
+      if (gvUseAnyExit) setBtnSelected(objNm); else setBtnUnselected(objNm);
+      return;
+   }
 
 
 
@@ -1358,6 +1395,8 @@ string paddingSpaceLeft(double target, int decimalDigits, int digits) {
 
 void update() {
    long chartId = 0;
+   int countOrderL=0, countOrderS=0;
+   double lotTotalL=0.0, lotTotalS=0.0, profitTotalL=0.0, profitTotalS=0.0;
    for (int i=0; i<gvCountSymbol; i++) {
       SymbolInfo *si = SymbolList.GetNodeAtIndex(i);
       string objName = getObjectName(i, COL_NO_CountL);
@@ -1365,11 +1404,13 @@ void update() {
       int cntL = si.getOrderCountL();
       double profitTotal = 0.0;
       if (0 < cntL) {
+         countOrderL += cntL;
          ObjectSetString(chartId,objName,OBJPROP_TEXT,IntegerToString(cntL, 2));
 
          double val = si.getLotL();
          objName = getObjectName(i, COL_NO_LotL);
          ObjectSetString(chartId,objName,OBJPROP_TEXT,paddingSpaceLeft(val, 2, 5));
+         lotTotalL += val;
          
          val = si.getProfitL();
          objName = getObjectName(i, COL_NO_ProfitL);
@@ -1378,6 +1419,7 @@ void update() {
          if (0 < val) clr=Color_Profit_FT_POSITIVE; else if (val < 0) clr=Color_Profit_FT_NEGATIVE;
          ObjectSetInteger(chartId,objName,OBJPROP_COLOR,clr);
          profitTotal += val;
+         profitTotalL += val;
          
       } else {
          ObjectSetString(chartId,objName,OBJPROP_TEXT,"");
@@ -1391,11 +1433,13 @@ void update() {
       int cntS = si.getOrderCountS();
       objName = getObjectName(i, COL_NO_CountS);
       if (0 < cntS) {
+         countOrderS += cntS;
          ObjectSetString(chartId,objName,OBJPROP_TEXT,IntegerToString(cntS, 2));
 
          double val = si.getLotS();
          objName = getObjectName(i, COL_NO_LotS);
          ObjectSetString(chartId,objName,OBJPROP_TEXT,paddingSpaceLeft(val, 2, 5));
+         lotTotalS += val;
          
          val = si.getProfitS();
          objName = getObjectName(i, COL_NO_ProfitS);
@@ -1404,6 +1448,7 @@ void update() {
          if (0 < val) clr=Color_Profit_FT_POSITIVE; else if (val < 0) clr=Color_Profit_FT_NEGATIVE;
          ObjectSetInteger(chartId,objName,OBJPROP_COLOR,clr);
          profitTotal += val;
+         profitTotalS += val;
          
       } else {
          ObjectSetString(chartId,objName,OBJPROP_TEXT,"");
@@ -1453,6 +1498,66 @@ void update() {
          ObjectSetString(chartId, getObjectName(i, COL_NO_Tp2Now), OBJPROP_TEXT, "");
       }
    }
+   
+   string objName = ObjNamePrefix+"lblCountHL";
+   string text = "";
+   if (0 < countOrderL) {
+      text = IntegerToString(countOrderL, 2);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   
+   objName = ObjNamePrefix+"lblLotHL";
+   text = "";
+   if (0 < countOrderL) {
+      text = paddingSpaceLeft(lotTotalL, 2, 6);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   
+   objName = ObjNamePrefix+"lblProfitHL";
+   text = "";
+   if (0 < countOrderL) {
+      text = paddingSpaceLeft(profitTotalL, 2, 7);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   color clr = Color_Profit_FT_ZERO;
+   if (0 < profitTotalL) clr=Color_Profit_FT_POSITIVE; else if (profitTotalL < 0) clr=Color_Profit_FT_NEGATIVE;
+   ObjectSetInteger(chartId,objName,OBJPROP_COLOR,clr);
+   
+   
+   objName = ObjNamePrefix+"lblCountHS";
+   text = "";
+   if (0 < countOrderS) {
+      text = IntegerToString(countOrderS, 2);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   
+   objName = ObjNamePrefix+"lblLotHS";
+   text = "";
+   if (0 < countOrderS) {
+      text = paddingSpaceLeft(lotTotalS, 2, 6);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   
+   objName = ObjNamePrefix+"lblProfitHS";
+   text = "";
+   if (0 < countOrderS) {
+      text = paddingSpaceLeft(profitTotalS, 2, 7);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   clr = Color_Profit_FT_ZERO;
+   if (0 < profitTotalS) clr=Color_Profit_FT_POSITIVE; else if (profitTotalS < 0) clr=Color_Profit_FT_NEGATIVE;
+   ObjectSetInteger(chartId,objName,OBJPROP_COLOR,clr);
+   
+   objName = ObjNamePrefix+"lblProfitH";
+   text = "";
+   double profitAll = profitTotalL+profitTotalS;
+   if (0 < (countOrderL+countOrderS)) {
+      text = paddingSpaceLeft(profitAll, 2, 7);
+   }
+   ObjectSetString(chartId,objName,OBJPROP_TEXT,text);
+   clr = Color_Profit_FT_ZERO;
+   if (0 < profitAll) clr=Color_Profit_FT_POSITIVE; else if (profitAll < 0) clr=Color_Profit_FT_NEGATIVE;
+   ObjectSetInteger(chartId,objName,OBJPROP_COLOR,clr);
 }
 
 void initSymbols() {
@@ -1657,19 +1762,20 @@ void Draw(int startXi, int startYi, CList *symbolList) {
       string columnType = ColH2Type[colIndex];
       if ("lbl"==columnType) {
          CreatePanel(ObjNamePrefix+panelNamePrefix+columnType+ColH2Name[colIndex],x,y,ColumnH2Width[colIndex],RowHeight,ColBgClrLblH1,ColBdClrLblH1,Border_Width);
-         SetText(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x+ColumnH2WidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
+         //SetText(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x+ColumnH2WidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
+         SetText(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x+ColumnH2WidthAdjust[colIndex],y+RowInterval+Border_Width*1,ColFtClrLbl);
          x += ColumnH2Width[colIndex] + ColumnInterval;
 
       } else if ("btn"==columnType) {
-         CreateButton(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x,y,ColumnH2Width[colIndex],RowHeight,ColBgClrBtn,ColFtClrBtn);
+         CreateButton(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x,y,ColumnH2Width[colIndex],RowHeight,ColBgClrBtn,ColFtClrBtn, 6);
          x += ColumnH2Width[colIndex] + ColumnInterval;
 
-      } else if ("lbo"==columnType) {
-         CreatePanel(ObjNamePrefix+panelNamePrefix+columnType+ColH2Name[colIndex],x,y,ColumnH2Width[colIndex],RowHeight,ColBgClrLblH1,ColBdClrLblH1,Border_Width);
-         SetObjText(ObjNamePrefix+columnType+ColH2Name[colIndex],ColH2Text[colIndex],x+ColumnH2WidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
-         x += ColumnH2Width[colIndex] + ColumnInterval;
       }
    }
+   string objNm = ObjNamePrefix+"btnAnyEntry";
+   if (gvUseAnyEntry) setBtnSelected(objNm); else setBtnUnselected(objNm);
+   objNm = ObjNamePrefix+"btnAnyExit";
+   if (gvUseAnyExit) setBtnSelected(objNm); else setBtnUnselected(objNm);
 
    x = startXi;
    y += RowHeight + RowInterval;
@@ -1679,17 +1785,13 @@ void Draw(int startXi, int startYi, CList *symbolList) {
       string columnType = ColH1Type[colIndex];
       if ("lbl"==columnType) {
          CreatePanel(ObjNamePrefix+H1NamePrefix+panelNamePrefix+columnType+ColName[colIndex],x,y,ColumnH1Width[colIndex],RowHeight,ColBgClrLblH1,ColBdClrLblH1,Border_Width);
-         SetText(ObjNamePrefix+H1NamePrefix+columnType+ColName[colIndex],ColH1Text[colIndex],x+ColumnH1WidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
+         SetText(ObjNamePrefix+H1NamePrefix+columnType+ColName[colIndex],ColH1Text[colIndex],x+ColumnH1WidthAdjust[colIndex],y+RowInterval+Border_Width*1,ColFtClrLbl);
          x += ColumnH1Width[colIndex] + ColumnInterval;
 
       } else if ("btn"==columnType) {
          CreateButton(ObjNamePrefix+H1NamePrefix+columnType+ColName[colIndex],ColH1Text[colIndex],x,y,ColumnH1Width[colIndex],RowHeight,ColBgClrBtn,ColFtClrBtn);
          x += ColumnH1Width[colIndex] + ColumnInterval;
 
-      } else if ("lbo"==columnType) {
-         CreatePanel(ObjNamePrefix+H1NamePrefix+panelNamePrefix+columnType+ColName[colIndex],x,y,ColumnH1Width[colIndex],RowHeight,ColBgClrLblH1,ColBdClrLblH1,Border_Width);
-         SetObjText(ObjNamePrefix+H1NamePrefix+columnType+ColName[colIndex],ColH1Text[colIndex],x+ColumnH1WidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
-         x += ColumnH1Width[colIndex] + ColumnInterval;
       }
    }
    y += RowHeight + RowInterval;
@@ -1704,20 +1806,18 @@ void Draw(int startXi, int startYi, CList *symbolList) {
          string columnType = ColType[colIndex];
          if ("lbl"==columnType) {
             CreatePanel(ObjNamePrefix+panelNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),x,y,ColumnWidth[colIndex],RowHeight,ColBgClrLbl,ColBdClrLbl,Border_Width);
-            SetText(ObjNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),ColText[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
+            SetText(ObjNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),ColText[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*1,ColFtClrLbl);
             x += ColumnWidth[colIndex] + ColumnInterval;
+            /*
             if(1==i%2) {
                ObjectSetInteger(chartId,ObjNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),OBJPROP_BGCOLOR,C'41,41,41');
             }
+            */
 
          } else if ("btn"==columnType) {
             CreateButton(ObjNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),ColText[colIndex],x,y,ColumnWidth[colIndex],RowHeight,ColBgClrBtn,ColFtClrBtn);
             x += ColumnWidth[colIndex] + ColumnInterval;
 
-         } else if ("lbo"==columnType) {
-            CreatePanel(ObjNamePrefix+panelNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),x,y,ColumnWidth[colIndex],RowHeight,ColBgClrLbl,ColBdClrLbl,Border_Width);
-            SetObjText(ObjNamePrefix+columnType+ColName[colIndex]+IntegerToString(i),ColText[colIndex],x+ColumnWidthAdjust[colIndex],y+RowInterval+Border_Width*4,ColFtClrLbl);
-            x += ColumnWidth[colIndex] + ColumnInterval;
          }
       }
 
@@ -1805,7 +1905,7 @@ void Draw(int startXi, int startYi, CList *symbolList) {
       ObjectSetString(chartId, ObjNamePrefix+H1NamePrefix+"lbl"+ColName[COL_NO_Tp2Now], OBJPROP_TEXT, "");
 */
    }
-   string objNm = ObjNamePrefix+H1NamePrefix+"btn"+ColName[COL_NO_Spread];
+   objNm = ObjNamePrefix+H1NamePrefix+"btn"+ColName[COL_NO_Spread];
    if (gvSpreadFilter) setBtnSelected(objNm); else setBtnUnselected(objNm);
    
    objNm = ObjNamePrefix+H1NamePrefix+"btn"+ColName[COL_NO_Pin1];
@@ -1888,8 +1988,8 @@ void setBtnAuto(bool status) {
    const color    ClrBtnFtAuto   = clrBlack;
    const color    ClrBtnBgManual = clrGray;
    const color    ClrBtnFtManual = clrWhite;
-   const string   TxtStatusAuto  = "Auto";
-   const string   TxtStatusManual= "Manual";
+   const string   TxtStatusAuto  = "A";
+   const string   TxtStatusManual= "M";
    string objName = ObjNamePrefix+"btn"+"Auto";
    gvIsAuto = status;
    if (status) {
@@ -1959,6 +2059,110 @@ string getObjectName(int rowIndex, int columnIndex, string recPanelNamePrefix=""
    return ObjNamePrefix+recPanelNamePrefix+ColType[columnIndex]+ColName[columnIndex]+IntegerToString(rowIndex);
 }
 
+void closeOrdersL(void) {
+   for (int i=OrdersTotal()-1; 0<=i; i--) {
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if (OrderMagicNumber() != Magic_Number) continue;
+         if (OrderType() != OP_BUY) continue;
+         bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_BID), 0, clrNONE);
+         if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Buy) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      } else {
+         Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      }
+   }
+}
+
+void closeOrdersS(void) {
+   for (int i=OrdersTotal()-1; 0<=i; i--) {
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if (OrderMagicNumber() != Magic_Number) continue;
+         if (OrderType() != OP_SELL) continue;
+         bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_ASK), 0, clrNONE);
+         if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Sell) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      } else {
+         Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      }
+   }
+}
+
+void closeOrders(void) {
+   for (int i=OrdersTotal()-1; 0<=i; i--) {
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if (OrderMagicNumber() != Magic_Number) continue;
+         if (OrderType() == OP_BUY) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_BID), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Buy) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         } else
+         if (OrderType() == OP_SELL) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_ASK), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Sell) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         }
+      } else {
+         Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      }
+   }
+}
+
+void closeOrdersP(void) {
+   for (int i=OrdersTotal()-1; 0<=i; i--) {
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if (OrderMagicNumber() != Magic_Number) continue;
+         double profit = OrderCommission() + OrderProfit() + OrderSwap();
+         if (profit <= 0) continue;
+         if (OrderType() == OP_BUY) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_BID), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Buy) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         } else
+         if (OrderType() == OP_SELL) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_ASK), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Sell) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         }
+      } else {
+         Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      }
+   }
+}
+
+void closeOrdersM(void) {
+   for (int i=OrdersTotal()-1; 0<=i; i--) {
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         if (OrderMagicNumber() != Magic_Number) continue;
+         double profit = OrderCommission() + OrderProfit() + OrderSwap();
+         if (0 <= profit) continue;
+         if (OrderType() == OP_BUY) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_BID), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Buy) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         } else
+         if (OrderType() == OP_SELL) {
+            bool isSuccess = OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(),MODE_ASK), 0, clrNONE);
+            if (!isSuccess) Print("Symbol==", OrderSymbol(), "(Sell) Ticket==", OrderTicket(), " Failed to call OrderClose() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+         }
+      } else {
+         Print("Failed to call OrderSelect() method for position #", i, " Error code=", ErrorDescription(GetLastError()));
+      }
+   }
+}
+
+void SetText(const string name, const string text, const int x, const int y, const color fontColor=clrBlack, const int fontsize=7, const string fontName="Arial", const double angle=0.0, const ENUM_ANCHOR_POINT anchor=ANCHOR_LEFT_UPPER, const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER) {
+//void SetText(const string name, const string text, const int x, const int y, const color fontColor=clrBlack, const int fontsize=7, const string fontName="Lucida Sans Typewriter", const double angle=0.0, const ENUM_ANCHOR_POINT anchor=ANCHOR_LEFT_UPPER, const ENUM_BASE_CORNER corner=CORNER_LEFT_UPPER) {
+   long chartId = 0;
+   if(ObjectFind(chartId,name)<0)
+      ObjectCreate(chartId,name,OBJ_LABEL,0,0,0);
+   ObjectSetInteger(chartId,name,OBJPROP_XDISTANCE,x);
+   ObjectSetInteger(chartId,name,OBJPROP_YDISTANCE,y);
+   ObjectSetInteger(chartId,name,OBJPROP_CORNER,corner);
+   ObjectSetString(chartId,name,OBJPROP_FONT,fontName);
+   ObjectSetInteger(chartId,name,OBJPROP_FONTSIZE,fontsize);
+   ObjectSetInteger(chartId,name,OBJPROP_COLOR,fontColor);
+   ObjectSetDouble(chartId,name,OBJPROP_ANGLE,angle);
+   ObjectSetInteger(chartId,name,OBJPROP_ANCHOR,anchor);
+   ObjectSetInteger(chartId,name,OBJPROP_BACK,false);
+   ObjectSetInteger(chartId,name,OBJPROP_SELECTABLE,false);
+   ObjectSetInteger(chartId,name,OBJPROP_SELECTED,false);
+   ObjectSetInteger(chartId,name,OBJPROP_HIDDEN,true);
+   ObjectSetString(chartId,name,OBJPROP_TEXT, text);
+}
+/*
 void SetText(string name,string text,int x,int y,color fontColor,int fontSize=7,string fontName="Arial",double angle=0.0,ENUM_ANCHOR_POINT anchor=ANCHOR_LEFT_UPPER) {
    long chartId = 0;
    if(ObjectFind(chartId,name)<0)
@@ -1980,19 +2184,7 @@ void SetText(string name,string text,int x,int y,color fontColor,int fontSize=7,
    ObjectSetDouble(chartId,name,OBJPROP_ANGLE,angle);
    ObjectSetInteger(chartId,name,OBJPROP_ANCHOR,anchor);
 }
-
-void SetObjText(string name,string str,int x,int y,color colour,string fontName="Wingdings 3",int fontsize=12) {
-   long chartId = 0;
-   if(ObjectFind(chartId,name)<0)
-      ObjectCreate(chartId,name,OBJ_LABEL,0,0,0);
-   ObjectSetInteger(chartId,name,OBJPROP_FONTSIZE,fontsize);
-   ObjectSetInteger(chartId,name,OBJPROP_COLOR,colour);
-   ObjectSetInteger(chartId,name,OBJPROP_BACK,false);
-   ObjectSetInteger(chartId,name,OBJPROP_XDISTANCE,x);
-   ObjectSetInteger(chartId,name,OBJPROP_YDISTANCE,y);
-   ObjectSetString(chartId,name,OBJPROP_TEXT,str);
-   ObjectSetString(chartId,name,OBJPROP_FONT,fontName);
-}
+*/
 
 void CreatePanel(string name,int x,int y,int width,int height,color backgroundColor=clrBlack,color borderColor=clrWhite,int borderWidth=1)
   {
@@ -2560,4 +2752,40 @@ bool SymbolInfo::modifyTPpOrderL(int i, int pointTp) const {
 bool SymbolInfo::modifyTPpOrderS(int i, int pointTp) const {
    OrderInfo *order = OrderListS.GetNodeAtIndex(i);
    return order.upOrDownTP(pointTp);
+}
+
+const color    COLOR_BD_USED        = clrAqua;
+const color    COLOR_BD_UNUSE       = clrWhite;
+void setRowHighlight(SymbolInfo *si, string columnName) {
+   int index = si.getIndex();
+   gvSymbolSelected[index] = !gvSymbolSelected[index];
+   bool isSelected = gvSymbolSelected[index];
+   color bdColor;
+   string btnName = ObjNamePrefix + "btn" + columnName + IntegerToString(index);
+   if (isSelected) {
+      setBtnSelected(btnName);
+      bdColor = COLOR_BD_USED;
+   } else {
+      setBtnUnselected(btnName);
+      bdColor = COLOR_BD_UNUSE;
+   }
+   int obj_total = ObjectsTotal();
+   string name = NULL;
+   string symbolNameI = NULL;
+   string Search = NULL;
+   int countCol = ArraySize(ColName);
+   string typeCol = NULL;
+   for (int indexCol=0; indexCol<countCol; indexCol++) {
+      typeCol = ColType[indexCol];
+            if ("lbl" == typeCol) Search = ObjNamePrefix+panelNamePrefix+typeCol+ColName[indexCol]+IntegerToString(index);
+      else  if ("btn" == typeCol) Search = ObjNamePrefix+typeCol+ColName[indexCol]+IntegerToString(index);
+      else  continue;
+      for(int i=0;i<obj_total;i++) {
+         name=ObjectName(i);
+         if (Search == name) {
+            if ("lbl" == typeCol) ObjectSetInteger(0,name,OBJPROP_COLOR,bdColor);
+            else ObjectSetInteger(0,name,OBJPROP_BORDER_COLOR,bdColor);
+         }
+      }
+   }
 }

@@ -1,0 +1,277 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © NiceName8
+
+//@version=5
+indicator("Price-Volume_Analysis", overlay=true, max_boxes_count = 500, max_lines_count = 500)
+
+//barcolor(c_normal)
+
+color c_normal = color.silver
+color c_Bull_Climax = color.lime
+color c_Bear_Climax = color.red
+color c_Bull_Rising = color.blue
+color c_Bear_Rising = color.orange
+
+// calculateVolumeAverage(v, shift, count) =>
+//     var total = 0.0
+//     for i=1 to count by 1
+//         total := total + v[shift+i]
+//     total/count
+
+//volumeAverage = ta.sma(volume, 11)
+volumeAverage = (volume[1]+volume[2]+volume[3]+volume[4]+volume[5]+volume[6]+volume[7]+volume[8]+volume[9]+volume[10])/10
+
+//highest = ta.highest(volume*(high-low), 11)
+highest = math.max(volume[1]*(high[1]-low[1]), volume[2]*(high[2]-low[2]), volume[3]*(high[3]-low[3]), volume[4]*(high[4]-low[4]), volume[5]*(high[5]-low[5]), volume[6]*(high[6]-low[6]), volume[7]*(high[7]-low[7]), volume[8]*(high[8]-low[8]), volume[9]*(high[9]-low[9]), volume[10]*(high[10]-low[10]))
+
+
+c_barColor = ((volume[0]*(high[0]-low[0]) >= highest) or (volume[0] >= volumeAverage * 2)) ? open[0]<close[0]?c_Bull_Climax:c_Bear_Climax  : (volume[0] >= volumeAverage * 1.5)?open[0]<close[0]?c_Bull_Rising:c_Bear_Rising : c_normal
+
+c_bodyColor = c_barColor==c_normal? open[0]<close[0]? color.black:c_barColor : c_barColor
+plotcandle(open, high, low, close, color = c_bodyColor, wickcolor = c_barColor, bordercolor = c_barColor)
+
+if c_Bull_Climax == c_barColor or c_Bear_Climax == c_barColor
+    alert("Climax Volume" + ".", alert.freq_once_per_bar)
+
+if c_Bull_Rising == c_barColor or c_Bear_Rising == c_barColor
+    alert("Rising Volume" + ".", alert.freq_once_per_bar)
+
+
+//plot(ta.ema(close, 21), color = color.green)
+//plot(ta.ema(close, 34), color = color.green)
+trendLine = ta.ema(close, 55)
+plot(trendLine, "Trend Line", trendLine > trendLine[1] ? color.lime : trendLine < trendLine[1] ? color.red : color.blue, 2)
+//plot(ta.ema(close, 89))
+//plot(ta.ema(close, 144))
+//plot(ta.ema(close, 233), color=color.fuchsia)
+
+
+//maff = ta.ema(close, 144)
+//mafs = ta.ema(close, 169)
+//masf = ta.ema(close, 288)
+//mass = ta.ema(close, 338)
+//pff=plot(maff, color = na)
+//pfs=plot(mafs, color = na)
+//psf=plot(masf, color = na)
+//pss=plot(mass, color = na)
+
+//fill(pff, pfs, maff>mafs ? color.rgb(72, 122, 98) : maff<mafs?color.rgb(175, 125, 125) : color.gray)
+//fill(psf, pss, masf>mass ? color.rgb(72, 122, 98) : masf<mass?color.rgb(175, 125, 125) : color.gray)
+
+
+
+// *****************************************************1111*****************************************************************
+// Multi-timeframe and price input
+PriceType = input(close, title="Price Source For The Moving Averages")
+UseCurrentTimeframe = input(true, title="Use Current Timeframe As Resolution?")
+//TimeframeCustom = input(title="Use Different Timeframe? Then Uncheck The Box Above", type=resolution, defval="W")
+//TimeframeCustom = input.timeframe('D', title="Use Different Timeframe? Then Uncheck The Box Above", options=['D', 'W', 'M'])
+TimeframeCustom = input.timeframe('D', title="Use Different Timeframe? Then Uncheck The Box Above")
+timeframe = UseCurrentTimeframe ? timeframe.period : TimeframeCustom
+price = request.security(syminfo.tickerid, timeframe, PriceType)
+
+// MA period input
+PeriodFast = input(21, title="Fast Period Moving Average")
+PeriodSlow = input(89, title="Slow Period Moving Average")
+
+// MA calculation
+MA_Type = input.int(2, minval=1, maxval=4, title='Moving Average Calculation: (1 = SMA), (2 = EMA), (3 = WMA), (4 = Linear)')
+short = MA_Type == 1 ? ta.sma(price, PeriodFast) : MA_Type == 2 ? ta.ema(price, PeriodFast) : MA_Type == 3 ? ta.wma(price, PeriodFast) : MA_Type == 4 ? ta.linreg(price, PeriodFast,0) : na
+long = MA_Type == 1 ? ta.sma(price, PeriodSlow) : MA_Type == 2 ? ta.ema(price, PeriodSlow) : MA_Type == 3 ? ta.wma(price, PeriodSlow) : MA_Type == 4 ? ta.linreg(price, PeriodSlow,0) : na
+
+// MA trend direction color
+//shortcolor = short > short[1] ? color.lime : short < short[1] ? color.red : color.blue
+//longcolor = long > long[1] ? color.lime : long < long[1] ? color.red : color.blue
+
+// MA output
+//MA1 = plot(short, title="Short Period Moving Average", style=plot.style_linebr, linewidth=1, color=shortcolor)
+//MA2 = plot(long, title="Long Period Moving Average", style=plot.style_linebr, linewidth=1, color=longcolor)
+//fill(MA1, MA2, color=color.silver, transp=50)
+
+// MA trend bar color
+//TrendingUp() => short > long 
+//TrendingDown() => short < long 
+   
+// MA cross alert
+xUp = ta.crossover(short, long)
+//plot(x, style = plot.style_cross, linewidth = 4,color=color.black)
+plotchar(xUp, "xUp", "▲", location.belowbar, size = size.tiny, color = color.lime)
+if xUp
+    alert("MA crossed over Long " + ".", alert.freq_once_per_bar)
+
+xDn = ta.crossunder(short, long)
+plotchar(xDn, "xDown", "▼", location.abovebar, size = size.tiny, color = color.red)
+if xDn
+    alert("MA crossed under Short " + ".", alert.freq_once_per_bar)
+
+
+
+// MA cross background color alert
+//Uptrend() => TrendingUp() and TrendingDown()[1]
+//Downtrend() => TrendingDown() and TrendingUp()[1]
+
+// Buy and sell alert
+//Buy = Uptrend() and close > close[1]
+//Sell = Downtrend() and close < close[1]
+//plotshape(Buy, color=color.lime, style=shape.arrowup, text="Buy", location=location.belowbar)
+//plotshape(Sell, color=color.red, style=shape.arrowdown, text="Sell", location=location.abovebar)
+
+
+
+// MACD cross alert
+[macdLine, signalLine, histLine] = ta.macd(close, 12, 26, 9)
+xUp_MACD = ta.crossover(macdLine, signalLine)
+plotchar(xUp_MACD, "xUp_MACD", "➹", location.belowbar, size = size.tiny, color = color.lime)
+if xUp_MACD
+    alert("MACD crossed over Long " + ".", alert.freq_once_per_bar)
+
+xDn_MACD = ta.crossunder(macdLine, signalLine)
+plotchar(xDn_MACD, "xDown_MACD", "➷", location.abovebar, size = size.tiny, color = color.red)
+if xDn_MACD
+    alert("MACD crossed under Short " + ".", alert.freq_once_per_bar)
+
+xUp_MACD_0 = ta.crossover(macdLine, 0)
+//plotchar(xUp_MACD_0, "xUp_MACD_0", "➶", location.belowbar, size = size.small, color = color.lime)
+plotchar(xUp_MACD_0, "xUp_MACD_0", "↟", location.belowbar, size = size.small, color = color.lime)
+if xUp_MACD_0
+    alert("MACD crossed over 0 Long " + ".", alert.freq_once_per_bar)
+
+xDn_MACD_0 = ta.crossunder(macdLine, 0)
+//plotchar(xDn_MACD_0, "xDown_MACD_0", "➴", location.abovebar, size = size.small, color = color.red)
+//plotchar(xDn_MACD_0, "xDown_MACD_0", "✇", location.abovebar, size = size.tiny, color = color.red)
+plotchar(xDn_MACD_0, "xDown_MACD_0", "↡", location.abovebar, size = size.small, color = color.red)
+if xDn_MACD_0
+    alert("MACD crossed under 0 Short " + ".", alert.freq_once_per_bar)
+
+alertcondition(xUp_MACD or xDn_MACD or xUp_MACD_0 or xDn_MACD_0, title="MACD Alert!", message="MACD signal for cross")
+// *****************************************************1111*****************************************************************
+
+
+
+
+// *****************************************************2222*****************************************************************
+TimeframeLines = input.timeframe('D', title="Use Different Timeframe? Then Uncheck The Box Above")
+timeStart = request.security(syminfo.tickerid, TimeframeLines, time)
+previousHigh = request.security(syminfo.tickerid, TimeframeLines, high)
+previousLow = request.security(syminfo.tickerid, TimeframeLines, low)
+previousClose = request.security(syminfo.tickerid, TimeframeLines, close)
+currentOpen = request.security(syminfo.tickerid, TimeframeLines, open)
+//var lineHigh = line.new(timeStart[1], previousHigh[1], timeStart[1] + 60 * 60 * 24*20, previousHigh[1], xloc=xloc.bar_time, style=line.style_dashed)
+//line.set_x2(lineHigh, 0)
+//line.set_xloc(lineHigh, time, time + 60 * 60 * 24, xloc.bar_time)
+//line.set_color(lineHigh, color.green)
+//line.set_width(lineHigh, 5)
+
+
+
+
+
+
+
+// *****************************************************2222*****************************************************************
+// log.info('symbol name:' + syminfo.tickerid)
+var label1 = label.new(bar_index, low, text=syminfo.tickerid, style=label.style_none)
+label.set_x(label1, 0)
+label.set_xloc(label1, time[10], xloc.bar_time)
+// label.set_color(label1, color.lime)
+// label.set_size(label1, size.large)
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//Settings
+//-----------------------------------------------------------------------------{
+length = input.int(20, 'Minimum Range Length', minval = 2)
+mult   = input.float(1., 'Range Width', minval = 0, step = 0.1)
+atrLen = input.int(500, 'ATR Length', minval = 1)
+
+//Style
+upCss = input(#089981, 'Broken Upward', group = 'Style')
+dnCss = input(#f23645, 'Broken Downward', group = 'Style')
+unbrokenCss = input(#2157f3, 'Unbroken', group = 'Style')
+
+//-----------------------------------------------------------------------------}
+//Detect and highlight ranges
+//-----------------------------------------------------------------------------{
+//Ranges drawings
+var box bx = na
+var line lvl = na
+
+//Extensions
+var float max = na
+var float min = na
+
+var os = 0
+color detect_css = na
+
+n = bar_index
+atr = ta.atr(atrLen) * mult
+ma = ta.sma(close, length)
+
+count = 0
+for i = 0 to length-1
+    count += math.abs(close[i] - ma) > atr ? 1 : 0
+
+if count == 0 and count[1] != count
+    //Test for overlap and change coordinates
+    if n[length] <= bx.get_right()
+        max := math.max(ma + atr, bx.get_top())
+        min := math.min(ma - atr, bx.get_bottom())
+        
+        //Box new coordinates
+        bx.set_top(max)
+        bx.set_rightbottom(n, min)
+        bx.set_bgcolor(color.new(unbrokenCss, 80))
+
+        //Line new coordinates
+        avg = math.avg(max, min)
+        lvl.set_y1(avg)
+        lvl.set_xy2(n, avg)
+        lvl.set_color(unbrokenCss)
+    else
+        max := ma + atr
+        min := ma - atr
+
+        //Set new box and level
+        bx := box.new(n[length], ma + atr, n, ma - atr, na
+          , bgcolor = color.new(unbrokenCss, 80))
+        
+        lvl := line.new(n[length], ma, n, ma
+          , color = unbrokenCss
+          , style = line.style_dotted)
+
+        detect_css := color.new(color.gray, 80)
+        os := 0
+
+else if count == 0
+    bx.set_right(n)
+    lvl.set_x2(n)
+
+//Set color
+if close > bx.get_top()
+    bx.set_bgcolor(color.new(upCss, 80))
+    lvl.set_color(upCss)
+    os := 1
+else if close < bx.get_bottom()
+    bx.set_bgcolor(color.new(dnCss, 80))
+    lvl.set_color(dnCss)
+    os := -1
+
+//-----------------------------------------------------------------------------}
+//Plots
+//-----------------------------------------------------------------------------{
+//Range detection bgcolor
+bgcolor(detect_css)
+
+plot(max, 'Range Top'
+  , max != max[1] ? na : os == 0 ? unbrokenCss : os == 1 ? upCss : dnCss)
+
+plot(min, 'Range Bottom'
+  , min != min[1] ? na : os == 0 ? unbrokenCss : os == 1 ? upCss : dnCss)
+
+//-----------------------------------------------------------------------------}
+
+
+

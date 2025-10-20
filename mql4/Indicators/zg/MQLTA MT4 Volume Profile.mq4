@@ -53,7 +53,7 @@ input ENUM_CALCULATION_RANGE_TIMEFRAME UnitType = CALC_TF_DAYS; //Calculate with
 input string Comment4 = "========================";  //Volume Profile Graphic Parameters
 input int WindowSize = 1;                            //Window Width Multiplier
 input color WindowColor = clrGreenYellow;            //Window Color
-input bool ShowLineLabel = true;                     //Show Vertical Line Label
+input bool ShowLineLabel = false;                    //Show Vertical Line Label
 input color LineLabelColor = clrRed;                 //Vertical Line Label Color
 input bool CleanLineAtClose = true;                  //Delete Vertical Line at Close
 input int RefreshDelay = 10;                         //Refresh Delay for Most Recent Candle

@@ -9,7 +9,6 @@
 #property description   "The creator of this indicator cannot be held responsible for any damage or loss."
 #property description   ""
 #property description   "Find More on EarnForex.com"
-//#property icon          "\\Files\\EF-Icon-64x64px.ico"
 
 #property indicator_chart_window
 #property indicator_buffers 1
@@ -72,6 +71,9 @@ double PriceMax;
 datetime StartTime = TimeCurrent();
 double OutputBuffer[];
 bool WasntEnoughBars = true;
+
+int shiftBarCount = 10;
+int periodSeconds = Period() * 60;
 
 void OnInit()
 {
@@ -264,20 +266,18 @@ void DrawVolumeProfile()
         WasntEnoughBars = true;
         return;
     }
-    long VolumeMin = VolumeProfile[ArrayMinimum(VolumeProfile)];
-    long VolumeDiffMax = VolumeMax - VolumeMin;
     double PricePOC = PriceMin + StepPoints * ArrayMaximum(VolumeProfile) + StepPoints / 2;
     OutputBuffer[0] = PricePOC;
     int VolumeWidth = (int)MathRound(WindowSizeMin * WindowSize * (6 - ChartGetInteger(0, CHART_SCALE)));
     int StartTimeShift = iBarShift(Symbol(), PERIOD_CURRENT, StartTime);
+    datetime TimeRight = StartTime + shiftBarCount*periodSeconds;
     for (int i = 0; i < ArraySize(VolumeProfile); i++)
     {
         double PriceLow = PriceMin + StepPoints * i;
         double PriceHigh = PriceLow + StepPoints;
-        datetime TimeRight = StartTime;
-        long VolumeDiff = VolumeProfile[i] - VolumeMin;
         int TimeStepsShift = (int)MathRound(((VolumeWidth - 1) * VolumeProfile[i]) / VolumeMax);
-        datetime TimeLeft = iTime(Symbol(), PERIOD_CURRENT, StartTimeShift + TimeStepsShift + 1);
+        //datetime TimeLeft = iTime(Symbol(), PERIOD_CURRENT, StartTimeShift + TimeStepsShift + 1);
+        datetime TimeLeft = iTime(Symbol(), PERIOD_CURRENT, StartTimeShift)+ shiftBarCount*periodSeconds + (TimeStepsShift + 1)*periodSeconds;
         string RectangleName = IndicatorName + "-VP-RECT-" + DoubleToString(PriceLow / Point(), 0);
         ObjectCreate(0, RectangleName, OBJ_RECTANGLE, 0, TimeRight, PriceLow, TimeLeft, PriceHigh);
         ObjectSetInteger(0, RectangleName, OBJPROP_COLOR, WindowColor);
@@ -320,7 +320,8 @@ void CreateLine()
     {
         ObjectCreate(0, LineName, OBJ_VLINE, 0, iTime(Symbol(), PERIOD_CURRENT, 0), 0);
     }
-    ObjectSetInteger(0, LineName, OBJPROP_COLOR, WindowColor);
+    //ObjectSetInteger(0, LineName, OBJPROP_COLOR, WindowColor);
+    ObjectSetInteger(0, LineName, OBJPROP_COLOR, clrNONE);
     ObjectSetInteger(0, LineName, OBJPROP_BACK, true);
     if (StartTimeType == CALC_START_LAST)
     {

@@ -18,7 +18,8 @@ input color  ButtonColor  = clrDodgerBlue;
 input color  ActiveColor  = clrLimeGreen;
 input color  HoverColor   = clrDeepSkyBlue;
 input color  TextColor    = clrWhite;
-input double Transparency = 0.4;   // 0~1 越大越“透明”
+// 0~1 越大越“透明”
+input double Transparency = 0.4;
 
 //=== 全局变量 ===
 string prefix = "SC_";
@@ -39,6 +40,7 @@ int OnInit()
 
    CreateButtons();
    ChartRedraw();
+   //ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, true);
    return(INIT_SUCCEEDED);
 }
 
@@ -106,63 +108,17 @@ void CreateButtons()
 //+------------------------------------------------------------------+
 void OnChartEvent(const int id, const long &l, const double &d, const string &s)
 {
-   // 鼠标移动 —— 更新 hoveredIndex（使用 l/d 作为像素坐标）
-   if(id == CHARTEVENT_MOUSE_MOVE)
-   {
-      int mx = (int)l;
-      int my = (int)d;
-      int newHover = -1;
-
-      for(int i = 0; i < count; i++)
-      {
-         string sym = StringTrimCustom(symbols[i]);
-         string name = prefix + sym;
-         int x = ObjectGetInteger(0, name, OBJPROP_XDISTANCE);
-         int y = ObjectGetInteger(0, name, OBJPROP_YDISTANCE);
-         int w = ObjectGetInteger(0, name, OBJPROP_XSIZE);
-         int h = ObjectGetInteger(0, name, OBJPROP_YSIZE);
-
-         if(PointInRect(mx, my, Corner, x, y, w, h))
-         {
-            newHover = i;
-            break;
-         }
-      }
-
-      if(newHover != hoveredIndex)
-      {
-         hoveredIndex = newHover;
-         UpdateHighlight();
-      }
-      return;
-   }
-
    // 点击事件 —— 检查是否点击按钮并切换
-   if(id == CHARTEVENT_CLICK || id == CHARTEVENT_OBJECT_CLICK)
-   {
-      int mx = (int)l;
-      int my = (int)d;
-
-      for(int i = 0; i < count; i++)
+   if(id == CHARTEVENT_OBJECT_CLICK && ((int) ObjectGet(s,OBJPROP_TYPE)) == OBJ_LABEL)
+   {//Print("l==", l, " d==", d, " s==", s);
+      string sym = ObjectGetString(0,s,OBJPROP_TEXT);
+//int t = ObjectGet(s,OBJPROP_TYPE);Print("sym==", sym, " t==", t, " OBJ_RECTANGLE_LABEL==", OBJ_RECTANGLE_LABEL, " OBJ_LABEL==", OBJ_LABEL);
+      if(Symbol() != sym)
       {
-         string sym = StringTrimCustom(symbols[i]);
-         string name = prefix + sym;
-
-         if(PointInRect(mx, my, Corner,
-                        ObjectGetInteger(0, name, OBJPROP_XDISTANCE),
-                        ObjectGetInteger(0, name, OBJPROP_YDISTANCE),
-                        ObjectGetInteger(0, name, OBJPROP_XSIZE),
-                        ObjectGetInteger(0, name, OBJPROP_YSIZE)))
-         {
-            if(Symbol() != sym)
-            {
-               ChartSetSymbolPeriod(0, sym, PERIOD_CURRENT);
-               // 切换后重建或更新颜色
-               hoveredIndex = -1;
-               UpdateHighlight();
-            }
-            break;
-         }
+         ChartSetSymbolPeriod(0, sym, PERIOD_CURRENT);
+         // 切换后重建或更新颜色
+         hoveredIndex = -1;
+         UpdateHighlight();
       }
       return;
    }
@@ -222,26 +178,6 @@ color MakeTransparent(color c,double alpha)
    int b=(int)(GetBValue(c)*(1-alpha)+255*alpha);
    return RGB(r,g,b);
 }
-
-//+------------------------------------------------------------------+
-//| 判断鼠标是否在矩形范围                                           |
-//+------------------------------------------------------------------+
-bool PointInRect(int mx,int my,int corner,int x,int y,int w,int h)
-{
-   int cw=(int)ChartGetInteger(0,CHART_WIDTH_IN_PIXELS);
-   int ch=(int)ChartGetInteger(0,CHART_HEIGHT_IN_PIXELS);
-   int left,top;
-   switch(corner)
-   {
-      case 0: left=x; top=y; break;
-      case 1: left=cw-x-w; top=y; break;
-      case 2: left=x; top=ch-y-h; break;
-      case 3: left=cw-x-w; top=ch-y-h; break;
-      default:left=x; top=y;
-   }
-   return(mx>=left && mx<=left+w && my>=top && my<=top+h);
-}
-
 
 int OnCalculate(const int rates_total,
                 const int prev_calculated,

@@ -26,6 +26,8 @@
 //   string ErrorDescription(int error_code);
 // #import
 //+------------------------------------------------------------------+
+#include <OrderInfo.mqh>
+#include <Arrays\List.mqh>
 #import "Utils.ex4"
    bool isEqualDouble(double num1, double num2);
    double pips2Price(string symbolName, int pips);
@@ -34,4 +36,10 @@
    int countOrders(int magicNumber=0, string symbolName=NULL);
    int closeAllOrders(int magicNumber=0, string symbolName=NULL);
    bool isNumber(string number);
+   void PressButton(string ctlName);
+   bool closeOrderShort(OrderInfo *orderInfo, double lotSize=0.0);
+   bool closeOrderLong(OrderInfo *orderInfo, double lotSize=0.0);
+   OrderInfo *createOrderLong(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
+   OrderInfo *createOrderShort(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
+   void closeOrdersByList(CList *orderList);
 #import

@@ -10,6 +10,8 @@
 #property strict
 
 #include <stdlib.mqh>
+#include <OrderInfo.mqh>
+#include <Arrays\List.mqh>
 
 //+------------------------------------------------------------------+
 //| My function                                                      |
@@ -195,4 +197,177 @@ bool isNumberChar(ushort ch, bool checkSignFlag) {
    }
    
    return false;
+}
+
+void PressButton(string ctlName) export {
+   bool selected = ObjectGetInteger(ChartID(), ctlName, OBJPROP_STATE);
+   if (selected) {
+      ObjectSetInteger(ChartID(), ctlName, OBJPROP_STATE, false);
+   } else {
+      ObjectSetInteger(ChartID(), ctlName, OBJPROP_STATE, true);
+   }
+}
+
+bool closeOrderShort(OrderInfo *orderInfo, double lotSize=0.0) export {
+   int ticketId = orderInfo.getTicketId();
+   // 检查是否已经平仓(止损或者止盈时或者手动平仓时)
+   bool isSelected = OrderSelect(ticketId, SELECT_BY_TICKET, MODE_HISTORY);
+   if (isSelected) {
+      if (0 < OrderCloseTime()) {
+         string msg = "The order(" + IntegerToString(ticketId) + ") has been closed.";
+         Alert(msg);
+         return true;
+      }
+   }
+   isSelected = OrderSelect(ticketId, SELECT_BY_TICKET);
+   
+   if (!isSelected) {
+      string msg = "OrderSelect(MODE_TRADES) failed in closeOrderShort.";
+      msg = msg + " Error:【" + ErrorDescription(GetLastError());
+      msg = msg + "】 Sell Ticket = " + IntegerToString(ticketId);
+      Alert(msg);
+      
+      return false;
+   }
+
+   if (lotSize < 0.01) {
+      lotSize = OrderLots();
+   }
+   RefreshRates();
+   bool isClosed = OrderClose(OrderTicket(), lotSize, Ask, 0);
+   if (!isClosed) {
+      string msg = "OrderClose failed in closeOrderShort. Error:【" + ErrorDescription(GetLastError());
+      msg += "】 OrderTicket=" + IntegerToString(OrderTicket());
+      msg += " lotSize=" + DoubleToStr(lotSize, 2);
+      int vdigits = (int) MarketInfo(OrderSymbol(), MODE_DIGITS);
+      msg += " Ask=" + DoubleToStr(Ask, Digits);
+      Alert(msg);
+   }
+   
+   return isClosed;
+}
+
+bool closeOrderLong(OrderInfo *orderInfo, double lotSize=0.0) export {
+   int ticketId = orderInfo.getTicketId();
+   // 检查是否已经平仓(止损或者止盈时或者手动平仓时)
+   bool isSelected = OrderSelect(ticketId, SELECT_BY_TICKET, MODE_HISTORY);
+   if (isSelected) {
+      if (0 < OrderCloseTime()) {
+         string msg = "The order(" + IntegerToString(ticketId) + ") has been closed.";
+         Alert(msg);
+         return true;
+      }
+   }
+   isSelected = OrderSelect(ticketId, SELECT_BY_TICKET);
+   
+   if (!isSelected) {
+      string msg = "OrderSelect(MODE_TRADES) failed in closeOrderLong.";
+      msg = msg + " Error:【" + ErrorDescription(GetLastError());
+      msg = msg + "】 Buy Ticket = " + IntegerToString(ticketId);
+      Alert(msg);
+      
+      return false;
+   }
+   
+   if (lotSize < 0.01) {
+      lotSize = OrderLots();
+   }
+   RefreshRates();
+   bool isClosed = OrderClose(OrderTicket(), lotSize, Bid, 0);
+   if (!isClosed) {
+      string msg = "OrderClose failed in closeOrderLong. Error:【" + ErrorDescription(GetLastError());
+      msg += "】 OrderTicket=" + IntegerToString(OrderTicket());
+      msg += " lotSize=" + DoubleToStr(lotSize, 2);
+      int vdigits = (int) MarketInfo(OrderSymbol(), MODE_DIGITS);
+      msg += " Bid=" + DoubleToStr(Bid, Digits);
+      Alert(msg);
+   }
+   
+   return isClosed;
+}
+
+OrderInfo *createOrderLong(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0) export {
+   
+   double slPrice = sl;
+   double tpPrice = tp;
+   
+   RefreshRates();
+   int ticketId  = OrderSend(_Symbol, OP_BUY , lotSize, Ask, 0, slPrice, tpPrice, "", MagicNumber, 0, clrBlue);
+   
+   if (-1 == ticketId) {
+      string msg = "BUY OrderSend failed in createOrderLong. Error:【" + ErrorDescription(GetLastError());
+      msg += "】 Ask=" + DoubleToStr(Ask, Digits);
+      msg += " lotSize=" + DoubleToStr(lotSize, 2);
+      Alert(msg);
+      return NULL;
+   }
+   OrderInfo *oi = new OrderInfo;
+   oi.setValid(true);
+   oi.setTicketId(ticketId);
+   oi.setOperationType(OP_BUY);
+   oi.setSymbolName(_Symbol);
+   oi.setOpenPrice(Ask);
+   
+   if (OrderSelect(ticketId, SELECT_BY_TICKET)) {
+      oi.setOpenPrice(OrderOpenPrice());
+      oi.setLotSize(OrderLots());
+      oi.setTpPrice(OrderTakeProfit());
+      oi.setSlPrice(OrderStopLoss());
+   } else {
+      string msg = "OrderSelect failed in createOrderLong.";
+      msg = msg + " Error:【" + ErrorDescription(GetLastError());
+      msg = msg + "】 Buy Ticket = " + IntegerToString(ticketId);
+      Alert(msg);
+   }
+   
+   return oi;
+}
+
+OrderInfo *createOrderShort(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0) export {
+   
+   double slPrice = sl;
+   double tpPrice = tp;
+   RefreshRates();
+   int ticketId  = OrderSend(_Symbol, OP_SELL , lotSize, Bid, 0, slPrice, tpPrice, "", MagicNumber, 0, clrBlue);
+   
+   if (-1 == ticketId) {
+      string msg = "Sell OrderSend failed in createOrderShort. Error:【" + ErrorDescription(GetLastError());
+      msg += "】 Bid=" + DoubleToStr(Bid, Digits);
+      msg += " lotSize=" + DoubleToStr(lotSize, 2);
+      Alert(msg);
+      return NULL;
+   }
+   OrderInfo *oi = new OrderInfo;
+   oi.setValid(true);
+   oi.setTicketId(ticketId);
+   oi.setOperationType(OP_SELL);
+   oi.setSymbolName(_Symbol);
+   oi.setOpenPrice(Bid);
+   
+   if (OrderSelect(ticketId, SELECT_BY_TICKET)) {
+      oi.setOpenPrice(OrderOpenPrice());
+      oi.setLotSize(OrderLots());
+      oi.setTpPrice(OrderTakeProfit());
+      oi.setSlPrice(OrderStopLoss());
+   } else {
+      string msg = "OrderSelect failed in createOrderShort.";
+      msg = msg + " Error:【" + ErrorDescription(GetLastError());
+      msg = msg + "】 Sell Ticket = " + IntegerToString(ticketId);
+      Alert(msg);
+   }
+   
+   return oi;
+}
+
+void closeOrdersByList(CList *orderList) export {
+   int listSize = orderList.Total();
+   OrderInfo *oi = NULL;
+   bool isClosed = false;
+   for (int i = listSize-1; 0 <= i; i--) {
+      oi = orderList.GetNodeAtIndex(i);
+      isClosed = closeOrderLong(oi);
+      if (isClosed) {
+         orderList.Delete(i);
+      }
+   }
 }

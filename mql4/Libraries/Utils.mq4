@@ -371,3 +371,38 @@ void closeOrdersByList(CList *orderList) export {
       }
    }
 }
+
+bool IsStringValidDouble(string str) export {
+    string temp = str;
+    StringTrimLeft(temp);
+    StringTrimRight(temp);
+
+    // 检查空字符串
+    if(StringLen(temp) == 0) return false;
+
+    // 特殊处理常见的零值表示
+    if(temp == "0" || temp == "0.0" || temp == "0.00" || temp == "+0" || temp == "-0") {
+        return true;
+    }
+
+    // 尝试转换
+    double value = StringToDouble(temp);
+
+    // 如果转换结果为0但原字符串不是零的某种形式，则转换失败
+    if(value == 0.0) {
+        // 检查是否真的是无效字符串
+        bool hasNonZeroDigit = false;
+        for(int i = 0; i < StringLen(temp); i++) {
+            ushort ch = StringGetCharacter(temp, i);
+            if(ch >= '1' && ch <= '9') {
+                hasNonZeroDigit = true;
+                break;
+            }
+        }
+
+        // 包含非零数字但转换结果为0，说明转换失败
+        if(hasNonZeroDigit) return false;
+    }
+
+    return true;
+}

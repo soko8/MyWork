@@ -8,6 +8,7 @@
 #property version "1.00"
 #property strict
 #include <stdlib.mqh>
+#include <Utils.mqh>
 //--- input parameters
 /*
 input int Input1=1;
@@ -20,6 +21,7 @@ input int         In_Offset_Point_CurrentPrice     = 400;
 input int         In_Stoploss_Point                = 200;
 input int         In_TakeProfit_Point              = 300;
 input double      In_Lots                          = 0.01;
+input int         In_Order_Count_When_New_Open     = 3;
 input int         Magic_Number                     = 168;
 input bool        In_4Kdisplay                     = true;
 
@@ -36,38 +38,41 @@ const color          ClrBtnBg          = clrGray;
 const color          ClrBtnFt          = clrWhiteSmoke;
 
 
-int offsetPoint, slPoint, tpPoint, trade_operation=-1;
-double lots, offset, sl, tp;
+int offsetPoint, slPoint, tpPoint, trade_operation=-1, countNew;
+double lotSize, offset, sl, tp;
 
 int OnInit() {
    offsetPoint = In_Offset_Point_CurrentPrice;
    slPoint = In_Stoploss_Point;
    tpPoint = In_TakeProfit_Point;
-   lots = In_Lots;
+   lotSize = In_Lots;
+   countNew = In_Order_Count_When_New_Open;
    offset = NormalizeDouble(offsetPoint*Point, Digits);
    sl = NormalizeDouble(slPoint*Point, Digits);
    tp = NormalizeDouble(tpPoint*Point, Digits);
 
    if (In_4Kdisplay) draw4k(); else draw();
    
-   checkInputLot();
+   checkInputLot(ObjNamePrefix+"edt_"+"lots");
    checkInputSl();
    checkInputTp();
+   checkInputOffset();
+   checkInputNumber(ObjNamePrefix+"edt_"+"count");
    
-   EventSetTimer(60);
+   //EventSetTimer(60);
 
    return(INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) {
-   EventKillTimer();
+   //EventKillTimer();
    ObjectsDeleteAll(0, ObjNamePrefix);
 }
 
 void OnTick() {}
 
-void OnTimer() {
-}
+//void OnTimer() {
+//}
 
 void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
    if (CHARTEVENT_OBJECT_CLICK == id) {
@@ -126,9 +131,11 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          setBtnDisable(ObjNamePrefix+"btn_"+"buyStop");
       } else
       if (ObjNamePrefix+"btn_"+"NewOrder" == sparam) {
-         bool error = checkInputLot();
+         bool error = checkInputLot(ObjNamePrefix+"edt_"+"lots");
          error = error || checkInputSl();
          error = error || checkInputTp();
+         error = error || checkInputNumber(ObjNamePrefix+"edt_"+"count");
+         error = error || checkInputOffset();
          if (error) return;
          if (OP_BUY != trade_operation && OP_SELL != trade_operation) {
             if (offsetPoint < 1) {
@@ -162,26 +169,33 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
                default: break;
             }
          }
+      } else 
+      if (ObjNamePrefix+"btn_"+"CloseOrder" == sparam) {
+         closeAllOrders(Magic_Number);
       }
    }
    else if (CHARTEVENT_OBJECT_ENDEDIT == id) {
       if (ObjNamePrefix+"edt_"+"Offset_Point" == sparam) {
-         offsetPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
-         offset = NormalizeDouble(offsetPoint*Point, Digits);
+         checkInputOffset();
       } else
 
       if (ObjNamePrefix+"edt_"+"lots" == sparam) {
-         lots = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+         checkInputLot(sparam);
       } else
 
       if (ObjNamePrefix+"edt_"+"tp" == sparam) {
-         tpPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
-         tp = NormalizeDouble(tpPoint*Point, Digits);
+         checkInputTp();
       } else
 
       if (ObjNamePrefix+"edt_"+"sl" == sparam) {
-         slPoint = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
-         sl = NormalizeDouble(slPoint*Point, Digits);
+         checkInputSl();
+      } else
+
+      if (ObjNamePrefix+"edt_"+"count" == sparam) {
+         bool isError = checkInputNumber(sparam);
+         if (!isError) {
+            countNew = StrToInteger(ObjectGetString(0, sparam, OBJPROP_TEXT));
+         }
       }
    }
 }
@@ -226,44 +240,82 @@ bool createOrder() {
    openPrice = NormalizeDouble(openPrice, Digits);
    slPrice = NormalizeDouble(slPrice, Digits);
    tpPrice = NormalizeDouble(tpPrice, Digits);
+   int ticket;
+   for (int i=0; i<countNew; i++) {
+      ticket = OrderSend(_Symbol, trade_operation, lotSize, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
+   
+      if (ticket < 0) {Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol); return false;}
 
-   int ticket = OrderSend(_Symbol, trade_operation, lots, openPrice, slippage, slPrice, tpPrice, COMMENT, Magic_Number, 0, clrNONE);
-   
-   if (ticket < 0) {Print("OrderSend failed with error #", ErrorDescription(GetLastError()), " Symbol=", _Symbol); return false;}
-   
-   Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+      Print("OrderSend placed successfully. Ticket ID=", ticket, " Symbol=", _Symbol);
+   }
    return true;
 }
 
-bool checkInputLot() {
+bool isValidDouble(string objectName) {
    bool isError = false;
-   isError = !isValidLot(lots);
+   string value = ObjectGetString(0, objectName, OBJPROP_TEXT);
+   isError = !IsStringValidDouble(value);
    if (isError) {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"lots", OBJPROP_BGCOLOR, clrRed);
+      ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
    } else {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"lots", OBJPROP_BGCOLOR, clrWhite);
+      if (StringToDouble(value) < 0.001) {
+         isError = true;
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrWhite);
+      }
+   }
+   return !isError;
+}
+
+bool checkInputLot(string objectName) {
+   bool isError = !isValidDouble(objectName);
+   if (isError) {
+      ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
+   } else {
+      lotSize = StringToDouble(ObjectGetString(0, objectName, OBJPROP_TEXT));
+      isError = !isValidLot(lotSize);
+      if (isError) {
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrWhite);
+      }
    }
    return isError;
 }
 
 bool checkInputSl() {
-   bool isError = false;
-   isError = !isValidStopLevel(slPoint);
+   string objName = ObjNamePrefix+"edt_"+"sl";
+   bool isError = checkInputNumber(objName);
    if (isError) {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"sl", OBJPROP_BGCOLOR, clrRed);
+      ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
    } else {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"sl", OBJPROP_BGCOLOR, clrWhite);
+      slPoint = StrToInteger(ObjectGetString(0, objName, OBJPROP_TEXT));
+      sl = NormalizeDouble(slPoint*Point, Digits);
+      isError = !isValidStopLevel(slPoint);
+      if (isError) {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrWhite);
+      }
    }
    return isError;
 }
 
 bool checkInputTp() {
-   bool isError = false;
-   isError = !isValidStopLevel(tpPoint);
+   string objName = ObjNamePrefix+"edt_"+"tp";
+   bool isError = checkInputNumber(objName);
    if (isError) {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"tp", OBJPROP_BGCOLOR, clrRed);
+      ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
    } else {
-      ObjectSetInteger(0, ObjNamePrefix+"edt_"+"tp", OBJPROP_BGCOLOR, clrWhite);
+      tpPoint = StrToInteger(ObjectGetString(0, objName, OBJPROP_TEXT));
+      tp = NormalizeDouble(tpPoint*Point, Digits);
+      isError = !isValidStopLevel(tpPoint);
+      if (isError) {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrWhite);
+      }
    }
    return isError;
 }
@@ -292,7 +344,45 @@ bool isValidStopLevel(int inputPoint) {
       return false;
    }
    return true;
-} 
+}
+
+bool checkInputNumber(string objectName) {
+   string value = ObjectGetString(0, objectName, OBJPROP_TEXT);
+   bool isError = !isNumber(value);
+   if (isError) {
+      ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
+   } else {
+      int val = StrToInteger(ObjectGetString(0, objectName, OBJPROP_TEXT));
+      if (val < 1) {
+         isError = true;
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objectName, OBJPROP_BGCOLOR, clrWhite);
+      }
+   }
+   return isError;
+}
+
+bool checkInputOffset() {
+   string objName = ObjNamePrefix+"edt_"+"Offset_Point";
+   bool isError = checkInputNumber(objName);
+   if (isError) {
+      ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
+   } else {
+      offsetPoint = StrToInteger(ObjectGetString(0, objName, OBJPROP_TEXT));
+      offset = NormalizeDouble(offsetPoint*Point, Digits);
+      //isError = !isValidStopLevel(tpPoint);
+      ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrWhite);
+      /*
+      if (isError) {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrRed);
+      } else {
+         ObjectSetInteger(0, objName, OBJPROP_BGCOLOR, clrWhite);
+      }
+      */
+   }
+   return isError;
+}
 
 void draw4k() {
    const int            PanelWidth        = 450;
@@ -347,7 +437,12 @@ void draw4k() {
    objName = ObjNamePrefix+"btn_"+"NewOrder";
    x = StartX + MarginLeft;
    y += RowHeight + Interval;
-   CreateButton(objName,   "New Order",   x, y, 202, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(objName,   "New Order",   x, y, 120, RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+
+   objName = ObjNamePrefix+"btn_"+"CloseOrder";
+   x = StartX + MarginLeft;
+   //y += RowHeight + Interval;
+   CreateButton(objName,   "Close",   x+120+2, y, 80,RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
    
    objName = ObjNamePrefix+"lbl_"+"tp";
    x = StartX + MarginLeft + 10*Interval + 100*2;
@@ -365,7 +460,7 @@ void draw4k() {
    objName = ObjNamePrefix+"edt_"+"lots";
    x += 70;
    CreateEdit(objName,        x, y, 150, RowHeightEdt, edtFontSize, "12345");
-   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lots, 2));
+   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lotSize, 2));
    
    objName = ObjNamePrefix+"lbl_"+"sl";
    x = StartX + MarginLeft + 10*Interval + 100*2;
@@ -375,6 +470,15 @@ void draw4k() {
    x += 70;
    CreateEdit(objName,          x, y, 150, RowHeightEdt, edtFontSize, "12345");
    ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(slPoint));
+   
+   objName = ObjNamePrefix+"lbl_"+"count";
+   x = StartX + MarginLeft + 10*Interval + 100*2;
+   y = StartY + MarginTop + 3*RowHeight + 2*Interval;
+   SetText(objName, "Count  :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"count";
+   x += 70;
+   CreateEdit(objName,          x, y, 150, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(countNew));
 }
 
 void draw() {
@@ -430,7 +534,12 @@ void draw() {
    objName = ObjNamePrefix+"btn_"+"NewOrder";
    x = StartX + MarginLeft;
    y += RowHeight + Interval;
-   CreateButton(objName,   "New Order",   x, y, 123,RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+   CreateButton(objName,   "New Order",   x, y, 70,RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
+   
+   objName = ObjNamePrefix+"btn_"+"CloseOrder";
+   x = StartX + MarginLeft;
+   //y += RowHeight + Interval;
+   CreateButton(objName,   "Close",   x+70+2, y, 50,RowHeight, ClrBtnBg, ClrBtnFt, btnFontSize);
    
    objName = ObjNamePrefix+"lbl_"+"tp";
    x = StartX + MarginLeft + 4*Interval + 60*2;
@@ -448,7 +557,7 @@ void draw() {
    objName = ObjNamePrefix+"edt_"+"lots";
    x += 40;
    CreateEdit(objName,        x, y, 60, RowHeightEdt, edtFontSize, "12345");
-   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lots, 2));
+   ObjectSetString(0, objName, OBJPROP_TEXT, DoubleToStr(lotSize, 2));
    
    objName = ObjNamePrefix+"lbl_"+"sl";
    x = StartX + MarginLeft + 4*Interval + 60*2;
@@ -458,6 +567,15 @@ void draw() {
    x += 40;
    CreateEdit(objName,          x, y, 60, RowHeightEdt, edtFontSize, "12345");
    ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(slPoint));
+
+   objName = ObjNamePrefix+"lbl_"+"count";
+   x = StartX + MarginLeft + 4*Interval + 60*2;
+   y = StartY + MarginTop + 3*RowHeight + 2*Interval;
+   SetText(objName, "Count  :",   x, y, lblFontColor, lblFontSize);
+   objName = ObjNamePrefix+"edt_"+"count";
+   x += 40;
+   CreateEdit(objName,          x, y, 60, RowHeightEdt, edtFontSize, "12345");
+   ObjectSetString(0, objName, OBJPROP_TEXT, IntegerToString(countNew));
 }
 
 void setBtnEnable(string btnName) {
@@ -618,3 +736,5 @@ void CreateEdit(const string           name="Edit",              // object name
 //--- set the priority for receiving the event of a mouse click in the chart
    ObjectSetInteger(chart_ID,name,OBJPROP_ZORDER, 0);
 }
+
+

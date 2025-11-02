@@ -42,4 +42,5 @@
    OrderInfo *createOrderLong(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
    OrderInfo *createOrderShort(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
    void closeOrdersByList(CList *orderList);
+   bool IsStringValidDouble(string str);
 #import

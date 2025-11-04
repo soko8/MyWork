@@ -311,8 +311,11 @@ OrderInfo *createOrderLong(double lotSize, int MagicNumber, double sl=0.0, doubl
    if (OrderSelect(ticketId, SELECT_BY_TICKET)) {
       oi.setOpenPrice(OrderOpenPrice());
       oi.setLotSize(OrderLots());
-      oi.setTpPrice(OrderTakeProfit());
-      oi.setSlPrice(OrderStopLoss());
+      double tp_ = OrderTakeProfit();
+      if (0.00001 < tp) oi.setTpPrice(tp_);
+      double sl_ = OrderStopLoss();
+      if (0.00001 < sl) oi.setSlPrice(sl_);
+      oi.setOpenTime(OrderOpenTime());
    } else {
       string msg = "OrderSelect failed in createOrderLong.";
       msg = msg + " Error:【" + ErrorDescription(GetLastError());
@@ -347,8 +350,11 @@ OrderInfo *createOrderShort(double lotSize, int MagicNumber, double sl=0.0, doub
    if (OrderSelect(ticketId, SELECT_BY_TICKET)) {
       oi.setOpenPrice(OrderOpenPrice());
       oi.setLotSize(OrderLots());
-      oi.setTpPrice(OrderTakeProfit());
-      oi.setSlPrice(OrderStopLoss());
+      double tp_ = OrderTakeProfit();
+      if (0.00001 < tp) oi.setTpPrice(tp_);
+      double sl_ = OrderStopLoss();
+      if (0.00001 < sl) oi.setSlPrice(sl_);
+      oi.setOpenTime(OrderOpenTime());
    } else {
       string msg = "OrderSelect failed in createOrderShort.";
       msg = msg + " Error:【" + ErrorDescription(GetLastError());

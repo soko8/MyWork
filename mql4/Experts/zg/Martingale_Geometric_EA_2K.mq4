@@ -73,12 +73,14 @@ const color       color4BtnResume         = clrLime;
 
 /***************** Decrease Position long position button Begin **********/
 const string      nmBtnDecreasePositionLong      = "DecreaseLong";
-const string      txtBtnDecreasePositionLong     = "-Long";
+//const string      txtBtnDecreasePositionLong     = "-Long";
+const string      txtBtnDecreasePositionLong     = "Minus L";
 /***************** close half long position button End   **********/
 
 /***************** Decrease Position short position button Begin *********/
 const string      nmBtnDecreasePositionShort     = "DecreaseShort";
-const string      txtBtnDecreasePositionShort    = "-Short";
+//const string      txtBtnDecreasePositionShort    = "-Short";
+const string      txtBtnDecreasePositionShort    = "Minus S";
 /***************** close half short position button End   *********/
 
 /***************** Profit Status RectLabel Begin ******************/
@@ -93,14 +95,18 @@ const string      nmLabelProfitDPShort = "ProfitDecreasePositionShort";
 
 /***************** close all long position button Begin ***********/
 const string      nmBtnCloseLong      = "CloseLong";
-const string      txtBtnCloseLong     = "CloseBuy";
-const string      txtBtnCreateLong     = "CreateBuy";
+//const string      txtBtnCloseLong     = "CloseBuy";
+//const string      txtBtnCreateLong     = "CreateBuy";
+const string      txtBtnCloseLong     = "Close L";
+const string      txtBtnCreateLong     = "New L";
 /***************** close all long position button End   ***********/
 
 /***************** close all short position button Begin **********/
 const string      nmBtnCloseShort     = "CloseShort";
-const string      txtBtnCloseShort    = "CloseSell";
-const string      txtBtnCreateShort    = "CreateSell";
+//const string      txtBtnCloseShort    = "CloseSell";
+//const string      txtBtnCreateShort    = "CreateSell";
+const string      txtBtnCloseShort    = "Close S";
+const string      txtBtnCreateShort    = "New S";
 /***************** close all short position button End   **********/
 
 /***************** forbid Create Order button Begin **********/
@@ -157,11 +163,19 @@ const string      btnNmMaxLots4AddPositionLimitDn="MaxLots4AddPositionLimitDn";
 
 /**************************new 4 buttons begin*****************************************************/
 const string      btnNmCloseMaxBuyOrder="CloseMaxBuyOrder";
+const string      txtBtnCloseMaxBuyOrder= "C Max L";
+
 const string      btnNmCloseMaxSellOrder="CloseMaxSellOrder";
+const string      txtBtnCloseMaxSellOrder= "C Max S";
+
 const string      lblNmProfitMaxBuyOrder="ProfitMaxBuyOrder";
 const string      lblNmProfitMaxSellOrder="ProfitMaxSellOrder";
+
 const string      btnNmAdd1BuyOrder="Add1BuyOrder";
+const string      txtBtnAdd1BuyOrder= "Add 1 L";
+
 const string      btnNmAdd1SellOrder="Add1SellOrder";
+const string      txtBtnAdd1SellOrder= "Add 1 S";
 /**************************new 4 buttons end  *****************************************************/
 
 
@@ -174,6 +188,8 @@ const string      lblnmRetraceRatioSell = "RetraceRatioSell";
 
 const string      lblnmCountAPBuy = "CountAPBuy";
 const string      lblnmCountAPSell = "CountAPSell";
+const string      lblnmTotalLotsBuy = "TotalLotsBuy";
+const string      lblnmTotalLotsSell = "TotalLotsSell";
 /***********************************Display Runtime Info end  **************************************/
 
       bool        forbidCreateOrder       = false;
@@ -185,7 +201,7 @@ const string      lblnmCountAPSell = "CountAPSell";
       bool        AccountCtrl = false;
       int         AuthorizeAccountList[4] = {  6154218
                                               ,7100152
-                                             };
+                                            };
       bool        EnableUseTimeControl=true;
       datetime    ExpireTime = D'2099.12.31 23:59:59';
 
@@ -280,12 +296,12 @@ int OnInit() {
    if (isExpire(EnableUseTimeControl, ExpireTime)) {
       return INIT_FAILED;
    }
-
+/*
    if (0 < countOrders(MagicNumber, _Symbol)) {
       Alert("Order Exist。Please manually delete Order or modify input parameter MagicNumber.");
       return(INIT_FAILED);
    }
-
+*/
    double minLot = MarketInfo(_Symbol, MODE_MINLOT);
    if (InitLotSize < minLot) {
       initLots = minLot;
@@ -323,6 +339,10 @@ int OnInit() {
    initLotRule(initLots, APRule_LotL);
    initLotRule(initLots, APRule_LotS);
    initRetraceRule();
+   
+   restore(OrderListL, OP_BUY);
+   restore(OrderListS, OP_SELL);
+   resetTpPrice();
    
    return(INIT_SUCCEEDED);
 }
@@ -794,6 +814,7 @@ void OnTick() {
             OrderInfo *oi = createOrderL(lotSize, 0);
             if (NULL != oi && oi.isValid()) {
                OrderListL.Add(oi);
+               resetStateBuy();
                setCloseBuyButton(Close_Order_Mode);
             }
          }
@@ -821,6 +842,7 @@ void OnTick() {
             OrderInfo *oi = createOrderS(lotSize, 0);
             if (NULL != oi && oi.isValid()) {
                OrderListS.Add(oi);
+               resetStateSell();
                setCloseSellButton(Close_Order_Mode);
             }
          }
@@ -1017,8 +1039,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          ObjectSetString(0, lblNmRetraceProfitCoefficientValue, OBJPROP_TEXT, DoubleToStr(retraceProfitRatio, 2));
          initRetraceRule();
          resetTpPrice();
-         //resetStateBuy();
-         //resetStateSell();
          //PressButton(btnNmRetraceProfitCoefficientUp);
       }
       else 
@@ -1027,8 +1047,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
          ObjectSetString(0, lblNmRetraceProfitCoefficientValue, OBJPROP_TEXT, DoubleToStr(retraceProfitRatio, 2));
          initRetraceRule();
          resetTpPrice();
-         //resetStateBuy();
-         //resetStateSell();
          //PressButton(btnNmRetraceProfitCoefficientDn);
       }
       
@@ -1072,8 +1090,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0,btnNmCMClosePartAll, OBJPROP_BGCOLOR, btnColorDisable);
             initRetraceRule();
             resetTpPrice();
-            //resetStateBuy();
-            //resetStateSell();
          }
          //PressButton(btnNmCMCloseAll);
       }
@@ -1088,8 +1104,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0,btnNmCMClosePartAll, OBJPROP_BGCOLOR, btnColorDisable);
             initRetraceRule();
             resetTpPrice();
-            //resetRetrace4Buy();
-            //resetRetrace4Sell();
          }
          //PressButton(btnNmCMClosePart);
       }
@@ -1104,8 +1118,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0,btnNmCMClosePartAll, OBJPROP_BGCOLOR, btnColorEnable);
             initRetraceRule();
             resetTpPrice();
-            //resetRetrace4Buy();
-            //resetRetrace4Sell();
          }
          //PressButton(btnNmCMClosePartAll);
       }
@@ -1118,8 +1130,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetString(0, lblNmLotAddPositionValue, OBJPROP_TEXT, DoubleToStr(lotMultiple, 2));
             initRetraceRule();
             resetTpPrice();
-            //resetRetrace4Buy();
-            //resetRetrace4Sell();
          } else {
             Alert("Orders > 0, you can't change it.");
          }
@@ -1134,8 +1144,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetString(0, lblNmLotAddPositionValue, OBJPROP_TEXT, DoubleToStr(lotMultiple, 2));
             initRetraceRule();
             resetTpPrice();
-         //resetRetrace4Buy();
-         //resetRetrace4Sell();
          } else {
             Alert("Orders > 0, you can't change it.");
          }
@@ -1197,7 +1205,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             string msg = "Are you sure to add 1 buy position?";
             if (IDOK == MessageBox(msg, "Add One Long Position", MB_OKCANCEL)) {
                doAP_L();
-               //resetStateBuy();
             }
          }
          //PressButton(btnNmAdd1BuyOrder);
@@ -1326,6 +1333,7 @@ void resetStateBuy() {
    ObjectSetString(0, lblnmRetraceRatioBuy, OBJPROP_TEXT, DoubleToStr(retraceRatioBuy, Digits));
    ObjectSetString(0, lblnmCountAPBuy, OBJPROP_TEXT, IntegerToString(listSize));
    ObjectMove(nmLineClosePositionBuy, 0, 0, targetTpPrice);
+   ObjectSetString(0, lblnmTotalLotsBuy, OBJPROP_TEXT, DoubleToStr(getTotalLots(OrderListL), 2));
 }
 
 void resetStateSell() {
@@ -1343,6 +1351,7 @@ void resetStateSell() {
    ObjectSetString(0, lblnmRetraceRatioSell, OBJPROP_TEXT, DoubleToStr(retraceRatioSell, Digits));
    ObjectSetString(0, lblnmCountAPSell, OBJPROP_TEXT, IntegerToString(listSize));
    ObjectMove(nmLineClosePositionSell, 0, 0, targetTpPrice);
+   ObjectSetString(0, lblnmTotalLotsSell, OBJPROP_TEXT, DoubleToStr(getTotalLots(OrderListS), 2));
 }
 
 
@@ -1409,49 +1418,51 @@ void drawTotal() {
    DrawLine(nmLineClosePositionBuy, 0, clrGold, STYLE_DOT);
    DrawLine(nmLineClosePositionSell, 0, clrGold, STYLE_DOT);
    string fontName = "Lucida Bright";
-   RectLabelCreate("rl_bg_tf", 2, 30, 300, 40);
-   SetText("TotalProfitLabel", "Total Profit :", 4, 32);
-   SetText(nmLabelTotalProfitValue, "0.0", 170, 32, TxtFontSize);
+   int x = 2, y = 20, h = 22, interval = 2;
+   RectLabelCreate("rl_bg_tf", x, y, 200, h);
+   SetText("TotalProfitLabel", "Total Profit :", x+interval, y+interval);
+   SetText(nmLabelTotalProfitValue, "0.0", 98, y+interval, TxtFontSize);
+   x=330; y=2;
+   ButtonCreate(nmBtnStopResume, txtBtnResume, x, y, 100, 40, color4BtnResume, BtnFontSize+2, clrBlack, fontName, clrGold);
 
-   ButtonCreate(nmBtnStopResume, txtBtnResume, 342, 30, 150, 40, color4BtnResume, BtnFontSize+2, clrBlack, fontName, clrGold);
-
-   ButtonCreate(nmBtnForbidCreateOrderManual, txtBtnForbidCreateOrderManual, 523, 30, 150, 40, color4BtnForbidCreateOrderManual, BtnFontSize+2, clrBlack, fontName, clrGold);
+   ButtonCreate(nmBtnForbidCreateOrderManual, txtBtnForbidCreateOrderManual, x+100+20, y, 100, 40, color4BtnForbidCreateOrderManual, BtnFontSize+2, clrBlack, fontName, clrGold);
 }
 
 void drawLongShort() {
    int X_START = 1;
-   int Y_START = 76;
+   int Y_START = 44;
    string fontName = "Lucida Bright";
    int X = X_START;
    int Y = Y_START;
-   int Width = 350;
-   int Height = 400;
-   int interval = 194;
-   int btnWidth = 160;
-   int btnHeight = 40;
-   int intervalHeight = 47;
+   int Width = 160;
+   int Height = 242;
+   int interval = 78;
+   int btnWidth = 70;
+   int btnHeight = 30;
+   int intervalHeight = 30;
    RectLabelCreate("rl_bg_Long", X, Y, Width, Height);
    SetText("LongWords", "Long", X+60, Y+1, TxtFontSize+2);
    Y += intervalHeight;
    ButtonCreate(nmBtnCloseLong, txtBtnCreateLong, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitLong, "0.0", X+interval, Y+4, TxtFontSize);
    Y += intervalHeight;
-   SetText("CloseProfitWordsLong", "Close Profit :", X+2, Y, TxtFontSize);
-   SetText(lblnmCloseBuyProfit, "0.0", X+interval, Y, TxtFontSize);
+   SetText("CloseProfitWordsLong", "Close Profit :", X+2, Y+4, TxtFontSize);
+   SetText(lblnmCloseBuyProfit, "0.0", X+interval+18, Y+5, TxtFontSize);
    Y += intervalHeight;
    ButtonCreate(nmBtnDecreasePositionLong, txtBtnDecreasePositionLong, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitDPLong, "0.0", X+interval, Y+4, TxtFontSize);
    Y += intervalHeight;
-   SetText("RetraceRatioWordsLong", "Retrace :", X+2, Y, TxtFontSize);
-   SetText(lblnmRetraceRatioBuy, "0.0", X+interval, Y, TxtFontSize);
+   SetText("RetraceRatioWordsLong", "Retrace :", X+2, Y+4, TxtFontSize);
+   SetText(lblnmRetraceRatioBuy, "0.0", X+interval, Y+5, TxtFontSize);
    Y += intervalHeight;
-   ButtonCreate(btnNmCloseMaxBuyOrder, "CloseMaxL", X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
-   SetText(lblNmProfitMaxBuyOrder, "0.0", X+interval, Y+4, TxtFontSize);
+   ButtonCreate(btnNmCloseMaxBuyOrder, txtBtnCloseMaxBuyOrder, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
+   SetText(lblNmProfitMaxBuyOrder, "0.0", X+interval, Y+5, TxtFontSize);
    Y += intervalHeight;
-   SetText("CountAPWordsLong", "Add Order Times :", X+2, Y, TxtFontSize);
-   SetText(lblnmCountAPBuy, "0", X+234, Y, TxtFontSize);
+   SetText("CountAPWordsLong", "Count :", X+2, Y+4, TxtFontSize);
+   SetText(lblnmCountAPBuy, "0", X+54, Y+5, TxtFontSize);
+   SetText(lblnmTotalLotsBuy, "910.01", X+104, Y+5, TxtFontSize);
    Y += intervalHeight;
-   ButtonCreate(btnNmAdd1BuyOrder, "+Long", X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
+   ButtonCreate(btnNmAdd1BuyOrder, txtBtnAdd1BuyOrder, X, Y, btnWidth, btnHeight, clrDarkGreen, BtnFontSize, clrWhite);
 
    
    X = X_START+Width;
@@ -1462,22 +1473,23 @@ void drawLongShort() {
    ButtonCreate(nmBtnCloseShort, txtBtnCreateShort, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitShort, "0.0", X+interval, Y+4, TxtFontSize);
    Y += intervalHeight;
-   SetText("CloseProfitWordsShort", "Close Profit :", X+2, Y, TxtFontSize);
-   SetText(lblnmCloseSellProfit, "0.0", X+interval, Y, TxtFontSize);
+   SetText("CloseProfitWordsShort", "Close Profit :", X+2, Y+4, TxtFontSize);
+   SetText(lblnmCloseSellProfit, "0.0", X+interval+18, Y+5, TxtFontSize);
    Y += intervalHeight;
    ButtonCreate(nmBtnDecreasePositionShort, txtBtnDecreasePositionShort, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite, fontName, clrWhite);
    SetText(nmLabelProfitDPShort, "0.0", X+interval, Y+4, TxtFontSize);
    Y += intervalHeight;
-   SetText("RetraceRatioWordsShort", "Retrace :", X, Y, TxtFontSize);
-   SetText(lblnmRetraceRatioSell, "0.0", X+interval, Y+4, TxtFontSize);
+   SetText("RetraceRatioWordsShort", "Retrace :", X, Y+4, TxtFontSize);
+   SetText(lblnmRetraceRatioSell, "0.0", X+interval, Y+5, TxtFontSize);
    Y += intervalHeight;
-   ButtonCreate(btnNmCloseMaxSellOrder, "CloseMaxS", X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
-   SetText(lblNmProfitMaxSellOrder, "0.0", X+interval, Y+4, TxtFontSize);
+   ButtonCreate(btnNmCloseMaxSellOrder, txtBtnCloseMaxSellOrder, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
+   SetText(lblNmProfitMaxSellOrder, "0.0", X+interval, Y+5, TxtFontSize);
    Y += intervalHeight;
-   SetText("CountAPWordsShort", "Add Order Times :", X+2, Y, TxtFontSize);
-   SetText(lblnmCountAPSell, "0", X+234, Y, TxtFontSize);
+   SetText("CountAPWordsShort", "Count :", X+2, Y+4, TxtFontSize);
+   SetText(lblnmCountAPSell, "0", X+54, Y+5, TxtFontSize);
+   SetText(lblnmTotalLotsSell, "910.01", X+104, Y+5, TxtFontSize);
    Y += intervalHeight;
-   ButtonCreate(btnNmAdd1SellOrder, "+Short", X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
+   ButtonCreate(btnNmAdd1SellOrder, txtBtnAdd1SellOrder, X, Y, btnWidth, btnHeight, clrMaroon, BtnFontSize, clrWhite);
 }
 
 void drawInputParameters() {
@@ -1490,11 +1502,12 @@ void drawInputParameters() {
    string      btnTxtDn=CharToStr(218);
    //string      btnTxtDn="-";
 
-   int x_start = 350*2+1;
-   int y_start = 76;
+   //int x_start = 160*2+1;
+   int x_start = 1;
+   int y_start = 288;
    int x = x_start;
    int y = y_start;
-   RectLabelCreate("InputParametersRectLabel", x, y, 600, 430);
+   RectLabelCreate("InputParametersRectLabel", x, y, 314, 352);
    
    color backgroundColor = C'35,35,35';
    //string fontName = "Wingdings 3";
@@ -1503,45 +1516,47 @@ void drawInputParameters() {
    //string fontName = "Arial";
    int fontSize = 7;
    int fontSizeBtn = 9;
-   int btnWidth = 40;
-   int btnHeight = 40;
+   int btnWidth = 30;
+   int btnHeight = 30;
    
-   int interval = 400;
-   int widthValue = 100;
+   int interval = 200;
+   int widthValue = 50;
    int rowInterval = 2;
+   int fontSizeParam = 9;
+   int adjustX=9;
    
    SetText("InitLotLabel", "Init Lot :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmInitLotDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("InitLotValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmInitLotValue, DoubleToStr(initLots, 2), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmInitLotValue, DoubleToStr(initLots, 2), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmInitLotUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
    
    y += btnHeight+rowInterval;
    SetText("GridPointsLabel", "Grid Points :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmGridPointsDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("GridPointsValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmGridPointsValue, IntegerToString(grid), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmGridPointsValue, IntegerToString(grid), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmGridPointsUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 
    y += btnHeight+rowInterval;
    SetText("TakeProfitPointsLabel", "Take Profit Points :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmTakeProfitPointsDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("TakeProfitPointsValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmTakeProfitPointsValue, IntegerToString(tpPoints), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmTakeProfitPointsValue, IntegerToString(tpPoints), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmTakeProfitPointsUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 
    y += btnHeight+rowInterval;
    SetText("RetraceProfitCoefficientLabel", "Retrace Profit Coefficient :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmRetraceProfitCoefficientDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("RetraceProfitCoefficientValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmRetraceProfitCoefficientValue, DoubleToStr(retraceProfitRatio, 2), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmRetraceProfitCoefficientValue, DoubleToStr(retraceProfitRatio, 2), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmRetraceProfitCoefficientUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 
    y += btnHeight+rowInterval;
    SetText("MaxTimesAddOrderLabel", "Max Add Order Times :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmMaxTimesAddPositionDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("MaxTimesAddOrderValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmMaxTimesAddPositionValue, IntegerToString(maxTimes4AP), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmMaxTimesAddPositionValue, IntegerToString(maxTimes4AP), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmMaxTimesAddPositionUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 
    y += btnHeight+rowInterval;
@@ -1551,25 +1566,26 @@ void drawInputParameters() {
       btnText = btnTxtAddOrderByTrend;
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmAddOrderByTrend, btnText, x+interval-140, y+2, 280, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmAddOrderByTrend, btnText, x+4, y+2, 176, btnHeight, btnColor, fontSize, clrWhite);
    
    y += btnHeight+rowInterval;
-   SetText("CloseModeLabel", "Close Mode :", x+4, y+2, fontSize+1);
+   SetText("CloseModeLabel", "Close Mode :", x+4, y+10, fontSize+1);
    btnColor = btnColorDisable;
    if (Close_All == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMCloseAll, "CloseAll", x+interval-220, y+2, 100, btnHeight, btnColor, fontSize, clrWhite);
+   y += btnHeight;
+   ButtonCreate(btnNmCMCloseAll, "CloseAll", x+20, y, 70, btnHeight, btnColor, fontSize, clrWhite);
    btnColor = btnColorDisable;
    if (Close_Part == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMClosePart, "ClosePart", x+interval-110, y+2, 120, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmCMClosePart, "ClosePart", x+110, y, 80, btnHeight, btnColor, fontSize, clrWhite);
    btnColor = btnColorDisable;
    if (Close_Part_All == closePositionMode) {
       btnColor = btnColorEnable;
    }
-   ButtonCreate(btnNmCMClosePartAll, "ClosePartAll", x+interval+20, y+2, 160, btnHeight, btnColor, fontSize, clrWhite);
+   ButtonCreate(btnNmCMClosePartAll, "ClosePartAll", x+210, y, 100, btnHeight, btnColor, fontSize, clrWhite);
    
    y += btnHeight+rowInterval;
    string lblText = "Add Order Lot Multiple :";
@@ -1577,19 +1593,19 @@ void drawInputParameters() {
    SetText(lblNmLotAddPositionLabel, lblText, x+4, y+2, fontSize+1);
    ButtonCreate(btnNmLotAddPositionDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("LotAddPositionValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmLotAddPositionValue, lblValue, x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmLotAddPositionValue, lblValue, x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmLotAddPositionUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 
    y += btnHeight+rowInterval;
    SetText("MagicNumberLabel", "Magic Number :", x+4, y+2, fontSize+1);
-   RectLabelCreate("MagicNumberValueRectLabel", x+interval, y+2, 140, btnHeight);
-   SetText("MagicNumberValue", IntegerToString(MagicNumber), x+interval+4, y+3, fontSize);
+   RectLabelCreate("MagicNumberValueRectLabel", x+interval, y+2, 112, btnHeight);
+   SetText("MagicNumberValue", IntegerToString(MagicNumber), x+interval+4, y+8, fontSize);
 
    y += btnHeight+rowInterval;
    SetText("MaxLots4AddPositionLimitLabel", "Max Add Order Lots Limit :", x+4, y+2, fontSize+1);
    ButtonCreate(btnNmMaxLots4AddPositionLimitDn, btnTxtDn, x+interval, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnDn, fontName);
    RectLabelCreate("MaxLots4AddPositionLimitValueRectLabel", x+interval+btnWidth+1, y+2, widthValue, btnHeight);
-   SetText(lblNmMaxLots4AddPositionLimitValue, DoubleToStr(Max_Lot_AP, 2), x+interval+btnWidth+18, y+3, fontSize);
+   SetText(lblNmMaxLots4AddPositionLimitValue, DoubleToStr(Max_Lot_AP, 2), x+interval+btnWidth+adjustX, y+5, fontSizeParam);
    ButtonCreate(btnNmMaxLots4AddPositionLimitUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 }
 OrderInfo *createOrderL(double lotSize, int index) {
@@ -1610,4 +1626,36 @@ OrderInfo *createOrderS(double lotSize, int index) {
 void closeAll() {
    closeOrdersByList(OrderListL);
    closeOrdersByList(OrderListS);
+}
+
+void restore(CList *list, int orderType) {
+   int totalCnt = OrdersTotal();
+   for (int i=0; i<totalCnt; i++) {
+      bool isSelected = OrderSelect(i, SELECT_BY_POS);
+      if (!isSelected) continue;
+      if (OrderMagicNumber() != MagicNumber) continue;
+      if (OrderSymbol() != _Symbol) continue;
+      if (OrderType() != orderType) continue;
+      OrderInfo *oi = new OrderInfo;
+      oi.setValid(true);
+      oi.setTicketId(OrderTicket());
+      oi.setOperationType(OrderType());
+      oi.setSymbolName(_Symbol);
+      oi.setOpenPrice(OrderOpenPrice());
+      oi.setLotSize(OrderLots());
+      oi.setTpPrice(OrderTakeProfit());
+      oi.setSlPrice(OrderStopLoss());
+      list.Add(oi);
+   }
+   Print("List Size=", list.Total(), "  orderType=", orderType==OP_BUY ? "Buy" : "Sell");
+}
+
+double getTotalLots(CList *list) {
+   int totalCnt = list.Total();
+   double lots = 0.0;
+   for (int i=0; i<totalCnt; i++) {
+      OrderInfo *oi = list.GetNodeAtIndex(i);
+      lots += oi.getLotSize();
+   }
+   return lots;
 }

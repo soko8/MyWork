@@ -23,6 +23,7 @@ protected:
    double            slPrice;             // 止损价
    int               operationType;       // 订单类型
    string            symbolName;          // 货币对名
+   datetime          openTime;            // 开仓时间
    bool              active;              // 订单是否可激活
    bool              closed;              // 订单是否被平仓
    bool              valid;               // 订单是否有效
@@ -53,6 +54,9 @@ public:
    void              setSymbolName(string symbolNm){ symbolName = symbolNm;}
    string            getSymbolName(void)     const { return(symbolName);   }
 
+   void              setOpenTime(datetime openTm)  { openTime = openTm;    }
+   datetime          getOpenTime(void)       const { return(openTime);     }
+
    void              setActive(bool actived)       { this.active = actived;}
    bool              isActive(void)          const { return(active);       }
 
@@ -62,21 +66,20 @@ public:
    void              setValid(bool valided)        { this.valid = valided; }
    bool              isValid(void)           const { return(valid);        }
 
-
+   string            toString(void);
 };
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-OrderInfo::OrderInfo()
-  {
+OrderInfo::OrderInfo() {
       active = false;
       closed = false;
       valid = false;
-  }
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-OrderInfo::~OrderInfo()
-  {
-  }
+}
+
+OrderInfo::~OrderInfo() {}
+
+string OrderInfo::toString(void) {
+   return("ticketId="+IntegerToString(ticketId)+"||symbol="+symbolName+"||type="+IntegerToString(operationType)+"||lot="+DoubleToStr(lotSize,2)+"||OpenPrice="+DoubleToStr(openPrice,5)+"||TP="+DoubleToStr(tpPrice,5)+"||SL="+DoubleToStr(slPrice,5)+"||OpenTime="+TimeToStr(openTime,TIME_DATE|TIME_SECONDS));
+}
 //+------------------------------------------------------------------+

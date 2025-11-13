@@ -343,6 +343,8 @@ int OnInit() {
    restore(OrderListL, OP_BUY);
    restore(OrderListS, OP_SELL);
    resetTpPrice();
+   if (0 < OrderListL.Total()) setCloseBuyButton(Close_Order_Mode);
+   if (0 < OrderListS.Total()) setCloseSellButton(Close_Order_Mode);
    
    return(INIT_SUCCEEDED);
 }
@@ -388,8 +390,10 @@ void minusPositionL() {
    double preOldOrderLot = 0.0;
    double curOrderLot = 0.0;
    OrderInfo *curOrder = NULL;
+   Print("Minus Long Position Before:");
    for (int m = 0; m < count; m++) {
       curOrder = OrderListL.GetNodeAtIndex(m);
+      Print("m:", m, curOrder.toString());
       if (0 == m) {
          order0 = curOrder;
          closeOrderLong(curOrder);
@@ -400,7 +404,7 @@ void minusPositionL() {
          closeOrderLong(curOrder);
       
       } else {
-         closeOrderLong(curOrder, curOrder.getLotSize()-preOldOrderLot);
+         closeOrderLong(curOrder, NormalizeDouble(curOrder.getLotSize()-preOldOrderLot,2));
          OrderListL.MoveToIndex(m-1);
          curOrderLot = preOldOrderLot;
          preOldOrderLot = curOrder.getLotSize();
@@ -421,6 +425,12 @@ void minusPositionL() {
    
    resetTicketId(OrderListL);
    resetStateBuy();
+   count = OrderListL.Total();
+   Print("Minus Long Position After:");
+   for (int m = 0; m < count; m++) {
+      curOrder = OrderListL.GetNodeAtIndex(m);
+      Print("m:", m, curOrder.toString());
+   }
 }
 
 void minusPositionS() {
@@ -430,8 +440,10 @@ void minusPositionS() {
    double preOldOrderLot = 0.0;
    double curOrderLot = 0.0;
    OrderInfo *curOrder = NULL;
+   Print("Minus Short Position Before:");
    for (int m = 0; m < count; m++) {
       curOrder = OrderListS.GetNodeAtIndex(m);
+      Print("m:", m, curOrder.toString());
       if (0 == m) {
          order0 = curOrder;
          closeOrderShort(curOrder);
@@ -442,7 +454,7 @@ void minusPositionS() {
          closeOrderShort(curOrder);
       
       } else {
-         closeOrderShort(curOrder, curOrder.getLotSize()-preOldOrderLot);
+         closeOrderShort(curOrder, NormalizeDouble(curOrder.getLotSize()-preOldOrderLot,2));
          OrderListS.MoveToIndex(m-1);
          curOrderLot = preOldOrderLot;
          preOldOrderLot = curOrder.getLotSize();
@@ -463,6 +475,13 @@ void minusPositionS() {
    
    resetTicketId(OrderListS);
    resetStateSell();
+   
+   count = OrderListS.Total();
+   Print("Minus Short Position After:");
+   for (int m = 0; m < count; m++) {
+      curOrder = OrderListS.GetNodeAtIndex(m);
+      Print("m:", m, curOrder.toString());
+   }
 }
 
 void closeAllBuy() {
@@ -1609,14 +1628,14 @@ void drawInputParameters() {
    ButtonCreate(btnNmMaxLots4AddPositionLimitUp, btnTxtUp, x+interval+btnWidth+widthValue+2, y+2, btnWidth, btnHeight, backgroundColor, fontSizeBtn, colorBtnUp, fontName);
 }
 OrderInfo *createOrderL(double lotSize, int index) {
-   OrderInfo *oi = createOrderLong(lotSize, MagicNumber);
+   OrderInfo *oi = createOrderLong(_Symbol, lotSize, MagicNumber);
    if (NULL != oi) {
       oi.setTpPrice(oi.getOpenPrice() + APRule_RetracePrice[index]);
    }
    return oi;
 }
 OrderInfo *createOrderS(double lotSize, int index) {
-   OrderInfo *oi = createOrderShort(lotSize, MagicNumber);
+   OrderInfo *oi = createOrderShort(_Symbol, lotSize, MagicNumber);
    if (NULL != oi) {
       oi.setTpPrice(oi.getOpenPrice() - APRule_RetracePrice[index]);
    }

@@ -39,8 +39,8 @@
    void PressButton(string ctlName);
    bool closeOrderShort(OrderInfo *orderInfo, double lotSize=0.0);
    bool closeOrderLong(OrderInfo *orderInfo, double lotSize=0.0);
-   OrderInfo *createOrderLong(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
-   OrderInfo *createOrderShort(double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
+   OrderInfo *createOrderLong(string symbol, double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
+   OrderInfo *createOrderShort(string symbol, double lotSize, int MagicNumber, double sl=0.0, double tp=0.0);
    void closeOrdersByList(CList *orderList);
    bool IsStringValidDouble(string str);
 #import

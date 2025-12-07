@@ -152,7 +152,7 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
  * 该函数负责协调整个波浪识别流程，包括波浪检测、信号绘制、警报触发和趋势线预测
  * 是波浪分析系统的总调度中心
  */
-int NewWave_Manager(int indexBar
+void NewWave_Manager(int indexBar
                   , int periodSMA
                   , int periodLWMA
                   , SWaveInfo &arrayAllWavesInfo[]
@@ -168,7 +168,7 @@ int NewWave_Manager(int indexBar
 	if (waveState.timeFirstZero == 0) {
 		F_F_Zero(periodSMA, periodLWMA, indexBar, waveState);
 		waveState.foundWave = false;  // 标记未找到完整波浪
-		return (0);  // 直接返回，等待下一个周期
+		return;  // 直接返回，等待下一个周期
 	}
 
 	// 第二步：检查是否已找到第二个零点（波浪终点）
@@ -178,7 +178,7 @@ int NewWave_Manager(int indexBar
 		// 如果仍未找到第二个零点，标记未找到完整波浪
 		if (waveState.timeSecondZero == 0) {
 			waveState.foundWave = false;
-			return (0);
+			return;
 		}
 	}
 
@@ -243,7 +243,6 @@ int NewWave_Manager(int indexBar
 
 	// 重置第二个零点，开始寻找新波浪的终点
 	waveState.timeSecondZero = 0;
-	return (0);
 }
 
 /**
@@ -324,7 +323,7 @@ datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexS
     int count = 0;                          // 搜索计数器，记录向后搜索的K线数量
     datetime timeFindZeroFromShift = 0;     // 存储找到的零点时间
     bool found = FALSE;                     // 搜索完成标志
-    
+
     // 开始循环搜索，直到找到零点或超出数据范围
     while (found == FALSE) {
         // 检查当前K线位置是否为零点区域
@@ -333,17 +332,17 @@ datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexS
             timeFindZeroFromShift = Time[startIndexShiftBar + count];
             startIndexShiftBar += count;
         }
-        
+
         // 移动到下一根K线继续搜索
         count++;
-        
+
         // 边界检查：防止搜索超出可用数据范围
         if (startIndexShiftBar + count >= Bars) {
             found = TRUE;  // 强制结束搜索
             timeFindZeroFromShift = 0;
         }
     }
-    
+
     // 返回搜索结果：找到的零点时间或0
     return (timeFindZeroFromShift);
 }
@@ -356,29 +355,29 @@ int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShift
     int returnValueWaveType = -1;           // 存储找到的波浪类型，初始化为错误值
     int waveType = 0;                       // 临时存储当前K线的波浪类型
     bool found = FALSE;                     // 搜索完成标志
-    
+
     // 开始循环搜索，直到找到明确波浪或超出数据范围
     while (found == FALSE) {
         // 获取当前K线位置的波浪类型
         waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, startIndexShiftBar + count);
-        
+
         // 检查是否找到明确波浪类型（1=上涨，2=下跌）
         if (waveType > 0) {
             returnValueWaveType = waveType;  // 记录找到的波浪类型
             found = TRUE;                    // 设置完成标志
             startIndexShiftBar += count;
         }
-        
+
         // 移动到下一根K线继续搜索
         count++;
-        
+
         // 边界检查：防止搜索超出可用数据范围
         if (startIndexShiftBar + count >= Bars) {
             found = TRUE;  // 强制结束搜索
             returnValueWaveType = -1;
         }
     }
-    
+
     // 返回搜索结果：找到的波浪类型或-1
     return (returnValueWaveType);
 }
@@ -401,51 +400,51 @@ int ChMnr_CurrentWaveType(int periodSMA, int periodLWMA, int bufferIndex4MA) {
     double valueSMA = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA);
     double valueLWMA = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA);
     double diff = valueSMA - valueLWMA;
-    
+
     if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA) == 1)
         return (0);  // 返回0表示处于零点/转折区域
-    
+
     if (diff > 0.0)
         return (1);  // 返回1表示上涨波浪（波峰形成阶段）
-    
+
     if (diff < 0.0)
         return (2);  // 返回2表示下跌波浪（波谷形成阶段）
-    
+
     return (-1);
 }
 
 /**
  * 添加新波浪信息到波浪数组
  */
-int Add_Wave(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
+void Add_Wave(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
     // 获取当前波浪数组的大小（即已存储的波浪数量）
     int dimension1 = ArraySize(arrayAllWavesInfo);
-    
+
     // 增加数组大小以容纳新波浪
     dimension1++;
     ArrayResize(arrayAllWavesInfo, dimension1);
-    
+
     // 存储波浪的基本信息到新数组位置
     arrayAllWavesInfo[dimension1 - 1].waveType = waveState.waveType;             // 波浪类型 (1=波峰, 2=波谷)
     arrayAllWavesInfo[dimension1 - 1].timeFirstZero = waveState.timeFirstZero;   // 第一个零点时间（波浪开始）
     arrayAllWavesInfo[dimension1 - 1].timeSecondZero = waveState.timeSecondZero; // 第二个零点时间（波浪结束）
-    
+
     // 获取前一个波浪的枢轴点时间，用于优化当前波浪的枢轴点搜索范围
     datetime timePrePivot = 0;
     if (dimension1 - 2 >= 0)  // 确保存在前一个波浪
         timePrePivot = arrayAllWavesInfo[dimension1 - 2].pivotTime;  // 前一个波浪的枢轴时间
-        
+
     // 寻找当前波浪的枢轴点（波峰或波谷的时间）
     datetime timePivot = FindPivot(waveState, timePrePivot);
-    
+
     // 如果成功找到枢轴点
     if (timePivot != 0) {
         // 存储枢轴点的K线索引位置
         arrayAllWavesInfo[dimension1 - 1].pivotBarIndex = iBarShift(NULL, 0, timePivot, FALSE);  // 枢轴点Bar索引
-        
+
         // 存储枢轴点的时间戳
         arrayAllWavesInfo[dimension1 - 1].pivotTime = timePivot;  // 枢轴点时间
-        
+
         // 根据波浪类型存储枢轴点价格
         if (waveState.waveType == 1) {
             // 波峰类型：存储最高价
@@ -456,9 +455,6 @@ int Add_Wave(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
             arrayAllWavesInfo[dimension1 - 1].pivotPrice = Low[iBarShift(NULL, 0, timePivot, FALSE)];   // 枢轴点价格
         }
     }
-    
-    // 函数执行成功，返回0
-    return (0);
 }
 
 /**
@@ -468,20 +464,19 @@ datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
     // 参数有效性检查
     if (waveState.waveType < 1 || waveState.timeFirstZero == 0 || waveState.timeSecondZero == 0)
         return (0);
-    
+
     // 将时间转换为对应的K线索引位置（bar index）
     int endBar = iBarShift(NULL, 0, waveState.timeFirstZero, TRUE);
     int startBar = iBarShift(NULL, 0, waveState.timeSecondZero, TRUE);
-    
+
     // 检查时间转换是否成功
-    if (endBar == -1 || startBar == -1)
-        return (0);
-    
+    if (endBar == -1 || startBar == -1) return (0);
+
     // 计算前一个枢轴点的K线索引位置（如果有的话）
     int iBarShiftPrePivot = 0;
     if (timePrePivot > 0)
         iBarShiftPrePivot = iBarShift(NULL, 0, timePrePivot, TRUE);
-    
+
     // 计算需要搜索的K线数量
     int count = 0;
     if (iBarShiftPrePivot > 0) {
@@ -489,20 +484,20 @@ datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
     } else {
         count = endBar - startBar + 1;
     }
-    
+
     // 根据波浪类型寻找不同类型的枢轴点
     if (waveState.waveType == 1) {
         // 寻找波峰（高点枢轴）
         int barIndexHighest = iHighest(NULL, 0, MODE_HIGH, count, startBar);
         return (Time[barIndexHighest]);
     }
-    
+
     if (waveState.waveType == 2) {
         // 寻找波谷（低点枢轴）
         int barIndexLowest = iLowest(NULL, 0, MODE_LOW, count, startBar);
         return (Time[barIndexLowest]);
     }
-    
+
     // 如果波浪类型不是1或2，返回0
     return (0);
 }
@@ -536,10 +531,10 @@ bool IsInATRChannel(double diff, int indexBar) {
  */
 double NormalizeToDigit(double doubleValue) {
     double returnValue = doubleValue;
-    
+
     for (int i = 1; i <= Digits; i++)
         returnValue = 10.0 * returnValue;
-    
+
     return (returnValue);
 }
 
@@ -548,14 +543,12 @@ double NormalizeToDigit(double doubleValue) {
  */
 string PrepareTextAlarm(datetime timeAlarm, int isTopOrBottom, double price, datetime pivotTime) {
     string returnValue = TimeToStr(timeAlarm, TIME_DATE) + " " + TimeToStr(timeAlarm, TIME_MINUTES) + " : ";
-    
-    if (isTopOrBottom == 1)
-        returnValue += "The top maximum is generated : ";
-    if (isTopOrBottom == 2)
-        returnValue += "The bottom minimum is generated : ";
-    
+
+    if (isTopOrBottom == 1) returnValue += "The top maximum is generated : ";
+    if (isTopOrBottom == 2) returnValue += "The bottom minimum is generated : ";
+
     returnValue += TimeToStr(pivotTime, TIME_DATE) + " " + TimeToStr(pivotTime, TIME_MINUTES) + " Price Value: ";
     returnValue += DoubleToStr(price, Digits);
-    
+
     return (returnValue);
 }

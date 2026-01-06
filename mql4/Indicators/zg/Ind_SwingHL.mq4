@@ -66,9 +66,18 @@ struct SWaveState {
     int waveType;
     bool foundWave;
 };
-
 // 各周期的波浪状态
 SWaveState stateHigh, stateLow, stateLowest;
+
+// ==================== MA缓存结构体 ====================
+struct SMACache {
+    double sma[];      // SMA缓存数组
+    double lwma[];     // LWMA缓存数组
+    double atr[];      // ATR缓存数组
+    int lastCalculated; // 最后计算的bar位置
+};
+// MA缓存对象
+SMACache cacheHigh, cacheLow, cacheLowest;
 
 double HighSemaBuffer[];
 double LowSemaBuffer[];
@@ -77,6 +86,43 @@ int periodHigh, periodHigh7, periodLow, periodLow5;
 datetime timeBar0 = 0;
 
 const int Period_ATR = 14;
+
+// ==================== 初始化MA缓存 ====================
+void InitMACache(SMACache &cache, int size) {
+    ArrayResize(cache.sma, size);
+    ArrayResize(cache.lwma, size);
+    ArrayResize(cache.atr, size);
+    ArrayInitialize(cache.sma, 0);
+    ArrayInitialize(cache.lwma, 0);
+    ArrayInitialize(cache.atr, 0);
+    cache.lastCalculated = -1;
+}
+
+// ==================== 更新MA缓存 ====================
+void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int startBar, int endBar) {
+    for (int i = startBar; i >= endBar; i--) {
+        cache.sma[i] = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, i);
+        cache.lwma[i] = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, i);
+        cache.atr[i] = iATR(NULL, 0, Period_ATR, i);
+    }
+    cache.lastCalculated = endBar;
+}
+
+// ==================== 获取缓存的MA值 ====================
+double GetCachedSMA(SMACache &cache, int index) {
+    if (index < 0 || index >= ArraySize(cache.sma)) return 0;
+    return cache.sma[index];
+}
+
+double GetCachedLWMA(SMACache &cache, int index) {
+    if (index < 0 || index >= ArraySize(cache.lwma)) return 0;
+    return cache.lwma[index];
+}
+
+double GetCachedATR(SMACache &cache, int index) {
+    if (index < 0 || index >= ArraySize(cache.atr)) return 0;
+    return cache.atr[index];
+}
 
 int OnInit() {
    SetIndexStyle(0, DRAW_ARROW);
@@ -102,7 +148,13 @@ int OnInit() {
    periodHigh7 = MathMax(1, (int)MathRound(High_period / 7.0));
    periodLow = Low_period;
    periodLow5 = MathMax(1, (int)MathRound(Low_period / 5.0));
-   
+
+   // 初始化MA缓存
+   int bars = Bars;
+   InitMACache(cacheHigh, bars);
+   InitMACache(cacheLow, bars);
+   InitMACache(cacheLowest, bars);
+
    return(INIT_SUCCEEDED);
 }
 
@@ -113,6 +165,17 @@ void OnDeinit(const int reason) {
    ArrayInitialize(HighSemaBuffer, EMPTY_VALUE);
    ArrayInitialize(LowSemaBuffer, EMPTY_VALUE);
    ArrayInitialize(LowestSemaBuffer, EMPTY_VALUE);
+
+   // 释放缓存
+   ArrayFree(cacheHigh.sma);
+   ArrayFree(cacheHigh.lwma);
+   ArrayFree(cacheHigh.atr);
+   ArrayFree(cacheLow.sma);
+   ArrayFree(cacheLow.lwma);
+   ArrayFree(cacheLow.atr);
+   ArrayFree(cacheLowest.sma);
+   ArrayFree(cacheLowest.lwma);
+   ArrayFree(cacheLowest.atr);
 }
 
 int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[]) {
@@ -127,19 +190,41 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
        limit = rates_total - 1;
    }
 
+   // 确保缓存数组大小足够
+   if (ArraySize(cacheHigh.sma) < rates_total) {
+       ArrayResize(cacheHigh.sma, rates_total);
+       ArrayResize(cacheHigh.lwma, rates_total);
+       ArrayResize(cacheHigh.atr, rates_total);
+   }
+   if (ArraySize(cacheLow.sma) < rates_total) {
+       ArrayResize(cacheLow.sma, rates_total);
+       ArrayResize(cacheLow.lwma, rates_total);
+       ArrayResize(cacheLow.atr, rates_total);
+   }
+   if (ArraySize(cacheLowest.sma) < rates_total) {
+       ArrayResize(cacheLowest.sma, rates_total);
+       ArrayResize(cacheLowest.lwma, rates_total);
+       ArrayResize(cacheLowest.atr, rates_total);
+   }
+
+   // 更新MA缓存（只计算新的bar）
+   UpdateMACache(cacheHigh, periodHigh7, periodHigh, limit, 0);
+   UpdateMACache(cacheLow, periodLow5, periodLow, limit, 0);
+   UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, limit, 0);
+
    // 处理每根K线
    for (int i = limit; i >= 0; i--) {
 
       // 1 高点波浪管理（大周期检测）
-      NewWave_Manager(i, periodHigh7, periodHigh, arrayWavesInfoBigPeriod, HighSemaBuffer, stateHigh, 
+      NewWave_Manager(i, periodHigh7, periodHigh, cacheHigh, arrayWavesInfoBigPeriod, HighSemaBuffer, stateHigh, 
                      DrawHighPivotSemafor, HighPivotSemaforDrawOffset, HighPivotTextAlarm, HighPivotSoundAlarm);
 
       // 2 低点波浪管理（小周期检测）
-      NewWave_Manager(i, periodLow5, periodLow, arrayWavesInfoSmallPeriod, LowSemaBuffer, stateLow, 
+      NewWave_Manager(i, periodLow5, periodLow, cacheLow, arrayWavesInfoSmallPeriod, LowSemaBuffer, stateLow, 
                      DrawLowPivotSemafor, LowPivotSemaforDrawOffset, LowPivotTextAlarm, LowPivotSoundAlarm);
 
       // 3 最低点波浪管理（极值检测）
-      NewWave_Manager(i, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, arrayWavesInfo25Period, LowestSemaBuffer, stateLowest, 
+      NewWave_Manager(i, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, cacheLowest, arrayWavesInfo25Period, LowestSemaBuffer, stateLowest, 
                      DrawLowestPivotSemafor, LOWEST_SEMAFOR_OFFSET, 0, "");
    }
 
@@ -155,6 +240,7 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
 void NewWave_Manager(int indexBar
                   , int periodSMA
                   , int periodLWMA
+                  , SMACache &cache
                   , SWaveInfo &arrayAllWavesInfo[]
                   , double &SemaBuffer[]
                   , SWaveState &waveState
@@ -166,7 +252,7 @@ void NewWave_Manager(int indexBar
 	// 第一步：检查是否已找到第一个零点（波浪起点）
 	// 如果未找到，尝试寻找第一个零点
 	if (waveState.timeFirstZero == 0) {
-		F_F_Zero(periodSMA, periodLWMA, indexBar, waveState);
+		FindFirstZeroCrossing(periodSMA, periodLWMA, indexBar, cache, waveState);
 		waveState.foundWave = false;  // 标记未找到完整波浪
 		return;  // 直接返回，等待下一个周期
 	}
@@ -174,7 +260,7 @@ void NewWave_Manager(int indexBar
 	// 第二步：检查是否已找到第二个零点（波浪终点）
 	// 如果未找到，尝试寻找第二个零点
 	if (waveState.timeSecondZero == 0) {
-		F_S_Zero(periodSMA, periodLWMA, indexBar, waveState);
+		FindSecondZeroCrossing(periodSMA, periodLWMA, indexBar, cache, waveState);
 		// 如果仍未找到第二个零点，标记未找到完整波浪
 		if (waveState.timeSecondZero == 0) {
 			waveState.foundWave = false;
@@ -248,13 +334,13 @@ void NewWave_Manager(int indexBar
 /**
  * 寻找第一个零点（F_F_Zero） - 波浪起点检测函数
  */
-void F_F_Zero(int periodSMA, int periodLWMA, int shiftBarIndex, SWaveState &waveState) {
+void FindFirstZeroCrossing(int periodSMA, int periodLWMA, int shiftBarIndex, SMACache &cache, SWaveState &waveState) {
 
    // 数据充足性检查：确保有足够的K线数据来计算移动平均线
    if ((Bars - shiftBarIndex) < (periodLWMA << 1)) return;
 
    // 获取当前K线位置的波浪类型
-   int currentWaveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, shiftBarIndex);
+   int currentWaveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, shiftBarIndex, cache);
 
    // 初始化全局变量，准备寻找新的零点
    waveState.timeFirstZero = 0;  // 重置第一个零点时间
@@ -266,19 +352,19 @@ void F_F_Zero(int periodSMA, int periodLWMA, int shiftBarIndex, SWaveState &wave
    // 情况1：当前K线已有明确的波浪类型（上涨或下跌）
    if (currentWaveType > 0) {
       // 从当前K线开始向后搜索，寻找趋势的转折点（零点）
-      timeFindZeroFromShift = ChMnr_FindZeroFromShift(periodSMA, periodLWMA, index2ShiftBar);
+      timeFindZeroFromShift = ChMnr_FindZeroFromShift(periodSMA, periodLWMA, index2ShiftBar, cache);
       // 如果没有找到有效的零点，直接返回
       if (timeFindZeroFromShift <= 0) return;
    } 
    // 情况2：当前K线处于零点区域或没有明确趋势
    else {
       // 从当前K线开始向后搜索，寻找第一个明确的波浪
-      currentWaveType = ChMnr_FirstWaveFromShift(periodSMA, periodLWMA, index2ShiftBar);
+      currentWaveType = ChMnr_FirstWaveFromShift(periodSMA, periodLWMA, index2ShiftBar, cache);
       // 如果没有找到有效的波浪，直接返回
       if (currentWaveType <= 0) return;
    
       // 找到波浪后，继续向后搜索该波浪的结束点（零点）
-      timeFindZeroFromShift = ChMnr_FindZeroFromShift(periodSMA, periodLWMA, index2ShiftBar);
+      timeFindZeroFromShift = ChMnr_FindZeroFromShift(periodSMA, periodLWMA, index2ShiftBar, cache);
       // 如果没有找到有效的零点，直接返回
       if (timeFindZeroFromShift <= 0) return;
    }
@@ -291,10 +377,10 @@ void F_F_Zero(int periodSMA, int periodLWMA, int shiftBarIndex, SWaveState &wave
 /**
  * 寻找第二个零点（F_S_Zero）
  */
-void F_S_Zero(int periodSMA, int periodLWMA, int index2ShiftBar, SWaveState &waveState) {
+void FindSecondZeroCrossing(int periodSMA, int periodLWMA, int index2ShiftBar, SMACache &cache, SWaveState &waveState) {
 
     // 获取当前K线位置的波浪类型
-    int waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, index2ShiftBar);
+    int waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, index2ShiftBar, cache);
 
     // 前置条件检查：确保第一个零点已找到且波浪类型有效
     if (waveState.timeFirstZero == 0 || waveState.waveType <= 0)
@@ -319,7 +405,7 @@ void F_S_Zero(int periodSMA, int periodLWMA, int index2ShiftBar, SWaveState &wav
 /**
  * 从指定K线位置开始向后搜索零点（趋势转折点）
  */
-datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexShiftBar) {
+datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexShiftBar, SMACache &cache) {
     int count = 0;                          // 搜索计数器，记录向后搜索的K线数量
     datetime timeFindZeroFromShift = 0;     // 存储找到的零点时间
     bool found = FALSE;                     // 搜索完成标志
@@ -327,7 +413,7 @@ datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexS
     // 开始循环搜索，直到找到零点或超出数据范围
     while (found == FALSE) {
         // 检查当前K线位置是否为零点区域
-        if (ChMnr_IfZero(periodSMA, periodLWMA, startIndexShiftBar + count)) {
+        if (ChMnr_IfZero(periodSMA, periodLWMA, startIndexShiftBar + count, cache)) {
             found = TRUE;  // 找到零点，设置完成标志
             timeFindZeroFromShift = Time[startIndexShiftBar + count];
             startIndexShiftBar += count;
@@ -350,7 +436,7 @@ datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexS
 /**
  * 从指定K线位置开始向后搜索第一个明确的波浪类型
  */
-int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShiftBar) {
+int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShiftBar, SMACache &cache) {
     int count = 0;                          // 搜索计数器，记录向后搜索的K线数量
     int returnValueWaveType = -1;           // 存储找到的波浪类型，初始化为错误值
     int waveType = 0;                       // 临时存储当前K线的波浪类型
@@ -359,7 +445,7 @@ int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShift
     // 开始循环搜索，直到找到明确波浪或超出数据范围
     while (found == FALSE) {
         // 获取当前K线位置的波浪类型
-        waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, startIndexShiftBar + count);
+        waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, startIndexShiftBar + count, cache);
 
         // 检查是否找到明确波浪类型（1=上涨，2=下跌）
         if (waveType > 0) {
@@ -385,23 +471,29 @@ int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShift
 /**
  * 检查移动平均线是否处于"零点"状态（即交叉点附近）
  */
-bool ChMnr_IfZero(int periodSMA, int periodLWMA, int bufferIndex4MA) {
-    double valueSMA = NormalizeToDigit(iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA));
-    double valueLWMA = NormalizeToDigit(iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA));
-    double diff = valueSMA - valueLWMA;
+bool ChMnr_IfZero(int periodSMA, int periodLWMA, int bufferIndex4MA, SMACache &cache) {
+    //double valueSMA = NormalizeToDigit(iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA));
+    //double valueLWMA = NormalizeToDigit(iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA));
+    double valueSMA = GetCachedSMA(cache, bufferIndex4MA);
+    double valueLWMA = GetCachedLWMA(cache, bufferIndex4MA);
+    double diff = NormalizeToDigit(valueSMA) - NormalizeToDigit(valueLWMA);
     //return (IsInChanel(diff, 0, Trigger_Sens));
-    return (IsInATRChannel(diff, bufferIndex4MA));
+    //return (IsInATRChannel(diff, bufferIndex4MA));
+    return (IsInATRChannel(diff, bufferIndex4MA, cache));
 }
 
 /**
  * 确定当前K线位置的波浪类型
  */
-int ChMnr_CurrentWaveType(int periodSMA, int periodLWMA, int bufferIndex4MA) {
-    double valueSMA = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA);
-    double valueLWMA = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA);
+int ChMnr_CurrentWaveType(int periodSMA, int periodLWMA, int bufferIndex4MA, SMACache &cache) {
+    //double valueSMA = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA);
+    //double valueLWMA = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA);
+    double valueSMA = GetCachedSMA(cache, bufferIndex4MA);
+    double valueLWMA = GetCachedLWMA(cache, bufferIndex4MA);
     double diff = valueSMA - valueLWMA;
 
-    if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA))
+    //if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA))
+    if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA, cache))
         return (0);  // 返回0表示处于零点/转折区域
 
     if (diff > 0.0)
@@ -517,9 +609,10 @@ int IsInChanel(double value, double baseLine, double range) {
     return 0;
 }
 */
-bool IsInATRChannel(double diff, int indexBar) {
+bool IsInATRChannel(double diff, int indexBar, SMACache &cache) {
     //double ATRVal = NormalizeToDigit(iATR(NULL, 0, Period_ATR, indexBar));
-    double ATRVal = iATR(NULL, 0, Period_ATR, indexBar);
+    //double ATRVal = iATR(NULL, 0, Period_ATR, indexBar);
+    double ATRVal = GetCachedATR(cache, indexBar);
     double threshold = ATRVal * Trigger_Multiplier;      
 
     return (MathAbs(diff) <= threshold);

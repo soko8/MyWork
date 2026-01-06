@@ -297,7 +297,7 @@ void F_S_Zero(int periodSMA, int periodLWMA, int index2ShiftBar, SWaveState &wav
     int waveType = ChMnr_CurrentWaveType(periodSMA, periodLWMA, index2ShiftBar);
 
     // 前置条件检查：确保第一个零点已找到且波浪类型有效
-    if (waveState.timeFirstZero == 0 || waveState.waveType <= 0 || waveState.waveType <= 0)
+    if (waveState.timeFirstZero == 0 || waveState.waveType <= 0)
         return;
 
     // 情况1：当前处于零点区域（趋势转折点）
@@ -327,7 +327,7 @@ datetime ChMnr_FindZeroFromShift(int periodSMA, int periodLWMA, int &startIndexS
     // 开始循环搜索，直到找到零点或超出数据范围
     while (found == FALSE) {
         // 检查当前K线位置是否为零点区域
-        if (ChMnr_IfZero(periodSMA, periodLWMA, startIndexShiftBar + count) == 1) {
+        if (ChMnr_IfZero(periodSMA, periodLWMA, startIndexShiftBar + count)) {
             found = TRUE;  // 找到零点，设置完成标志
             timeFindZeroFromShift = Time[startIndexShiftBar + count];
             startIndexShiftBar += count;
@@ -385,7 +385,7 @@ int ChMnr_FirstWaveFromShift(int periodSMA, int periodLWMA, int &startIndexShift
 /**
  * 检查移动平均线是否处于"零点"状态（即交叉点附近）
  */
-int ChMnr_IfZero(int periodSMA, int periodLWMA, int bufferIndex4MA) {
+bool ChMnr_IfZero(int periodSMA, int periodLWMA, int bufferIndex4MA) {
     double valueSMA = NormalizeToDigit(iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, bufferIndex4MA));
     double valueLWMA = NormalizeToDigit(iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA));
     double diff = valueSMA - valueLWMA;
@@ -401,7 +401,7 @@ int ChMnr_CurrentWaveType(int periodSMA, int periodLWMA, int bufferIndex4MA) {
     double valueLWMA = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, bufferIndex4MA);
     double diff = valueSMA - valueLWMA;
 
-    if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA) == 1)
+    if (ChMnr_IfZero(periodSMA, periodLWMA, bufferIndex4MA))
         return (0);  // 返回0表示处于零点/转折区域
 
     if (diff > 0.0)

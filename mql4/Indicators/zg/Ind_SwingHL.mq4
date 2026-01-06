@@ -92,6 +92,12 @@ void InitMACache(SMACache &cache, int size) {
     ArrayResize(cache.sma, size);
     ArrayResize(cache.lwma, size);
     ArrayResize(cache.atr, size);
+
+    // 设置为时间序列模式，自动处理shift
+    ArraySetAsSeries(cache.sma, true);
+    ArraySetAsSeries(cache.lwma, true);
+    ArraySetAsSeries(cache.atr, true);
+
     ArrayInitialize(cache.sma, 0);
     ArrayInitialize(cache.lwma, 0);
     ArrayInitialize(cache.atr, 0);

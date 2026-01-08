@@ -134,15 +134,15 @@ int OnInit() {
    SetIndexStyle(0, DRAW_ARROW);
    SetIndexArrow(0, HighSemaforSymbol);
    SetIndexBuffer(0, HighSemaBuffer);
-   SetIndexEmptyValue(0, 0.0);
+   SetIndexEmptyValue(0, EMPTY_VALUE);
    SetIndexStyle(1, DRAW_ARROW);
    SetIndexArrow(1, LowSemaforSymbol);
    SetIndexBuffer(1, LowSemaBuffer);
-   SetIndexEmptyValue(1, 0.0);
+   SetIndexEmptyValue(1, EMPTY_VALUE);
    SetIndexStyle(2, DRAW_ARROW);
    SetIndexArrow(2, LowestSemaforSymbol);
    SetIndexBuffer(2, LowestSemaBuffer);
-   SetIndexEmptyValue(2, 0.0);
+   SetIndexEmptyValue(2, EMPTY_VALUE);
    
    if (High_period == 0 && Low_period == 0) {
       Alert("High_period == 0 && Low_period == 0");
@@ -201,16 +201,28 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
        ArrayResize(cacheHigh.sma, rates_total);
        ArrayResize(cacheHigh.lwma, rates_total);
        ArrayResize(cacheHigh.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheHigh.sma, true);
+       ArraySetAsSeries(cacheHigh.lwma, true);
+       ArraySetAsSeries(cacheHigh.atr, true);
    }
    if (ArraySize(cacheLow.sma) < rates_total) {
        ArrayResize(cacheLow.sma, rates_total);
        ArrayResize(cacheLow.lwma, rates_total);
        ArrayResize(cacheLow.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheLow.sma, true);
+       ArraySetAsSeries(cacheLow.lwma, true);
+       ArraySetAsSeries(cacheLow.atr, true);
    }
    if (ArraySize(cacheLowest.sma) < rates_total) {
        ArrayResize(cacheLowest.sma, rates_total);
        ArrayResize(cacheLowest.lwma, rates_total);
        ArrayResize(cacheLowest.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheLowest.sma, true);
+       ArraySetAsSeries(cacheLowest.lwma, true);
+       ArraySetAsSeries(cacheLowest.atr, true);
    }
 
    // 更新MA缓存（只计算新的bar）

@@ -63,6 +63,8 @@ SWaveInfo arrayWavesInfo25Period[];
 struct SWaveState {
     datetime timeFirstZero;
     datetime timeSecondZero;
+    int barFirstZero;
+    int barSecondZero;
     int waveType;
     bool foundWave;
 };
@@ -343,7 +345,7 @@ void NewWave_Manager(int indexBar
 	// 第六步：绘制枢轴点信号旗（如果启用）
 	if (drawPivotSemafor) {
 		int iPivot = iBarPivot;
-		int iBar_F_S_Zero = iBarShift(NULL, 0, waveState.timeSecondZero, FALSE);
+		int iBar_F_S_Zero = waveState.barSecondZero;
 
 		// 清空信号旗缓冲区中相关区域
 		for (int i = iBar_F_S_Zero - 1; i > iPivot; i++)
@@ -431,6 +433,7 @@ void FindFirstZeroCrossing(int periodSMA, int periodLWMA, int shiftBarIndex, SMA
 
    // 成功找到第一个零点，更新全局变量
    waveState.timeFirstZero = Time[index2ShiftBar];  // 记录零点时间
+   waveState.barFirstZero = index2ShiftBar;
    waveState.waveType = currentWaveType;            // 记录波浪类型
 }
 
@@ -460,6 +463,7 @@ void FindSecondZeroCrossing(int periodSMA, int periodLWMA, int index2ShiftBar, S
 
     // 情况3：找到有效的第二个零点
     waveState.timeSecondZero = Time[index2ShiftBar];
+    waveState.barSecondZero = index2ShiftBar;
 }
 
 /**
@@ -587,47 +591,49 @@ void Add_Wave(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
         timePrePivot = arrayAllWavesInfo[dimension1 - 2].pivotTime;  // 前一个波浪的枢轴时间
 
     // 寻找当前波浪的枢轴点（波峰或波谷的时间）
-    datetime timePivot = FindPivot(waveState, timePrePivot);
+    int pivotBarIndex = FindPivot(waveState, arrayAllWavesInfo);
 
     // 如果成功找到枢轴点
-    if (timePivot != 0) {
+    if (0 <= pivotBarIndex) {
         // 存储枢轴点的K线索引位置
-        arrayAllWavesInfo[dimension1 - 1].pivotBarIndex = iBarShift(NULL, 0, timePivot, FALSE);  // 枢轴点Bar索引
+        arrayAllWavesInfo[dimension1 - 1].pivotBarIndex = pivotBarIndex;  // 枢轴点Bar索引
 
         // 存储枢轴点的时间戳
-        arrayAllWavesInfo[dimension1 - 1].pivotTime = timePivot;  // 枢轴点时间
+        arrayAllWavesInfo[dimension1 - 1].pivotTime = Time[pivotBarIndex];  // 枢轴点时间
 
         // 根据波浪类型存储枢轴点价格
         if (waveState.waveType == 1) {
             // 波峰类型：存储最高价
-            arrayAllWavesInfo[dimension1 - 1].pivotPrice = High[iBarShift(NULL, 0, timePivot, FALSE)];  // 枢轴点价格
+            arrayAllWavesInfo[dimension1 - 1].pivotPrice = High[pivotBarIndex];  // 枢轴点价格
         }
         else if (waveState.waveType == 2) {
             // 波谷类型：存储最低价  
-            arrayAllWavesInfo[dimension1 - 1].pivotPrice = Low[iBarShift(NULL, 0, timePivot, FALSE)];   // 枢轴点价格
+            arrayAllWavesInfo[dimension1 - 1].pivotPrice = Low[pivotBarIndex];   // 枢轴点价格
         }
     }
 }
 
 /**
- * 寻找枢轴点（波峰或波谷）的时间
+ * 寻找枢轴点（波峰或波谷）的Bar Index
  */
-datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
+int FindPivot(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
     // 参数有效性检查
     if (waveState.waveType < 1 || waveState.timeFirstZero == 0 || waveState.timeSecondZero == 0)
-        return (0);
+        return (-1);
 
     // 将时间转换为对应的K线索引位置（bar index）
-    int endBar = iBarShift(NULL, 0, waveState.timeFirstZero, TRUE);
-    int startBar = iBarShift(NULL, 0, waveState.timeSecondZero, TRUE);
+    int endBar = waveState.barFirstZero;
+    int startBar = waveState.barSecondZero;
 
     // 检查时间转换是否成功
-    if (endBar == -1 || startBar == -1) return (0);
+    if (endBar < 0 || startBar < 0) return (-1);
 
     // 计算前一个枢轴点的K线索引位置（如果有的话）
     int iBarShiftPrePivot = 0;
-    if (timePrePivot > 0)
-        iBarShiftPrePivot = iBarShift(NULL, 0, timePrePivot, TRUE);
+    // 获取当前波浪数组的大小（即已存储的波浪数量）
+    int dimension1 = ArraySize(arrayAllWavesInfo);
+    if (dimension1 >= 2)
+        iBarShiftPrePivot = arrayAllWavesInfo[dimension1 - 2].pivotBarIndex;
 
     // 计算需要搜索的K线数量
     int count = 0;
@@ -641,17 +647,17 @@ datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
     if (waveState.waveType == 1) {
         // 寻找波峰（高点枢轴）
         int barIndexHighest = iHighest(NULL, 0, MODE_HIGH, count, startBar);
-        return (Time[barIndexHighest]);
+        return (barIndexHighest);
     }
 
     if (waveState.waveType == 2) {
         // 寻找波谷（低点枢轴）
         int barIndexLowest = iLowest(NULL, 0, MODE_LOW, count, startBar);
-        return (Time[barIndexLowest]);
+        return (barIndexLowest);
     }
 
-    // 如果波浪类型不是1或2，返回0
-    return (0);
+    // 如果波浪类型不是1或2，返回-1
+    return (-1);
 }
 
 /**

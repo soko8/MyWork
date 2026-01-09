@@ -89,6 +89,8 @@ datetime timeBar0 = 0;
 
 const int Period_ATR = 14;
 
+double g_digitFactor;
+
 // ==================== 初始化MA缓存 ====================
 void InitMACache(SMACache &cache, int size) {
     ArrayResize(cache.sma, size);
@@ -200,6 +202,8 @@ int OnInit() {
    InitMACache(cacheHigh, bars);
    InitMACache(cacheLow, bars);
    InitMACache(cacheLowest, bars);
+   
+   g_digitFactor = MathPow(10.0, Digits);
 
    return(INIT_SUCCEEDED);
 }
@@ -379,6 +383,7 @@ void NewWave_Manager(int indexBar
 	// 第八步：为下一个波浪准备状态
 	// 将当前波浪的终点作为下一个波浪的起点
 	waveState.timeFirstZero = waveState.timeSecondZero;
+	waveState.barFirstZero  = waveState.barSecondZero;
 
 	// 切换波浪类型（波峰↔波谷交替）
 	if (waveState.waveType == 1) {
@@ -642,6 +647,8 @@ int FindPivot(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
     } else {
         count = endBar - startBar + 1;
     }
+    
+    if (count <= 0) return -1;
 
     // 根据波浪类型寻找不同类型的枢轴点
     if (waveState.waveType == 1) {
@@ -688,13 +695,8 @@ bool IsInATRChannel(double diff, int indexBar, SMACache &cache) {
 /**
  * 将价格值按位数进行标准化放大
  */
-double NormalizeToDigit(double doubleValue) {
-    double returnValue = doubleValue;
-
-    for (int i = 1; i <= Digits; i++)
-        returnValue = 10.0 * returnValue;
-
-    return (returnValue);
+double NormalizeToDigit(double v) {
+    return v * g_digitFactor;
 }
 
 /**

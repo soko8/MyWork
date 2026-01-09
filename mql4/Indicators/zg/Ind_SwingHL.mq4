@@ -104,14 +104,36 @@ void InitMACache(SMACache &cache, int size) {
     cache.lastCalculated = -1;
 }
 
+void EnsureMACacheSize(SMACache &cache, int size) {
+    if (ArraySize(cache.sma) >= size) return;
+
+    ArrayResize(cache.sma, size);
+    ArrayResize(cache.lwma, size);
+    ArrayResize(cache.atr, size);
+    // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+    ArraySetAsSeries(cache.sma, true);
+    ArraySetAsSeries(cache.lwma, true);
+    ArraySetAsSeries(cache.atr, true);
+}
+
 // ==================== 更新MA缓存 ====================
-void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int startBar, int endBar) {
-    for (int i = startBar; i >= endBar; i--) {
+void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int rates_total, int prev_calculated) {
+    int startBar;
+    // 冷启动（切周期 / 重载）
+    if (prev_calculated == 0 || cache.lastCalculated < 0) {
+      startBar = rates_total - 1;
+      
+    } else { // 正常更新：只算新 bar（含前一根，防交叉）
+      startBar = rates_total - cache.lastCalculated - 1;
+      if (startBar < 1) startBar = 1;
+    }
+    
+    for (int i = startBar; i >= 0; i--) {
         cache.sma[i] = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, i);
         cache.lwma[i] = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, i);
         cache.atr[i] = iATR(NULL, 0, Period_ATR, i);
     }
-    cache.lastCalculated = endBar;
+    cache.lastCalculated = rates_total - 1;
 }
 
 // ==================== 获取缓存的MA值 ====================
@@ -128,6 +150,22 @@ double GetCachedLWMA(SMACache &cache, int index) {
 double GetCachedATR(SMACache &cache, int index) {
     if (index < 0 || index >= ArraySize(cache.atr)) return 0;
     return cache.atr[index];
+}
+
+void ResetAllStates() {
+    timeBar0 = 0;
+
+    ArrayFree(arrayWavesInfoBigPeriod);
+    ArrayFree(arrayWavesInfoSmallPeriod);
+    ArrayFree(arrayWavesInfo25Period);
+
+    stateHigh.timeFirstZero  = 0;
+    stateHigh.timeSecondZero = 0;
+    stateHigh.waveType       = 0;
+    stateHigh.foundWave      = false;
+
+    stateLow      = stateHigh;
+    stateLowest   = stateHigh;
 }
 
 int OnInit() {
@@ -185,52 +223,56 @@ void OnDeinit(const int reason) {
 }
 
 int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[]) {
-   // 新K线检测
-   if (timeBar0 == time[0]) return(prev_calculated);
-
-   timeBar0 = time[0];
-
-   // 计算需要处理的K线数量
-   int limit = rates_total - prev_calculated;
-   if (prev_calculated == 0) {
-       limit = rates_total - 1;
+   if (rates_total < 100) return 0;
+   
+   // === 防御性处理 ===
+   int prev = prev_calculated;
+   if (prev < 0 || prev > rates_total)
+      prev = 0;
+   
+   // === 冷启动（切周期 / 重载 / 回测开始）===
+   if (prev == 0) {
+      ResetAllStates();
+      InitMACache(cacheHigh, rates_total);
+      InitMACache(cacheLow, rates_total);
+      InitMACache(cacheLowest, rates_total);
+      
+      UpdateMACache(cacheHigh, periodHigh7, periodHigh, rates_total, 0);
+      UpdateMACache(cacheLow,  periodLow5,  periodLow,  rates_total, 0);
+      UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, rates_total, 0);
+      
+      // 处理每根K线
+      for (int i = rates_total - 1; i >= 0; i--) {
+   
+         // 1 高点波浪管理（大周期检测）
+         NewWave_Manager(i, periodHigh7, periodHigh, cacheHigh, arrayWavesInfoBigPeriod, HighSemaBuffer, stateHigh, 
+                        DrawHighPivotSemafor, HighPivotSemaforDrawOffset, HighPivotTextAlarm, HighPivotSoundAlarm);
+   
+         // 2 低点波浪管理（小周期检测）
+         NewWave_Manager(i, periodLow5, periodLow, cacheLow, arrayWavesInfoSmallPeriod, LowSemaBuffer, stateLow, 
+                        DrawLowPivotSemafor, LowPivotSemaforDrawOffset, LowPivotTextAlarm, LowPivotSoundAlarm);
+   
+         // 3 最低点波浪管理（极值检测）
+         NewWave_Manager(i, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, cacheLowest, arrayWavesInfo25Period, LowestSemaBuffer, stateLowest, 
+                        DrawLowestPivotSemafor, LOWEST_SEMAFOR_OFFSET, 0, "");
+      }
+   
+      // 返回已计算的K线数量
+      return(rates_total);
    }
 
-   // 确保缓存数组大小足够
-   if (ArraySize(cacheHigh.sma) < rates_total) {
-       ArrayResize(cacheHigh.sma, rates_total);
-       ArrayResize(cacheHigh.lwma, rates_total);
-       ArrayResize(cacheHigh.atr, rates_total);
-       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
-       ArraySetAsSeries(cacheHigh.sma, true);
-       ArraySetAsSeries(cacheHigh.lwma, true);
-       ArraySetAsSeries(cacheHigh.atr, true);
-   }
-   if (ArraySize(cacheLow.sma) < rates_total) {
-       ArrayResize(cacheLow.sma, rates_total);
-       ArrayResize(cacheLow.lwma, rates_total);
-       ArrayResize(cacheLow.atr, rates_total);
-       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
-       ArraySetAsSeries(cacheLow.sma, true);
-       ArraySetAsSeries(cacheLow.lwma, true);
-       ArraySetAsSeries(cacheLow.atr, true);
-   }
-   if (ArraySize(cacheLowest.sma) < rates_total) {
-       ArrayResize(cacheLowest.sma, rates_total);
-       ArrayResize(cacheLowest.lwma, rates_total);
-       ArrayResize(cacheLowest.atr, rates_total);
-       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
-       ArraySetAsSeries(cacheLowest.sma, true);
-       ArraySetAsSeries(cacheLowest.lwma, true);
-       ArraySetAsSeries(cacheLowest.atr, true);
-   }
+   // === 正常更新（新 bar / tick）===
+   EnsureMACacheSize(cacheHigh, rates_total);
+   EnsureMACacheSize(cacheLow, rates_total);
+   EnsureMACacheSize(cacheLowest, rates_total);
+   
+   UpdateMACache(cacheHigh, periodHigh7, periodHigh, rates_total, prev);
+   UpdateMACache(cacheLow,  periodLow5,  periodLow,  rates_total, prev);
+   UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, rates_total, prev);
 
-   // 更新MA缓存（只计算新的bar）
-   UpdateMACache(cacheHigh, periodHigh7, periodHigh, limit, 0);
-   UpdateMACache(cacheLow, periodLow5, periodLow, limit, 0);
-   UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, limit, 0);
-
-   // 处理每根K线
+   // 只处理新 bar（或最近 1～2 根）
+   int limit = rates_total - prev;
+   if (limit > 2) limit = 2;
    for (int i = limit; i >= 0; i--) {
 
       // 1 高点波浪管理（大周期检测）

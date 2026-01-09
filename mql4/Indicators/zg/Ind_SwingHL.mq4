@@ -212,20 +212,24 @@ void OnDeinit(const int reason) {
    ArrayFree(arrayWavesInfoBigPeriod);
    ArrayFree(arrayWavesInfoSmallPeriod);
    ArrayFree(arrayWavesInfo25Period);
-   ArrayInitialize(HighSemaBuffer, EMPTY_VALUE);
-   ArrayInitialize(LowSemaBuffer, EMPTY_VALUE);
-   ArrayInitialize(LowestSemaBuffer, EMPTY_VALUE);
+   //ArrayInitialize(HighSemaBuffer, EMPTY_VALUE);
+   //ArrayInitialize(LowSemaBuffer, EMPTY_VALUE);
+   //ArrayInitialize(LowestSemaBuffer, EMPTY_VALUE);
 
    // 释放缓存
-   ArrayFree(cacheHigh.sma);
-   ArrayFree(cacheHigh.lwma);
-   ArrayFree(cacheHigh.atr);
-   ArrayFree(cacheLow.sma);
-   ArrayFree(cacheLow.lwma);
-   ArrayFree(cacheLow.atr);
-   ArrayFree(cacheLowest.sma);
-   ArrayFree(cacheLowest.lwma);
-   ArrayFree(cacheLowest.atr);
+   ReleaseMACache(cacheHigh);
+   ReleaseMACache(cacheLow);
+   ReleaseMACache(cacheLowest);
+   
+   // 清理指标缓冲区
+   ObjectsDeleteAll();
+}
+
+void ReleaseMACache(SMACache &cache) {
+    ArrayFree(cache.sma);
+    ArrayFree(cache.lwma);
+    ArrayFree(cache.atr);
+    cache.lastCalculated = -1;
 }
 
 int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[]) {

@@ -63,8 +63,6 @@ SWaveInfo arrayWavesInfo25Period[];
 struct SWaveState {
     datetime timeFirstZero;
     datetime timeSecondZero;
-    int barFirstZero;
-    int barSecondZero;
     int waveType;
     bool foundWave;
 };
@@ -89,8 +87,6 @@ datetime timeBar0 = 0;
 
 const int Period_ATR = 14;
 
-double g_digitFactor;
-
 // ==================== 初始化MA缓存 ====================
 void InitMACache(SMACache &cache, int size) {
     ArrayResize(cache.sma, size);
@@ -108,36 +104,14 @@ void InitMACache(SMACache &cache, int size) {
     cache.lastCalculated = -1;
 }
 
-void EnsureMACacheSize(SMACache &cache, int size) {
-    if (ArraySize(cache.sma) >= size) return;
-
-    ArrayResize(cache.sma, size);
-    ArrayResize(cache.lwma, size);
-    ArrayResize(cache.atr, size);
-    // ArrayResize后需要重新设置为时间序列模式，自动处理shift
-    ArraySetAsSeries(cache.sma, true);
-    ArraySetAsSeries(cache.lwma, true);
-    ArraySetAsSeries(cache.atr, true);
-}
-
 // ==================== 更新MA缓存 ====================
-void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int rates_total, int prev_calculated) {
-    int startBar;
-    // 冷启动（切周期 / 重载）
-    if (prev_calculated == 0 || cache.lastCalculated < 0) {
-      startBar = rates_total - 1;
-      
-    } else { // 正常更新：只算新 bar（含前一根，防交叉）
-      startBar = rates_total - cache.lastCalculated - 1;
-      if (startBar < 1) startBar = 1;
-    }
-    
-    for (int i = startBar; i >= 0; i--) {
+void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int startBar, int endBar) {
+    for (int i = startBar; i >= endBar; i--) {
         cache.sma[i] = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, i);
         cache.lwma[i] = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, i);
         cache.atr[i] = iATR(NULL, 0, Period_ATR, i);
     }
-    cache.lastCalculated = rates_total - 1;
+    cache.lastCalculated = endBar;
 }
 
 // ==================== 获取缓存的MA值 ====================
@@ -154,22 +128,6 @@ double GetCachedLWMA(SMACache &cache, int index) {
 double GetCachedATR(SMACache &cache, int index) {
     if (index < 0 || index >= ArraySize(cache.atr)) return 0;
     return cache.atr[index];
-}
-
-void ResetAllStates() {
-    timeBar0 = 0;
-
-    ArrayFree(arrayWavesInfoBigPeriod);
-    ArrayFree(arrayWavesInfoSmallPeriod);
-    ArrayFree(arrayWavesInfo25Period);
-
-    stateHigh.timeFirstZero  = 0;
-    stateHigh.timeSecondZero = 0;
-    stateHigh.waveType       = 0;
-    stateHigh.foundWave      = false;
-
-    stateLow      = stateHigh;
-    stateLowest   = stateHigh;
 }
 
 int OnInit() {
@@ -202,8 +160,6 @@ int OnInit() {
    InitMACache(cacheHigh, bars);
    InitMACache(cacheLow, bars);
    InitMACache(cacheLowest, bars);
-   
-   g_digitFactor = MathPow(10.0, Digits);
 
    return(INIT_SUCCEEDED);
 }
@@ -212,77 +168,72 @@ void OnDeinit(const int reason) {
    ArrayFree(arrayWavesInfoBigPeriod);
    ArrayFree(arrayWavesInfoSmallPeriod);
    ArrayFree(arrayWavesInfo25Period);
-   //ArrayInitialize(HighSemaBuffer, EMPTY_VALUE);
-   //ArrayInitialize(LowSemaBuffer, EMPTY_VALUE);
-   //ArrayInitialize(LowestSemaBuffer, EMPTY_VALUE);
+   ArrayInitialize(HighSemaBuffer, EMPTY_VALUE);
+   ArrayInitialize(LowSemaBuffer, EMPTY_VALUE);
+   ArrayInitialize(LowestSemaBuffer, EMPTY_VALUE);
 
    // 释放缓存
    ReleaseMACache(cacheHigh);
    ReleaseMACache(cacheLow);
    ReleaseMACache(cacheLowest);
    
-   // 清理指标缓冲区
    ObjectsDeleteAll();
 }
 
 void ReleaseMACache(SMACache &cache) {
-    ArrayFree(cache.sma);
-    ArrayFree(cache.lwma);
-    ArrayFree(cache.atr);
-    cache.lastCalculated = -1;
+   ArrayFree(cache.sma);
+   ArrayFree(cache.lwma);
+   ArrayFree(cache.atr);
+   cache.lastCalculated = -1;
 }
 
 int OnCalculate(const int rates_total, const int prev_calculated, const datetime &time[], const double &open[], const double &high[], const double &low[], const double &close[], const long &tick_volume[], const long &volume[], const int &spread[]) {
-   if (rates_total < 100) return 0;
-   
-   // === 防御性处理 ===
-   int prev = prev_calculated;
-   if (prev < 0 || prev > rates_total)
-      prev = 0;
-   
-   // === 冷启动（切周期 / 重载 / 回测开始）===
-   if (prev == 0) {
-      ResetAllStates();
-      InitMACache(cacheHigh, rates_total);
-      InitMACache(cacheLow, rates_total);
-      InitMACache(cacheLowest, rates_total);
-      
-      UpdateMACache(cacheHigh, periodHigh7, periodHigh, rates_total, 0);
-      UpdateMACache(cacheLow,  periodLow5,  periodLow,  rates_total, 0);
-      UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, rates_total, 0);
-      
-      // 处理每根K线
-      for (int i = rates_total - 1; i >= 0; i--) {
-   
-         // 1 高点波浪管理（大周期检测）
-         NewWave_Manager(i, periodHigh7, periodHigh, cacheHigh, arrayWavesInfoBigPeriod, HighSemaBuffer, stateHigh, 
-                        DrawHighPivotSemafor, HighPivotSemaforDrawOffset, HighPivotTextAlarm, HighPivotSoundAlarm);
-   
-         // 2 低点波浪管理（小周期检测）
-         NewWave_Manager(i, periodLow5, periodLow, cacheLow, arrayWavesInfoSmallPeriod, LowSemaBuffer, stateLow, 
-                        DrawLowPivotSemafor, LowPivotSemaforDrawOffset, LowPivotTextAlarm, LowPivotSoundAlarm);
-   
-         // 3 最低点波浪管理（极值检测）
-         NewWave_Manager(i, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, cacheLowest, arrayWavesInfo25Period, LowestSemaBuffer, stateLowest, 
-                        DrawLowestPivotSemafor, LOWEST_SEMAFOR_OFFSET, 0, "");
-      }
-   
-      // 返回已计算的K线数量
-      return(rates_total);
+   // 新K线检测
+   if (timeBar0 == time[0]) return(prev_calculated);
+
+   timeBar0 = time[0];
+
+   // 计算需要处理的K线数量
+   int limit = rates_total - prev_calculated;
+   if (prev_calculated == 0) {
+       limit = rates_total - 1;
    }
 
-   // === 正常更新（新 bar / tick）===
-   EnsureMACacheSize(cacheHigh, rates_total);
-   EnsureMACacheSize(cacheLow, rates_total);
-   EnsureMACacheSize(cacheLowest, rates_total);
-   
-   UpdateMACache(cacheHigh, periodHigh7, periodHigh, rates_total, prev);
-   UpdateMACache(cacheLow,  periodLow5,  periodLow,  rates_total, prev);
-   UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, rates_total, prev);
+   // 确保缓存数组大小足够
+   if (ArraySize(cacheHigh.sma) < rates_total) {
+       ArrayResize(cacheHigh.sma, rates_total);
+       ArrayResize(cacheHigh.lwma, rates_total);
+       ArrayResize(cacheHigh.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheHigh.sma, true);
+       ArraySetAsSeries(cacheHigh.lwma, true);
+       ArraySetAsSeries(cacheHigh.atr, true);
+   }
+   if (ArraySize(cacheLow.sma) < rates_total) {
+       ArrayResize(cacheLow.sma, rates_total);
+       ArrayResize(cacheLow.lwma, rates_total);
+       ArrayResize(cacheLow.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheLow.sma, true);
+       ArraySetAsSeries(cacheLow.lwma, true);
+       ArraySetAsSeries(cacheLow.atr, true);
+   }
+   if (ArraySize(cacheLowest.sma) < rates_total) {
+       ArrayResize(cacheLowest.sma, rates_total);
+       ArrayResize(cacheLowest.lwma, rates_total);
+       ArrayResize(cacheLowest.atr, rates_total);
+       // ArrayResize后需要重新设置为时间序列模式，自动处理shift
+       ArraySetAsSeries(cacheLowest.sma, true);
+       ArraySetAsSeries(cacheLowest.lwma, true);
+       ArraySetAsSeries(cacheLowest.atr, true);
+   }
 
-   // 只处理新 bar（或最近 1～2 根）
-   int limit = rates_total - prev;
-   if (limit > 2) limit = 2;
+   // 更新MA缓存（只计算新的bar）
+   UpdateMACache(cacheHigh, periodHigh7, periodHigh, limit, 0);
+   UpdateMACache(cacheLow, periodLow5, periodLow, limit, 0);
+   UpdateMACache(cacheLowest, LOWEST_PERIOD_SMA, LOWEST_PERIOD_LWMA, limit, 0);
+
+   // 处理每根K线
    for (int i = limit; i >= 0; i--) {
 
       // 1 高点波浪管理（大周期检测）
@@ -353,7 +304,7 @@ void NewWave_Manager(int indexBar
 	// 第六步：绘制枢轴点信号旗（如果启用）
 	if (drawPivotSemafor) {
 		int iPivot = iBarPivot;
-		int iBar_F_S_Zero = waveState.barSecondZero;
+		int iBar_F_S_Zero = iBarShift(NULL, 0, waveState.timeSecondZero, FALSE);
 
 		// 清空信号旗缓冲区中相关区域
 		for (int i = iBar_F_S_Zero - 1; i > iPivot; i++)
@@ -387,7 +338,6 @@ void NewWave_Manager(int indexBar
 	// 第八步：为下一个波浪准备状态
 	// 将当前波浪的终点作为下一个波浪的起点
 	waveState.timeFirstZero = waveState.timeSecondZero;
-	waveState.barFirstZero  = waveState.barSecondZero;
 
 	// 切换波浪类型（波峰↔波谷交替）
 	if (waveState.waveType == 1) {
@@ -442,7 +392,6 @@ void FindFirstZeroCrossing(int periodSMA, int periodLWMA, int shiftBarIndex, SMA
 
    // 成功找到第一个零点，更新全局变量
    waveState.timeFirstZero = Time[index2ShiftBar];  // 记录零点时间
-   waveState.barFirstZero = index2ShiftBar;
    waveState.waveType = currentWaveType;            // 记录波浪类型
 }
 
@@ -472,7 +421,6 @@ void FindSecondZeroCrossing(int periodSMA, int periodLWMA, int index2ShiftBar, S
 
     // 情况3：找到有效的第二个零点
     waveState.timeSecondZero = Time[index2ShiftBar];
-    waveState.barSecondZero = index2ShiftBar;
 }
 
 /**
@@ -600,49 +548,47 @@ void Add_Wave(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
         timePrePivot = arrayAllWavesInfo[dimension1 - 2].pivotTime;  // 前一个波浪的枢轴时间
 
     // 寻找当前波浪的枢轴点（波峰或波谷的时间）
-    int pivotBarIndex = FindPivot(waveState, arrayAllWavesInfo);
+    datetime timePivot = FindPivot(waveState, timePrePivot);
 
     // 如果成功找到枢轴点
-    if (0 <= pivotBarIndex) {
+    if (timePivot != 0) {
         // 存储枢轴点的K线索引位置
-        arrayAllWavesInfo[dimension1 - 1].pivotBarIndex = pivotBarIndex;  // 枢轴点Bar索引
+        arrayAllWavesInfo[dimension1 - 1].pivotBarIndex = iBarShift(NULL, 0, timePivot, FALSE);  // 枢轴点Bar索引
 
         // 存储枢轴点的时间戳
-        arrayAllWavesInfo[dimension1 - 1].pivotTime = Time[pivotBarIndex];  // 枢轴点时间
+        arrayAllWavesInfo[dimension1 - 1].pivotTime = timePivot;  // 枢轴点时间
 
         // 根据波浪类型存储枢轴点价格
         if (waveState.waveType == 1) {
             // 波峰类型：存储最高价
-            arrayAllWavesInfo[dimension1 - 1].pivotPrice = High[pivotBarIndex];  // 枢轴点价格
+            arrayAllWavesInfo[dimension1 - 1].pivotPrice = High[iBarShift(NULL, 0, timePivot, FALSE)];  // 枢轴点价格
         }
         else if (waveState.waveType == 2) {
             // 波谷类型：存储最低价  
-            arrayAllWavesInfo[dimension1 - 1].pivotPrice = Low[pivotBarIndex];   // 枢轴点价格
+            arrayAllWavesInfo[dimension1 - 1].pivotPrice = Low[iBarShift(NULL, 0, timePivot, FALSE)];   // 枢轴点价格
         }
     }
 }
 
 /**
- * 寻找枢轴点（波峰或波谷）的Bar Index
+ * 寻找枢轴点（波峰或波谷）的时间
  */
-int FindPivot(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
+datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
     // 参数有效性检查
     if (waveState.waveType < 1 || waveState.timeFirstZero == 0 || waveState.timeSecondZero == 0)
-        return (-1);
+        return (0);
 
     // 将时间转换为对应的K线索引位置（bar index）
-    int endBar = waveState.barFirstZero;
-    int startBar = waveState.barSecondZero;
+    int endBar = iBarShift(NULL, 0, waveState.timeFirstZero, TRUE);
+    int startBar = iBarShift(NULL, 0, waveState.timeSecondZero, TRUE);
 
     // 检查时间转换是否成功
-    if (endBar < 0 || startBar < 0) return (-1);
+    if (endBar == -1 || startBar == -1) return (0);
 
     // 计算前一个枢轴点的K线索引位置（如果有的话）
     int iBarShiftPrePivot = 0;
-    // 获取当前波浪数组的大小（即已存储的波浪数量）
-    int dimension1 = ArraySize(arrayAllWavesInfo);
-    if (dimension1 >= 2)
-        iBarShiftPrePivot = arrayAllWavesInfo[dimension1 - 2].pivotBarIndex;
+    if (timePrePivot > 0)
+        iBarShiftPrePivot = iBarShift(NULL, 0, timePrePivot, TRUE);
 
     // 计算需要搜索的K线数量
     int count = 0;
@@ -651,24 +597,22 @@ int FindPivot(SWaveState &waveState, SWaveInfo &arrayAllWavesInfo[]) {
     } else {
         count = endBar - startBar + 1;
     }
-    
-    if (count <= 0) return -1;
 
     // 根据波浪类型寻找不同类型的枢轴点
     if (waveState.waveType == 1) {
         // 寻找波峰（高点枢轴）
         int barIndexHighest = iHighest(NULL, 0, MODE_HIGH, count, startBar);
-        return (barIndexHighest);
+        return (Time[barIndexHighest]);
     }
 
     if (waveState.waveType == 2) {
         // 寻找波谷（低点枢轴）
         int barIndexLowest = iLowest(NULL, 0, MODE_LOW, count, startBar);
-        return (barIndexLowest);
+        return (Time[barIndexLowest]);
     }
 
-    // 如果波浪类型不是1或2，返回-1
-    return (-1);
+    // 如果波浪类型不是1或2，返回0
+    return (0);
 }
 
 /**
@@ -699,8 +643,13 @@ bool IsInATRChannel(double diff, int indexBar, SMACache &cache) {
 /**
  * 将价格值按位数进行标准化放大
  */
-double NormalizeToDigit(double v) {
-    return v * g_digitFactor;
+double NormalizeToDigit(double doubleValue) {
+    double returnValue = doubleValue;
+
+    for (int i = 1; i <= Digits; i++)
+        returnValue = 10.0 * returnValue;
+
+    return (returnValue);
 }
 
 /**

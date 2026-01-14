@@ -24,8 +24,8 @@
 
 input int High_period = 70;
 input int Low_period = 21;
-//input int Trigger_Sens = 2;
-input double Trigger_Multiplier = 1.0;
+input int Trigger_Sens = 2;
+//input double Trigger_Multiplier = 1.0;
 input string Note0 = "***** Semafor Drawing Adjustment";
 input bool DrawHighPivotSemafor = TRUE;
 input bool DrawLowPivotSemafor = TRUE;
@@ -73,7 +73,7 @@ SWaveState stateHigh, stateLow, stateLowest;
 struct SMACache {
     double sma[];      // SMA缓存数组
     double lwma[];     // LWMA缓存数组
-    double atr[];      // ATR缓存数组
+    //double atr[];      // ATR缓存数组
     int lastCalculated; // 最后计算的bar位置
 };
 // MA缓存对象
@@ -85,22 +85,22 @@ double LowestSemaBuffer[];
 int periodHigh, periodHigh7, periodLow, periodLow5;
 datetime timeBar0 = 0;
 
-const int Period_ATR = 14;
+//const int Period_ATR = 14;
 
 // ==================== 初始化MA缓存 ====================
 void InitMACache(SMACache &cache, int size) {
     ArrayResize(cache.sma, size);
     ArrayResize(cache.lwma, size);
-    ArrayResize(cache.atr, size);
+    //ArrayResize(cache.atr, size);
 
     // 设置为时间序列模式，自动处理shift
     ArraySetAsSeries(cache.sma, true);
     ArraySetAsSeries(cache.lwma, true);
-    ArraySetAsSeries(cache.atr, true);
+    //ArraySetAsSeries(cache.atr, true);
 
     ArrayInitialize(cache.sma, 0);
     ArrayInitialize(cache.lwma, 0);
-    ArrayInitialize(cache.atr, 0);
+    //ArrayInitialize(cache.atr, 0);
     cache.lastCalculated = -1;
 }
 
@@ -109,7 +109,7 @@ void UpdateMACache(SMACache &cache, int periodSMA, int periodLWMA, int startBar,
     for (int i = startBar; i >= endBar; i--) {
         cache.sma[i] = iMA(NULL, 0, periodSMA, 0, MODE_SMA, PRICE_CLOSE, i);
         cache.lwma[i] = iMA(NULL, 0, periodLWMA, 0, MODE_LWMA, PRICE_WEIGHTED, i);
-        cache.atr[i] = iATR(NULL, 0, Period_ATR, i);
+        //cache.atr[i] = iATR(NULL, 0, Period_ATR, i);
     }
     cache.lastCalculated = endBar;
 }
@@ -124,12 +124,12 @@ double GetCachedLWMA(SMACache &cache, int index) {
     if (index < 0 || index >= ArraySize(cache.lwma)) return 0;
     return cache.lwma[index];
 }
-
+/*
 double GetCachedATR(SMACache &cache, int index) {
     if (index < 0 || index >= ArraySize(cache.atr)) return 0;
     return cache.atr[index];
 }
-
+*/
 int OnInit() {
    SetIndexStyle(0, DRAW_ARROW);
    SetIndexArrow(0, HighSemaforSymbol);
@@ -183,7 +183,7 @@ void OnDeinit(const int reason) {
 void ReleaseMACache(SMACache &cache) {
    ArrayFree(cache.sma);
    ArrayFree(cache.lwma);
-   ArrayFree(cache.atr);
+   //ArrayFree(cache.atr);
    cache.lastCalculated = -1;
 }
 
@@ -203,29 +203,29 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
    if (ArraySize(cacheHigh.sma) < rates_total) {
        ArrayResize(cacheHigh.sma, rates_total);
        ArrayResize(cacheHigh.lwma, rates_total);
-       ArrayResize(cacheHigh.atr, rates_total);
+       //ArrayResize(cacheHigh.atr, rates_total);
        // ArrayResize后需要重新设置为时间序列模式，自动处理shift
        ArraySetAsSeries(cacheHigh.sma, true);
        ArraySetAsSeries(cacheHigh.lwma, true);
-       ArraySetAsSeries(cacheHigh.atr, true);
+       //ArraySetAsSeries(cacheHigh.atr, true);
    }
    if (ArraySize(cacheLow.sma) < rates_total) {
        ArrayResize(cacheLow.sma, rates_total);
        ArrayResize(cacheLow.lwma, rates_total);
-       ArrayResize(cacheLow.atr, rates_total);
+       //ArrayResize(cacheLow.atr, rates_total);
        // ArrayResize后需要重新设置为时间序列模式，自动处理shift
        ArraySetAsSeries(cacheLow.sma, true);
        ArraySetAsSeries(cacheLow.lwma, true);
-       ArraySetAsSeries(cacheLow.atr, true);
+       //ArraySetAsSeries(cacheLow.atr, true);
    }
    if (ArraySize(cacheLowest.sma) < rates_total) {
        ArrayResize(cacheLowest.sma, rates_total);
        ArrayResize(cacheLowest.lwma, rates_total);
-       ArrayResize(cacheLowest.atr, rates_total);
+       //ArrayResize(cacheLowest.atr, rates_total);
        // ArrayResize后需要重新设置为时间序列模式，自动处理shift
        ArraySetAsSeries(cacheLowest.sma, true);
        ArraySetAsSeries(cacheLowest.lwma, true);
-       ArraySetAsSeries(cacheLowest.atr, true);
+       //ArraySetAsSeries(cacheLowest.atr, true);
    }
 
    // 更新MA缓存（只计算新的bar）
@@ -498,9 +498,9 @@ bool ChMnr_IfZero(int periodSMA, int periodLWMA, int bufferIndex4MA, SMACache &c
     double valueSMA = GetCachedSMA(cache, bufferIndex4MA);
     double valueLWMA = GetCachedLWMA(cache, bufferIndex4MA);
     double diff = NormalizeToDigit(valueSMA) - NormalizeToDigit(valueLWMA);
-    //return (IsInChanel(diff, 0, Trigger_Sens));
+    return (IsInChanel(diff, 0, Trigger_Sens));
     //return (IsInATRChannel(diff, bufferIndex4MA));
-    return (IsInATRChannel(diff, bufferIndex4MA, cache));
+    //return (IsInATRChannel(diff, bufferIndex4MA, cache));
 }
 
 /**
@@ -618,18 +618,18 @@ datetime FindPivot(SWaveState &waveState, datetime timePrePivot) {
 /**
  * 检查数值是否在指定的通道范围内
  */
-/*
-int IsInChanel(double value, double baseLine, double range) {
+
+bool IsInChanel(double value, double baseLine, double range) {
     double limitAbove = baseLine + range;
     double limitBelow = baseLine - range;
     
     if (limitBelow <= value && value <= limitAbove) {
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
-*/
+/*
 bool IsInATRChannel(double diff, int indexBar, SMACache &cache) {
     //double ATRVal = NormalizeToDigit(iATR(NULL, 0, Period_ATR, indexBar));
     //double ATRVal = iATR(NULL, 0, Period_ATR, indexBar);
@@ -638,7 +638,7 @@ bool IsInATRChannel(double diff, int indexBar, SMACache &cache) {
 
     return (MathAbs(diff) <= threshold);
 }
-
+*/
 
 /**
  * 将价格值按位数进行标准化放大
